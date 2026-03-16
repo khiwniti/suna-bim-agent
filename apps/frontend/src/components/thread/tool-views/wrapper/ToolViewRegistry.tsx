@@ -87,6 +87,9 @@ import { RealityDefenderToolView } from '../reality-defender-tool/RealityDefende
 import { ApifyToolView } from '../apify-tool/ToolView';
 import { FileReaderToolView } from '../file-reader-tool/FileReaderToolView';
 import { InitializeToolsToolView } from '../initialize-tools/InitializeToolsToolView';
+import { CarbonResultView } from '../CarbonResultView';
+import { ClashResultView } from '../ClashResultView';
+import { ComplianceResultView } from '../ComplianceResultView';
 
 
 export type ToolViewComponent = React.ComponentType<ToolViewProps>;
@@ -289,6 +292,10 @@ const defaultRegistry: ToolViewRegistryType = {
 
   'detect-deepfake': RealityDefenderToolView,
   'detect_deepfake': RealityDefenderToolView,
+
+  'bim_carbon_tool': CarbonResultView,
+  'bim_clash_detection_tool': ClashResultView,
+  'bim_compliance_tool': ComplianceResultView,
 };
 
 class ToolViewRegistry {
