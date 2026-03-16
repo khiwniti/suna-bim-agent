@@ -18,3 +18,11 @@ test-imports:
 	@echo "Testing critical imports..."
 	@uv run python core/utils/scripts/check_imports.py
 
+## Install optional BIM packages (ifcopenshell, etc.)
+install-bim:
+	uv pip install ifcopenshell numpy networkx ladybug-core
+
+## Run BIM-specific tests
+test-bim:
+	uv run python -m pytest tests/test_bim_tools.py -v
+

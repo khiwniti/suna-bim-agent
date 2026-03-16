@@ -20,6 +20,7 @@ const languageNames: Record<Locale, string> = {
   pt: 'Português',
   fr: 'Français',
   es: 'Español',
+  th: 'ภาษาไทย',
 };
 
 export function LanguageSwitcher() {

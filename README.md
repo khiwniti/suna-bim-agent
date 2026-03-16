@@ -27,6 +27,15 @@ Build, manage, and train sophisticated AI agents for any use case. Create powerf
 
 
 
+## BIM Features
+
+- **IFC Upload**: Upload IFC files via chat for analysis
+- **3D Viewer**: Interactive BIM model viewer in the workspace
+- **Carbon Analysis**: Thai emission factor (TGO/TREES) carbon calculation  
+- **Clash Detection**: Automated MEP/structural clash detection
+- **Code Compliance**: Thai building codes (มยผ.) compliance checking
+- **Thai Language**: Full Thai interface and analysis results
+
 ## 🌟 What Makes Kortix Special
 
 ### 🤖 Includes Kortix Super Worker – Flagship Generalist AI Worker

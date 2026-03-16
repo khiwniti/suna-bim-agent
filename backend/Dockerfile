@@ -17,7 +17,14 @@ RUN apk add --no-cache curl git \
     libffi \
     fontconfig \
     ttf-dejavu \
-    ttf-liberation
+    ttf-liberation \
+    # Dependencies for IFC/geometry support
+    gfortran \
+    openblas-dev \
+    libstdc++
+
+# Optional: Install ifcopenshell for full IFC parsing (heavy, skip for minimal builds)
+# RUN uv pip install ifcopenshell numpy networkx
 
 # Install Python dependencies
 COPY pyproject.toml uv.lock ./
