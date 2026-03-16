@@ -31,6 +31,15 @@ SEARCH_TOOLS = [
     ('paper_search_tool', 'core.tools.paper_search_tool', 'PaperSearchTool'),
 ]
 
+BIM_TOOLS = [
+    ('bim_ifc_parser_tool',    'core.tools.bim.ifc_parser_tool',      'IFCParserTool'),
+    ('bim_carbon_tool',        'core.tools.bim.carbon_tool',           'CarbonCalculationTool'),
+    ('bim_clash_tool',         'core.tools.bim.clash_detection_tool',  'ClashDetectionTool'),
+    ('bim_compliance_tool',    'core.tools.bim.compliance_tool',       'CodeComplianceTool'),
+    ('bim_mep_tool',           'core.tools.bim.mep_tool',              'MEPAnalysisTool'),
+    ('bim_knowledge_graph_tool', 'core.tools.bim.knowledge_graph_tool', 'KnowledgeGraphTool'),
+]
+
 UTILITY_TOOLS = [
     ('browser_tool', 'core.tools.browser_tool', 'BrowserTool'),
     ('vapi_voice_tool', 'core.tools.vapi_voice_tool', 'VapiVoiceTool'),
@@ -47,7 +56,7 @@ AGENT_BUILDER_TOOLS = [
     ('trigger_tool', 'core.tools.agent_builder_tools.trigger_tool', 'TriggerTool'),
 ]
 
-ALL_TOOLS = CORE_TOOLS + SANDBOX_TOOLS + SEARCH_TOOLS + UTILITY_TOOLS + AGENT_BUILDER_TOOLS
+ALL_TOOLS = CORE_TOOLS + SANDBOX_TOOLS + SEARCH_TOOLS + UTILITY_TOOLS + AGENT_BUILDER_TOOLS + BIM_TOOLS
 
 
 def get_tool_class(module_path: str, class_name: str) -> Type[Tool]:

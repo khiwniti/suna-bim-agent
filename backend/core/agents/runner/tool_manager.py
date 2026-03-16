@@ -170,8 +170,45 @@ class ToolManager:
                 except (ImportError, AttributeError) as e:
                     logger.warning(f"Failed to load core tool {tool_name}: {e}")
         
+        self._register_bim_tools()
         self._register_agent_builder_tools()
-    
+
+    def _register_bim_tools(self):
+        """Register BIM analysis tools when enabled in agent config."""
+        from core.tools.tool_registry import get_tool_info, get_tool_class
+
+        bim_tool_names = [
+            'bim_ifc_parser_tool',
+            'bim_carbon_tool',
+            'bim_clash_tool',
+            'bim_compliance_tool',
+            'bim_mep_tool',
+            'bim_knowledge_graph_tool',
+        ]
+
+        for tool_name in bim_tool_names:
+            if not self._is_tool_enabled(tool_name):
+                logger.debug(f"Skipping disabled BIM tool: {tool_name}")
+                continue
+
+            tool_info = get_tool_info(tool_name)
+            if tool_info:
+                _, module_path, class_name = tool_info
+                try:
+                    tool_class = get_tool_class(module_path, class_name)
+                    enabled_methods = self._get_enabled_methods_for_tool(tool_name)
+                    self.thread_manager.add_tool(
+                        tool_class,
+                        function_names=enabled_methods,
+                        project_id=self.project_id,
+                        thread_manager=self.thread_manager,
+                    )
+                    logger.debug(f"Registered BIM tool: {tool_name}")
+                except (ImportError, AttributeError) as e:
+                    logger.warning(f"Failed to load BIM tool {tool_name}: {e}")
+                except Exception as e:
+                    logger.warning(f"Failed to register BIM tool {tool_name}: {e}")
+
     def _register_agent_builder_tools(self):
         from core.tools.tool_registry import get_tool_info, get_tool_class
         
