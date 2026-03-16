@@ -323,7 +323,7 @@
       }
     },
     "billing": {
-      "renewalIn": "ต่ออายุใน {days} {days, plural, one {day} other {days}}",
+      "renewalIn": "ต่ออายุใน {days} {days, plural, one {วัน} other {วัน}}",
       "renews": "ต่ออายุ {date}",
       "activeUntil": "ใช้งานได้ถึง {date}",
       "subscriptionCancelled": "การสมัครสมาชิกของคุณจะถูกยกเลิกในวันที่ {date}",
@@ -468,7 +468,7 @@
     "newThread": "เธรดใหม่",
     "sendMessage": "ส่งข้อความ",
     "placeholder": "พิมพ์ข้อความของคุณ...",
-    "uploadingFiles": "กำลังอัปโหลด {count} ไฟล์{plural}...",
+    "uploadingFiles": "กำลังอัปโหลด {count} ไฟล์...{plural}",
     "uploadingFilesOne": "กำลังอัปโหลด {count} ไฟล์...",
     "uploadingFilesMany": "กำลังอัปโหลด {count} ไฟล์...",
     "toolCurrentlyExecuting": "{toolName} กำลังทำงานอยู่ ผลลัพธ์จะแสดงที่นี่เมื่อเสร็จสิ้น."
