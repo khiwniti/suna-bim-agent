@@ -19,6 +19,7 @@
         stop restart \
         build build-frontend \
         docker-up docker-down docker-build docker-logs docker-logs-api docker-logs-redis docker-ps \
+        dokploy-setup dokploy-build dokploy-up dokploy-down dokploy-logs \
         test test-frontend test-backend test-backend-cov \
         lint lint-frontend lint-backend lint-fix \
         format format-check typecheck \
@@ -62,6 +63,12 @@ help:
 	@printf "  $(GREEN)docker-logs-redis$(RESET)  Tail Redis logs only\n"
 	@printf "  $(GREEN)docker-ps$(RESET)          Show running containers\n"
 	@printf "  $(GREEN)restart$(RESET)            docker-down + docker-up\n"
+	@printf "\n$(BOLD)━━ Dokploy (production) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)dokploy-setup$(RESET)      Copy .env.dokploy → .env for local test\n"
+	@printf "  $(GREEN)dokploy-build$(RESET)      Build production images\n"
+	@printf "  $(GREEN)dokploy-up$(RESET)         Start production stack (detached)\n"
+	@printf "  $(GREEN)dokploy-down$(RESET)       Stop production stack\n"
+	@printf "  $(GREEN)dokploy-logs$(RESET)       Tail production logs\n"
 	@printf "\n$(BOLD)━━ Build ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@printf "  $(GREEN)build$(RESET)              Production build (Next.js)\n"
 	@printf "\n$(BOLD)━━ Database ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
@@ -166,6 +173,36 @@ docker-ps:
 	cd $(BACKEND) && docker compose ps
 
 restart: docker-down docker-up
+
+# =============================================================================
+# DOKPLOY — production deployment
+# =============================================================================
+dokploy-setup:
+	@if [ ! -f .env ]; then \
+		cp .env.dokploy .env; \
+		printf "$(GREEN)✔ Copied .env.dokploy → .env$(RESET)\n"; \
+		printf "$(CYAN)  Edit .env and fill in REQUIRED values before running dokploy-up.$(RESET)\n"; \
+	else \
+		printf "$(CYAN).env already exists — skipping. Delete it first to reset.$(RESET)\n"; \
+	fi
+
+dokploy-build:
+	@printf "$(CYAN)▶ Building Dokploy production images…$(RESET)\n"
+	docker compose -f docker-compose.dokploy.yml build
+
+dokploy-up:
+	@printf "$(CYAN)▶ Starting Dokploy production stack…$(RESET)\n"
+	docker compose -f docker-compose.dokploy.yml up -d
+	@printf "$(GREEN)✔ Services running:$(RESET)\n"
+	@printf "   Frontend  → http://localhost:3000\n"
+	@printf "   Backend   → http://localhost:8000\n"
+
+dokploy-down:
+	@printf "$(CYAN)▶ Stopping Dokploy production stack…$(RESET)\n"
+	docker compose -f docker-compose.dokploy.yml down
+
+dokploy-logs:
+	docker compose -f docker-compose.dokploy.yml logs -f
 
 # Combined: Docker backend + local frontend dev
 start: docker-up dev-frontend

@@ -1,0 +1,116 @@
+# =============================================================================
+# SUNA BIM AGENT — DOKPLOY PRODUCTION COMPOSE
+# =============================================================================
+# Dokploy reads this file to build and deploy all services.
+# All secrets use ${VAR} syntax — set them in the Dokploy dashboard under
+# "Environment Variables" for each service (or project-level).
+#
+# Usage:
+#   make dokploy-build   # Build images
+#   make dokploy-up      # Start services (detached)
+#   make dokploy-down    # Stop services
+#   make dokploy-logs    # Tail logs
+# =============================================================================
+
+networks:
+  suna_internal:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
+
+services:
+  # ---------------------------------------------------------------------------
+  # Redis — internal cache/queue, NOT exposed externally
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - suna_internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Backend — Python FastAPI (port 8000)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - suna_internal
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      # ── Supabase ──────────────────────────────────────────────────────────
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      # ── LLM Providers ─────────────────────────────────────────────────────
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # ── Sandbox ───────────────────────────────────────────────────────────
+      E2B_API_KEY: ${E2B_API_KEY}
+      # ── Search / Crawl ────────────────────────────────────────────────────
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+      FIRECRAWL_URL: ${FIRECRAWL_URL:-https://api.firecrawl.dev}
+      # ── Redis (internal service name) ─────────────────────────────────────
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_SSL: ${REDIS_SSL:-False}
+      # ── BIM-specific ──────────────────────────────────────────────────────
+      BIM_CARBON_DATABASE_PATH: ${BIM_CARBON_DATABASE_PATH:-/data/carbon_factors.json}
+      BIM_THAI_CODES_PATH: ${BIM_THAI_CODES_PATH:-/data/thai_building_codes.json}
+      BIM_MAX_FILE_SIZE_MB: ${BIM_MAX_FILE_SIZE_MB:-500}
+      # ── Runtime ───────────────────────────────────────────────────────────
+      ENV_MODE: ${ENV_MODE:-production}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js (port 3000)
+  # Build args bake NEXT_PUBLIC_* values into the static bundle at build time.
+  # ---------------------------------------------------------------------------
+  frontend:
+    init: true
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL}
+        NEXT_PUBLIC_ENV_MODE: ${NEXT_PUBLIC_ENV_MODE:-production}
+        PNPM_LOCKFILE_MODE: ${PNPM_LOCKFILE_MODE:---frozen-lockfile}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - suna_internal
+    depends_on:
+      backend:
+        condition: service_healthy
