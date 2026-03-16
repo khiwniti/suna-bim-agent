@@ -57,7 +57,7 @@ const nextConfig = (): NextConfig => ({
     // Handle .wasm files
     config.module.rules.push({
       test: /\.wasm$/,
-      type: 'asset/resource',
+      type: 'webassembly/async',
     });
     
     return config;

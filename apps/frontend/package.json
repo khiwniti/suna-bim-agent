@@ -70,7 +70,7 @@
     "@thatopen/components": "^2.4.0",
     "@thatopen/components-front": "^2.4.0",
     "@thatopen/fragments": "^3.0.0",
-    "web-ifc": "^0.0.74",
+    "web-ifc": "0.0.68",
     "@syncfusion/ej2-base": "^32.1.19",
     "@syncfusion/ej2-buttons": "^32.1.19",
     "@syncfusion/ej2-dropdowns": "^32.1.20",

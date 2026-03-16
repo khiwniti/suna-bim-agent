@@ -248,13 +248,13 @@ importers:
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@thatopen/components':
         specifier: ^2.4.0
-        version: 2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74))(three@0.175.0)(web-ifc@0.0.74)
+        version: 2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68))(three@0.175.0)(web-ifc@0.0.68)
       '@thatopen/components-front':
         specifier: ^2.4.0
-        version: 2.4.12(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74))(three@0.175.0)(web-ifc@0.0.74)
+        version: 2.4.12(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68))(three@0.175.0)(web-ifc@0.0.68)
       '@thatopen/fragments':
         specifier: ^3.0.0
-        version: 3.3.6(three@0.175.0)(web-ifc@0.0.74)
+        version: 3.3.6(three@0.175.0)(web-ifc@0.0.68)
       '@tiptap/core':
         specifier: ^3.14.0
         version: 3.15.3(@tiptap/pm@3.15.3)
@@ -667,8 +667,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       web-ifc:
-        specifier: ^0.0.74
-        version: 0.0.74
+        specifier: 0.0.68
+        version: 0.0.68
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -8101,6 +8101,9 @@ packages:
   github-from-package@0.0.0:
     resolution: {integrity: sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==}
 
+  glm@1.0.0:
+    resolution: {integrity: sha512-9/ubsXH/3w4pWunc1b3iVY9O/avtwt0kiEM07lydjASWI6CC4oFJHPURlpn8KuluDRlSHwNH6FlHFc5P1SBiJQ==}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -12184,8 +12187,8 @@ packages:
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
-  web-ifc@0.0.74:
-    resolution: {integrity: sha512-WFVxKrt81koT0mA1I5gVChc9/xsnqGZ1KzVxLhy+h43cs6z2hy8tuTtXuA/BPVUkzEzWn+EwNOozF+HHo6G6RA==}
+  web-ifc@0.0.68:
+    resolution: {integrity: sha512-SqAmmwpultii8lQZoFvn2vnusW4tRVaed8GJNGuh8EenFMPe4x0g6NIXGu+5eBrXsiV+AaOdwjmOKTHEGXM4Gg==}
 
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
@@ -17791,37 +17794,37 @@ snapshots:
 
   '@tanstack/table-core@8.21.3': {}
 
-  '@thatopen/components-front@2.4.12(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74))(three@0.175.0)(web-ifc@0.0.74)':
+  '@thatopen/components-front@2.4.12(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68))(three@0.175.0)(web-ifc@0.0.68)':
     dependencies:
-      '@thatopen/components': 2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74))(three@0.175.0)(web-ifc@0.0.74)
-      '@thatopen/fragments': 3.3.6(three@0.175.0)(web-ifc@0.0.74)
+      '@thatopen/components': 2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68))(three@0.175.0)(web-ifc@0.0.68)
+      '@thatopen/fragments': 3.3.6(three@0.175.0)(web-ifc@0.0.68)
       camera-controls: 2.10.1(three@0.175.0)
       dexie: 4.3.0
       earcut: 2.2.4
       n8ao: 1.9.4(postprocessing@6.37.2(three@0.175.0))(three@0.175.0)
       postprocessing: 6.37.2(three@0.175.0)
       three: 0.175.0
-      web-ifc: 0.0.74
+      web-ifc: 0.0.68
 
-  '@thatopen/components@2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74))(three@0.175.0)(web-ifc@0.0.74)':
+  '@thatopen/components@2.4.11(@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68))(three@0.175.0)(web-ifc@0.0.68)':
     dependencies:
-      '@thatopen/fragments': 3.3.6(three@0.175.0)(web-ifc@0.0.74)
+      '@thatopen/fragments': 3.3.6(three@0.175.0)(web-ifc@0.0.68)
       camera-controls: 2.9.0(three@0.175.0)
       earcut: 2.2.4
       fast-xml-parser: 4.4.1
       jszip: 3.10.1
       three: 0.175.0
       three-mesh-bvh: 0.7.0(three@0.175.0)
-      web-ifc: 0.0.74
+      web-ifc: 0.0.68
 
-  '@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.74)':
+  '@thatopen/fragments@3.3.6(three@0.175.0)(web-ifc@0.0.68)':
     dependencies:
       earcut: 3.0.2
       flatbuffers: 25.2.10
       lru-cache: 11.1.0
       pako: 2.1.0
       three: 0.175.0
-      web-ifc: 0.0.74
+      web-ifc: 0.0.68
 
   '@tiptap/core@3.15.3(@tiptap/pm@3.15.3)':
     dependencies:
@@ -21397,6 +21400,8 @@ snapshots:
   getenv@2.0.0: {}
 
   github-from-package@0.0.0: {}
+
+  glm@1.0.0: {}
 
   glob-parent@5.1.2:
     dependencies:
@@ -26376,7 +26381,9 @@ snapshots:
     dependencies:
       defaults: 1.0.4
 
-  web-ifc@0.0.74: {}
+  web-ifc@0.0.68:
+    dependencies:
+      glm: 1.0.0
 
   web-namespaces@2.0.1: {}
 
