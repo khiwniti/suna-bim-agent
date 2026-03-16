@@ -30,7 +30,7 @@ export const ViewToggle = memo(function ViewToggle({
   
   const getViewIndex = (view: ViewType) => {
     if (!showFilesTab && view === 'files') return 0;
-    return viewOptions.indexOf(view as any);
+    return Math.max(0, viewOptions.indexOf(view as any));
   };
   
   const tabWidth = 28;
