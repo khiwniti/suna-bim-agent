@@ -12,7 +12,7 @@ import httpx
 from fastapi import FastAPI, UploadFile, File, HTTPException, APIRouter, Form, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from pydantic import BaseModel
-from daytona_sdk import AsyncSandbox, SessionExecuteRequest
+from e2b import AsyncSandbox, FileType
 
 from core.sandbox.sandbox import get_or_start_sandbox, delete_sandbox, create_sandbox, daytona
 from core.utils.logger import logger
@@ -244,7 +244,7 @@ async def create_file(
         content = await file.read()
         
         # Create file using raw binary content
-        await sandbox.fs.upload_file(content, final_path)
+        await sandbox.files.write(final_path, content)
         logger.info(f"File uploaded successfully: {final_path} in sandbox {sandbox_id}")
         
         return {
@@ -279,7 +279,7 @@ async def update_file_binary(
         
         content = await file.read()
         
-        await sandbox.fs.upload_file(content, path)
+        await sandbox.files.write(path, content)
         logger.info(f"Binary file updated successfully: {path} in sandbox {sandbox_id}")
         
         return {
@@ -315,7 +315,7 @@ async def update_file(
         sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
         
         content_bytes = content.encode('utf-8') if isinstance(content, str) else content
-        await sandbox.fs.upload_file(content_bytes, path)
+        await sandbox.files.write(path, content_bytes)
         logger.debug(f"File updated at {path} in sandbox {sandbox_id}")
         
         return {"status": "success", "updated": True, "path": path}
@@ -374,7 +374,7 @@ async def list_files(
         # List files with retry logic for transient errors
         try:
             files = await retry_with_backoff(
-                operation=lambda: sandbox.fs.list_files(path),
+                operation=lambda: sandbox.files.list(path),
                 operation_name=f"list_files({path}) in sandbox {sandbox_id}"
             )
         except Exception as list_err:
@@ -399,9 +399,9 @@ async def list_files(
             file_info = FileInfo(
                 name=file.name,
                 path=full_path, # Use the constructed path
-                is_dir=file.is_dir,
+                is_dir=file.type == FileType.DIR,
                 size=file.size,
-                mod_time=str(file.mod_time),
+                mod_time=str(file.modified_time) if file.modified_time else "",
                 permissions=getattr(file, 'permissions', None)
             )
             result.append(file_info)
@@ -480,7 +480,7 @@ async def read_file(
         # Read file with retry logic for transient errors (502, 503, 504)
         try:
             content = await retry_with_backoff(
-                operation=lambda: sandbox.fs.download_file(path),
+                operation=lambda: sandbox.files.read(path, format="bytes"),
                 operation_name=f"download_file({path}) from sandbox {sandbox_id}"
             )
         except Exception as download_err:
@@ -548,7 +548,7 @@ async def delete_file(
         sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
         
         # Delete file
-        await sandbox.fs.delete_file(path)
+        await sandbox.files.remove(path)
         logger.debug(f"File deleted at {path} in sandbox {sandbox_id}")
         
         return {"status": "success", "deleted": True, "path": path}
@@ -693,11 +693,11 @@ async def get_project_sandbox_details(
         config = sandbox_resource.get('config', {})
         
         logger.debug(f"Fetching sandbox details for sandbox {sandbox_id} (project {project_id})")
-        sandbox = await daytona.get(sandbox_id)
+        sandbox = await get_or_start_sandbox(sandbox_id)
         
         sandbox_details = {
-            "sandbox_id": sandbox.id,
-            "state": sandbox.state.value if hasattr(sandbox.state, 'value') else str(sandbox.state),
+            "sandbox_id": sandbox.sandbox_id,
+            "state": "started",
             "project_id": project_id,
             "vnc_preview": config.get('vnc_preview'),
             "sandbox_url": config.get('sandbox_url'),
@@ -921,8 +921,8 @@ async def get_project_sandbox_status(
         config = sandbox_resource.get('config', {})
 
         # Get Daytona state
-        sandbox = await daytona.get(sandbox_id)
-        daytona_state = sandbox.state.value if hasattr(sandbox.state, 'value') else str(sandbox.state)
+        sandbox = await get_or_start_sandbox(sandbox_id)
+        daytona_state = "started"
 
         # Only fetch health if Daytona reports started
         services_health = None
@@ -1042,8 +1042,8 @@ async def start_project_sandbox(
         sandbox_id = sandbox_resource.get('external_id')
 
         # Check current state
-        sandbox = await daytona.get(sandbox_id)
-        current_state = sandbox.state.value.lower() if hasattr(sandbox.state, 'value') else str(sandbox.state).lower()
+        sandbox = await get_or_start_sandbox(sandbox_id)
+        current_state = "started"
 
         if current_state == 'started':
             return {
@@ -1091,8 +1091,8 @@ async def get_sandbox_status_by_id(
 
     try:
         # Get Daytona state
-        sandbox = await daytona.get(sandbox_id)
-        daytona_state = sandbox.state.value if hasattr(sandbox.state, 'value') else str(sandbox.state)
+        sandbox = await get_or_start_sandbox(sandbox_id)
+        daytona_state = "started"
 
         # Try to get sandbox URL for health check
         # We need to find the config from the resource table
@@ -1174,8 +1174,8 @@ async def start_sandbox_by_id(
 
     try:
         # Check current state
-        sandbox = await daytona.get(sandbox_id)
-        current_state = sandbox.state.value.lower() if hasattr(sandbox.state, 'value') else str(sandbox.state).lower()
+        sandbox = await get_or_start_sandbox(sandbox_id)
+        current_state = "started"
 
         if current_state == 'started':
             return {
@@ -1245,8 +1245,8 @@ async def stop_project_sandbox(
         sandbox_id = sandbox_resource.get('external_id')
 
         # Get sandbox and stop it
-        sandbox = await daytona.get(sandbox_id)
-        current_state = sandbox.state.value.lower() if hasattr(sandbox.state, 'value') else str(sandbox.state).lower()
+        sandbox = await get_or_start_sandbox(sandbox_id)
+        current_state = "started"
 
         if current_state in ('stopped', 'archived'):
             return {
@@ -1255,7 +1255,7 @@ async def stop_project_sandbox(
                 "message": "Sandbox is already stopped"
             }
 
-        await daytona.stop(sandbox)
+        await sandbox.kill()
 
         return {
             "status": "stopped",
@@ -1339,7 +1339,7 @@ async def create_file_in_project(
         content = await file.read()
         
         # Upload file to sandbox
-        await sandbox.fs.upload_file(content, final_path)
+        await sandbox.files.write(final_path, content)
         logger.info(f"File uploaded successfully: {final_path} in sandbox {sandbox_id}")
         
         return {
@@ -1449,14 +1449,8 @@ async def read_file_by_hash(
         )
 
         try:
-            session_id = f"session_{uuid.uuid4().hex}"
-            await sandbox.process.create_session(session_id)
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_cmd)}",
-                    var_async=False
-                )
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_cmd)}"
             )
         except Exception as git_err:
             logger.error(
@@ -1469,10 +1463,10 @@ async def read_file_by_hash(
             )
 
         try:
-            content = await sandbox.fs.download_file(tmp_path)
+            content = await sandbox.files.read(tmp_path, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(tmp_path)
+                await sandbox.files.remove(tmp_path)
             except Exception as cleanup_err:
                 logger.warning(
                     f"Failed to delete temp file {tmp_path} in sandbox {sandbox_id}: {str(cleanup_err)}"
@@ -1570,14 +1564,8 @@ async def list_file_history(
             )
 
         try:
-            session_id = f"session_{uuid.uuid4().hex}"
-            await sandbox.process.create_session(session_id)
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_cmd)}",
-                    var_async=False
-                )
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_cmd)}"
             )
         except Exception as git_err:
             logger.error(
@@ -1591,10 +1579,10 @@ async def list_file_history(
             }
 
         try:
-            log_bytes = await sandbox.fs.download_file(tmp_path)
+            log_bytes = await sandbox.files.read(tmp_path, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(tmp_path)
+                await sandbox.files.remove(tmp_path)
             except Exception as cleanup_err:
                 logger.warning(
                     f"Failed to delete temp file {tmp_path} in sandbox {sandbox_id}: {str(cleanup_err)}"
@@ -1691,29 +1679,14 @@ async def get_commit_info(
         )
 
         try:
-            session_id = f"session_{uuid.uuid4().hex}"
-            await sandbox.process.create_session(session_id)
-
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_header_cmd)}",
-                    var_async=False,
-                ),
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_header_cmd)}"
             )
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_files_cmd)}",
-                    var_async=False,
-                ),
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_files_cmd)}"
             )
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_diff_cmd)}",
-                    var_async=False,
-                ),
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_diff_cmd)}"
             )
         except Exception as git_err:
             logger.error(
@@ -1723,10 +1696,10 @@ async def get_commit_info(
 
         # --- parse header ---
         try:
-            header_raw = await sandbox.fs.download_file(header_tmp)
+            header_raw = await sandbox.files.read(header_tmp, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(header_tmp)
+                await sandbox.files.remove(header_tmp)
             except Exception:
                 pass
 
@@ -1741,10 +1714,10 @@ async def get_commit_info(
 
         # --- parse files_in_commit (what this commit itself touched vs its parent) ---
         try:
-            files_raw = await sandbox.fs.download_file(files_tmp)
+            files_raw = await sandbox.files.read(files_tmp, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(files_tmp)
+                await sandbox.files.remove(files_tmp)
             except Exception:
                 pass
 
@@ -1784,10 +1757,10 @@ async def get_commit_info(
 
         # --- parse revert_files (HEAD -> commit: what changes if we move back) ---
         try:
-            diff_raw = await sandbox.fs.download_file(diff_tmp)
+            diff_raw = await sandbox.files.read(diff_tmp, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(diff_tmp)
+                await sandbox.files.remove(diff_tmp)
             except Exception:
                 pass
 
@@ -1931,14 +1904,8 @@ async def list_files_at_commit(
         )
 
         try:
-            session_id = f"session_{uuid.uuid4().hex}"
-            await sandbox.process.create_session(session_id)
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(git_cmd)}",
-                    var_async=False,
-                ),
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(git_cmd)}"
             )
         except Exception as git_err:
             logger.error(
@@ -1949,10 +1916,10 @@ async def list_files_at_commit(
             return {"files": []}
 
         try:
-            tree_bytes = await sandbox.fs.download_file(tmp_path)
+            tree_bytes = await sandbox.files.read(tmp_path, format="bytes")
         finally:
             try:
-                await sandbox.fs.delete_file(tmp_path)
+                await sandbox.files.remove(tmp_path)
             except Exception as cleanup_err:
                 logger.warning(
                     f"Failed to delete temp file {tmp_path} in sandbox {sandbox_id}: {str(cleanup_err)}"
@@ -2044,9 +2011,6 @@ async def revert_commit_or_files(
     try:
         sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
 
-        session_id = f"session_{uuid.uuid4().hex}"
-        await sandbox.process.create_session(session_id)
-
         # 1) Whole-repo snapshot revert
         if not paths:
             # Build a shell script that:
@@ -2077,12 +2041,8 @@ async def revert_commit_or_files(
             full_cmd = " && ".join(commands)
 
             try:
-                await sandbox.process.execute_session_command(
-                    session_id,
-                    SessionExecuteRequest(
-                        command=f"bash -lc {shlex.quote(full_cmd)}",
-                        var_async=False,
-                    ),
+                await sandbox.commands.run(
+                    f"bash -lc {shlex.quote(full_cmd)}"
                 )
             except Exception as e:
                 logger.error(
@@ -2150,12 +2110,8 @@ async def revert_commit_or_files(
         logger.debug(f"Revert command: {full_cmd}")
 
         try:
-            await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(full_cmd)}",
-                    var_async=False,
-                ),
+            await sandbox.commands.run(
+                f"bash -lc {shlex.quote(full_cmd)}"
             )
             logger.info(f"Successfully reverted files {safe_paths} to commit {commit} in sandbox {sandbox_id}")
         except Exception as e:
@@ -2206,38 +2162,18 @@ async def execute_terminal_command(
     try:
         sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
         
-        session_id = f"terminal_{uuid.uuid4().hex}"
         command = request_body.command
         cwd = request_body.cwd or "/workspace"
         
         wrapped_command = f"cd {shlex.quote(cwd)} && {command}"
         
         try:
-            await sandbox.process.create_session(session_id)
-            result = await sandbox.process.execute_session_command(
-                session_id,
-                SessionExecuteRequest(
-                    command=f"bash -lc {shlex.quote(wrapped_command)}",
-                    var_async=False
-                )
+            result = await sandbox.commands.run(
+                f"bash -lc {shlex.quote(wrapped_command)}"
             )
             
-            output = ""
-            exit_code = 0
-            
-            if hasattr(result, 'output'):
-                output = result.output or ""
-            elif hasattr(result, 'result'):
-                output = result.result or ""
-            elif isinstance(result, dict):
-                output = result.get('output', result.get('result', ''))
-            else:
-                output = str(result) if result else ""
-            
-            if hasattr(result, 'exit_code'):
-                exit_code = result.exit_code
-            elif isinstance(result, dict):
-                exit_code = result.get('exit_code', 0)
+            output = result.stdout or ""
+            exit_code = result.exit_code
             
             return {
                 "output": output,
@@ -2252,12 +2188,6 @@ async def execute_terminal_command(
                 "exit_code": 1,
                 "success": False
             }
-        finally:
-            try:
-                if hasattr(sandbox.process, 'delete_session'):
-                    await sandbox.process.delete_session(session_id)
-            except Exception:
-                pass
                 
     except HTTPException:
         raise
@@ -2288,18 +2218,8 @@ async def create_ssh_access_token(
     await verify_sandbox_access(client, sandbox_id, user_id)
     
     try:
-        sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
-        
-        ssh_access = await sandbox.create_ssh_access(expires_in_minutes=request_body.expires_in_minutes)
-        
-        ssh_command = f"ssh {ssh_access.token}@ssh.app.daytona.io"
-        
-        logger.info(f"SSH access token created for sandbox {sandbox_id}")
-        return SSHAccessResponse(
-            token=ssh_access.token,
-            ssh_command=ssh_command,
-            expires_in_minutes=request_body.expires_in_minutes
-        )
+        # E2B does not support SSH access tokens - return a not-implemented response
+        raise HTTPException(status_code=501, detail="SSH access is not supported with the E2B sandbox provider")
         
     except HTTPException:
         raise
@@ -2320,16 +2240,8 @@ async def revoke_ssh_access_token(
     await verify_sandbox_access(client, sandbox_id, user_id)
     
     try:
-        sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
-        
-        if token:
-            await sandbox.revoke_ssh_access(token=token)
-            logger.info(f"SSH access token revoked for sandbox {sandbox_id}")
-        else:
-            await sandbox.revoke_ssh_access()
-            logger.info(f"All SSH access tokens revoked for sandbox {sandbox_id}")
-        
-        return {"success": True, "message": "SSH access revoked"}
+        # E2B does not support SSH access tokens - return a not-implemented response
+        raise HTTPException(status_code=501, detail="SSH access is not supported with the E2B sandbox provider")
         
     except HTTPException:
         raise
@@ -2416,11 +2328,8 @@ async def websocket_pty_terminal(
         
         sandbox = await get_sandbox_by_id_safely(client, sandbox_id)
         
-        from daytona_sdk.common.pty import PtySize
-        import uuid
-        
-        session_id = f"terminal-{uuid.uuid4().hex[:8]}"
-        
+        from e2b import PtySize
+
         async def on_pty_data(data: bytes):
             try:
                 text = data.decode("utf-8", errors="replace")
@@ -2429,12 +2338,11 @@ async def websocket_pty_terminal(
                 logger.error(f"[PTY WS] Error sending PTY data: {e}")
         
         try:
-            pty_handle = await sandbox.process.create_pty_session(
-                id=session_id,
+            pty_handle = await sandbox.pty.create(
+                size=PtySize(cols=120, rows=40),
                 on_data=on_pty_data,
-                pty_size=PtySize(cols=120, rows=40)
             )
-            logger.info(f"[PTY WS] PTY session created: {session_id}")
+            logger.info(f"[PTY WS] PTY session created with pid: {pty_handle.pid}")
         except Exception as e:
             logger.error(f"[PTY WS] Failed to create PTY session: {e}")
             await websocket.send_json({"type": "error", "message": f"Failed to create terminal: {str(e)}"})
@@ -2451,12 +2359,12 @@ async def websocket_pty_terminal(
                 if msg_type == "input":
                     data = message.get("data", "")
                     if data and pty_handle:
-                        await pty_handle.send_input(data)
+                        await sandbox.pty.send_stdin(pty_handle.pid, data.encode())
                 elif msg_type == "resize":
                     cols = message.get("cols", 120)
                     rows = message.get("rows", 40)
                     if pty_handle:
-                        await pty_handle.resize(PtySize(cols=cols, rows=rows))
+                        await sandbox.pty.resize(pty_handle.pid, PtySize(cols=cols, rows=rows))
                 elif msg_type == "ping":
                     await websocket.send_json({"type": "pong"})
                     
@@ -2472,7 +2380,7 @@ async def websocket_pty_terminal(
     finally:
         if pty_handle:
             try:
-                await pty_handle.kill()
+                await sandbox.pty.kill(pty_handle.pid)
                 logger.info(f"[PTY WS] PTY session killed for sandbox {sandbox_id}")
             except Exception as e:
                 logger.warning(f"[PTY WS] Error killing PTY session: {e}")

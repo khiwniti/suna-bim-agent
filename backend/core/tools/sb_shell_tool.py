@@ -179,24 +179,21 @@ Usage notes:
                     logger.warning(f"Error processing PTY output: {e}")
             
             try:
-                from daytona_sdk.common.pty import PtySize
-                
-                pty_session_id = f"cmd-{str(uuid4())[:8]}"
-                
+                from e2b import PtySize
+                from uuid import uuid4 as _uuid4
+
+                pty_session_id = f"cmd-{str(_uuid4())[:8]}"
+
                 # Create PTY session with output callback
-                pty_handle = await self.sandbox.process.create_pty_session(
-                    id=pty_session_id,
+                pty_handle = await self.sandbox.pty.create(
+                    size=PtySize(cols=120, rows=40),
                     on_data=on_pty_data,
-                    pty_size=PtySize(cols=120, rows=40)
+                    cwd=cwd,
                 )
-                
-                # Always cd to workspace directory since PTY starts in container's WORKDIR (/app)
-                await pty_handle.send_input(f"cd {cwd}\n")
-                await asyncio.sleep(0.1)
-                
+
                 # Add marker to detect completion
-                marker = f"__CMD_DONE_{str(uuid4())[:8]}__"
-                
+                marker = f"__CMD_DONE_{str(_uuid4())[:8]}__"
+
                 # Check if command contains a heredoc - if so, we need the marker on a new line
                 # Heredocs require the delimiter (EOF, etc.) to be on its own line
                 # Common heredoc patterns: << EOF, << 'EOF', << "EOF", <<- EOF, <<-'EOF', etc.
@@ -207,10 +204,10 @@ Usage notes:
                     full_command = f"{command}\necho '{marker}' $?\n"
                 else:
                     full_command = f"{command}; echo '{marker}' $?\n"
-                
+
                 # Send the command
-                await pty_handle.send_input(full_command)
-                
+                await self.sandbox.pty.send_stdin(pty_handle.pid, full_command.encode())
+
                 # Wait for completion or timeout
                 # Note: marker appears TWICE in output:
                 # 1. When the terminal echoes the typed command
@@ -219,7 +216,7 @@ Usage notes:
                 start_time = time.time()
                 while (time.time() - start_time) < timeout:
                     await asyncio.sleep(0.1)
-                    
+
                     # Check if marker appeared in output (need 2 occurrences)
                     current_output = "".join(output_buffer)
                     marker_count = current_output.count(marker)
@@ -235,16 +232,16 @@ Usage notes:
                 else:
                     # Timeout reached
                     exit_code = -1
-                
+
                 # Kill PTY session
                 try:
-                    await pty_handle.kill()
+                    await self.sandbox.pty.kill(pty_handle.pid)
                 except:
                     pass
-                
+
                 # Clean output (remove marker line and control sequences)
                 final_output = "".join(output_buffer)
-                
+
                 # Remove the marker line from output
                 if marker in final_output:
                     marker_idx = final_output.rfind(marker)
@@ -252,12 +249,12 @@ Usage notes:
                     line_start = final_output.rfind('\n', 0, marker_idx)
                     if line_start != -1:
                         final_output = final_output[:line_start]
-                
+
                 # Strip ANSI escape sequences for cleaner output
                 import re
                 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
                 final_output = ansi_escape.sub('', final_output)
-                
+
                 # Stream final message
                 if tool_output_ctx:
                     await stream_tool_output(
@@ -266,7 +263,7 @@ Usage notes:
                         is_final=True,
                         tool_name="execute_command"
                     )
-                
+
                 if exit_code == -1:
                     return self.success_response({
                         "output": final_output.strip(),
@@ -275,133 +272,48 @@ Usage notes:
                         "timeout": True,
                         "message": f"Command timed out after {timeout} seconds. For long-running processes, use tmux: `tmux new-session -d -s name 'command'`"
                     })
-                
+
                 return self.success_response({
                     "output": final_output.strip(),
                     "cwd": cwd,
                     "exit_code": exit_code
                 })
-                
+
             except Exception as pty_error:
                 logger.warning(f"PTY execution failed, falling back to direct execution: {pty_error}")
-                # Fall back to direct session execution
+                # Fall back to direct execution
                 return await self._fallback_execute(command, cwd, timeout)
                 
         except Exception as e:
             return self.fail_response(f"Error executing command: {str(e)}")
 
     async def _fallback_execute(self, command: str, cwd: str, timeout: int) -> ToolResult:
-        """Fallback execution method using direct session commands."""
+        """Fallback execution method using E2B commands.run."""
         try:
-            from daytona_sdk import SessionExecuteRequest
-            
-            session_id = f"cmd_{str(uuid4())[:8]}"
-            await self.sandbox.process.create_session(session_id)
-            
-            try:
-                req = SessionExecuteRequest(
-                    command=command,
-                    var_async=False,
-                    cwd=cwd
-                )
-                
-                response = await self.sandbox.process.execute_session_command(
-                    session_id=session_id,
-                    req=req,
-                    timeout=timeout
-                )
-                
-                logs = await self.sandbox.process.get_session_command_logs(
-                    session_id=session_id,
-                    command_id=response.cmd_id
-                )
-                
-                logs_output = logs.output if logs and logs.output else ""
-                
-                return self.success_response({
-                    "output": logs_output,
-                    "cwd": cwd,
-                    "exit_code": response.exit_code
-                })
-            finally:
-                try:
-                    await self.sandbox.process.delete_session(session_id)
-                except:
-                    pass
-                    
+            wrapped = f"cd {cwd} && {command}"
+            result = await self.sandbox.commands.run(
+                f"bash -lc {__import__('shlex').quote(wrapped)}",
+                timeout=timeout,
+            )
+            return self.success_response({
+                "output": result.stdout or "",
+                "cwd": cwd,
+                "exit_code": result.exit_code,
+            })
         except Exception as e:
             return self.fail_response(f"Error executing command: {str(e)}")
 
     async def _execute_raw_command(self, command: str, retry_count: int = 0) -> Dict[str, Any]:
-        """Execute a raw command directly in the sandbox.
-        
-        Uses a per-call session to avoid race conditions when multiple commands run in parallel.
-        
-        Args:
-            command: The command to execute
-            retry_count: Internal counter for retry attempts (max 2)
-        """
-        session_id = f"cmd_{str(uuid4())[:8]}"
-        
-        from daytona_sdk import SessionExecuteRequest
-        
+        """Execute a raw command directly in the sandbox."""
         try:
             await self._ensure_sandbox()
-            await self.sandbox.process.create_session(session_id)
-            
-            req = SessionExecuteRequest(
-                command=command,
-                var_async=False,
-                cwd=self.workspace_path
-            )
-            
-            response = await self.sandbox.process.execute_session_command(
-                session_id=session_id,
-                req=req,
-                timeout=30
-            )
-            
-            logs = await self.sandbox.process.get_session_command_logs(
-                session_id=session_id,
-                command_id=response.cmd_id
-            )
-            
-            logs_output = logs.output if logs and logs.output else ""
-            
+            result = await self.sandbox.commands.run(command, timeout=30)
             return {
-                "output": logs_output,
-                "exit_code": response.exit_code
+                "output": result.stdout or "",
+                "exit_code": result.exit_code,
             }
-            
         except Exception as e:
-            error_str = str(e).lower()
-            error_repr = repr(e).lower()
-            is_session_error = (
-                "session not found" in error_str or
-                "not found" in error_str or
-                "session" in error_str and "not" in error_str and "found" in error_str or
-                "404" in error_str or
-                "session not found" in error_repr
-            )
-            
-            if is_session_error and retry_count < 2:
-                logger.warning(
-                    f"Session error detected (attempt {retry_count + 1}/2): {type(e).__name__}: {e}. "
-                    f"Retrying with new session..."
-                )
-                return await self._execute_raw_command(command, retry_count + 1)
-            else:
-                if is_session_error:
-                    logger.error(
-                        f"Session error persisted after {retry_count + 1} attempts. "
-                        f"Error: {type(e).__name__}: {e}"
-                    )
-                raise
-        finally:
-            try:
-                await self.sandbox.process.delete_session(session_id)
-            except:
-                pass
+            raise
 
     async def cleanup(self):
         """Clean up resources."""

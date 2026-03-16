@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { HIDE_BROWSER_TAB } from '@/components/thread/utils';
+import type { BIMModel, BIMAnalysisResult, BIMViewerState } from '@/types/bim';
 
-export type ViewType = 'tools' | 'files' | 'browser';
+export type ViewType = 'tools' | 'files' | 'browser' | 'bim';
 export type FilesSubView = 'browser' | 'viewer';
+export type BIMSubView = 'viewer' | 'analysis' | 'elements';
 
 /**
  * Normalize a file path to ensure it starts with /workspace
@@ -59,6 +61,16 @@ interface KortixComputerState {
   // Unsaved state tracking (has user made edits?)
   unsavedFileState: Record<string, boolean>;
   
+  // === BIM STATE ===
+  // BIM viewer and analysis state
+  bimSubView: BIMSubView;
+  loadedModel: BIMModel | null;
+  selectedElements: string[];  // IFC element GlobalIds
+  analysisResults: BIMAnalysisResult[];
+  isModelLoading: boolean;
+  modelError: string | null;
+  viewerSettings: BIMViewerState;
+  
   // === ACTIONS ===
   
   // Set the current sandbox context - MUST be called when thread/sandbox changes
@@ -109,6 +121,22 @@ interface KortixComputerState {
   
   // Clear only file-related state (keeps panel state)
   clearFileState: () => void;
+  
+  // === BIM ACTIONS ===
+  setBimSubView: (subView: BIMSubView) => void;
+  loadModel: (model: BIMModel) => void;
+  unloadModel: () => void;
+  setSelectedElements: (elementIds: string[]) => void;
+  addSelectedElement: (elementId: string) => void;
+  removeSelectedElement: (elementId: string) => void;
+  clearSelectedElements: () => void;
+  addAnalysisResult: (result: BIMAnalysisResult) => void;
+  clearAnalysisResults: () => void;
+  setModelLoading: (loading: boolean) => void;
+  setModelError: (error: string | null) => void;
+  updateViewerSettings: (settings: Partial<BIMViewerState>) => void;
+  openBIMViewer: (modelPath?: string) => void;
+  clearBIMState: () => void;
 }
 
 // Initial state for file-related fields only
@@ -122,10 +150,31 @@ const initialFileState = {
   selectedVersionDate: null as string | null,
 };
 
+// Initial state for BIM-related fields
+const initialBIMState = {
+  bimSubView: 'viewer' as BIMSubView,
+  loadedModel: null as BIMModel | null,
+  selectedElements: [] as string[],
+  analysisResults: [] as BIMAnalysisResult[],
+  isModelLoading: false,
+  modelError: null as string | null,
+  viewerSettings: {
+    showGrid: true,
+    showAxes: true,
+    backgroundColor: '#1a1a2e',
+    selectionColor: '#00ff88',
+    highlightColor: '#ffaa00',
+    transparencyEnabled: false,
+    sectionPlaneEnabled: false,
+    measurementMode: false,
+  } as BIMViewerState,
+};
+
 const initialState = {
   currentSandboxId: null as string | null,
   activeView: 'tools' as ViewType,
   ...initialFileState,
+  ...initialBIMState,
   shouldOpenPanel: false,
   isSidePanelOpen: false,
   pendingToolNavIndex: null as number | null,
@@ -388,6 +437,90 @@ export const useKortixComputerStore = create<KortixComputerState>()(
         return unsavedFileState[key] ?? false;
       },
       
+      // === BIM ACTIONS ===
+      
+      setBimSubView: (subView: BIMSubView) => {
+        set({ bimSubView: subView });
+      },
+      
+      loadModel: (model: BIMModel) => {
+        set({
+          loadedModel: model,
+          isModelLoading: false,
+          modelError: null,
+          selectedElements: [],
+        });
+      },
+      
+      unloadModel: () => {
+        set({
+          loadedModel: null,
+          selectedElements: [],
+          analysisResults: [],
+          modelError: null,
+        });
+      },
+      
+      setSelectedElements: (elementIds: string[]) => {
+        set({ selectedElements: elementIds });
+      },
+      
+      addSelectedElement: (elementId: string) => {
+        const { selectedElements } = get();
+        if (!selectedElements.includes(elementId)) {
+          set({ selectedElements: [...selectedElements, elementId] });
+        }
+      },
+      
+      removeSelectedElement: (elementId: string) => {
+        const { selectedElements } = get();
+        set({ selectedElements: selectedElements.filter(id => id !== elementId) });
+      },
+      
+      clearSelectedElements: () => {
+        set({ selectedElements: [] });
+      },
+      
+      addAnalysisResult: (result: BIMAnalysisResult) => {
+        set((state) => ({
+          analysisResults: [...state.analysisResults, result],
+        }));
+      },
+      
+      clearAnalysisResults: () => {
+        set({ analysisResults: [] });
+      },
+      
+      setModelLoading: (loading: boolean) => {
+        set({ isModelLoading: loading });
+      },
+      
+      setModelError: (error: string | null) => {
+        set({ modelError: error, isModelLoading: false });
+      },
+      
+      updateViewerSettings: (settings: Partial<BIMViewerState>) => {
+        set((state) => ({
+          viewerSettings: { ...state.viewerSettings, ...settings },
+        }));
+      },
+      
+      openBIMViewer: (modelPath?: string) => {
+        // Open the BIM tab in the side panel
+        // If a model path is provided, it will be loaded by the viewer component
+        set({
+          activeView: 'bim',
+          bimSubView: 'viewer',
+          shouldOpenPanel: true,
+          isModelLoading: !!modelPath,
+        });
+      },
+      
+      clearBIMState: () => {
+        console.log('[KortixComputerStore] Clearing BIM state');
+        set(initialBIMState);
+      },
+      
       reset: () => {
         console.log('[KortixComputerStore] Full reset');
         set(initialState);
@@ -452,6 +585,9 @@ export const useKortixComputerActions = () =>
     clearShouldOpenPanel: state.clearShouldOpenPanel,
     setSandboxContext: state.setSandboxContext,
     clearFileState: state.clearFileState,
+    // BIM actions
+    openBIMViewer: state.openBIMViewer,
+    clearBIMState: state.clearBIMState,
     reset: state.reset,
   }));
 
@@ -468,3 +604,56 @@ export const useIsSidePanelOpen = () =>
 
 export const useSetIsSidePanelOpen = () =>
   useKortixComputerStore((state) => state.setIsSidePanelOpen);
+
+// === BIM SELECTORS ===
+
+export const useBimSubView = () =>
+  useKortixComputerStore((state) => state.bimSubView);
+
+export const useLoadedModel = () =>
+  useKortixComputerStore((state) => state.loadedModel);
+
+export const useSelectedElements = () =>
+  useKortixComputerStore((state) => state.selectedElements);
+
+export const useAnalysisResults = () =>
+  useKortixComputerStore((state) => state.analysisResults);
+
+export const useIsModelLoading = () =>
+  useKortixComputerStore((state) => state.isModelLoading);
+
+export const useModelError = () =>
+  useKortixComputerStore((state) => state.modelError);
+
+export const useViewerSettings = () =>
+  useKortixComputerStore((state) => state.viewerSettings);
+
+// Combined BIM state selector
+export const useBIMState = () => ({
+  bimSubView: useKortixComputerStore((state) => state.bimSubView),
+  loadedModel: useKortixComputerStore((state) => state.loadedModel),
+  selectedElements: useKortixComputerStore((state) => state.selectedElements),
+  analysisResults: useKortixComputerStore((state) => state.analysisResults),
+  isModelLoading: useKortixComputerStore((state) => state.isModelLoading),
+  modelError: useKortixComputerStore((state) => state.modelError),
+  viewerSettings: useKortixComputerStore((state) => state.viewerSettings),
+});
+
+// BIM actions selector
+export const useBIMActions = () =>
+  useKortixComputerStore((state) => ({
+    setBimSubView: state.setBimSubView,
+    loadModel: state.loadModel,
+    unloadModel: state.unloadModel,
+    setSelectedElements: state.setSelectedElements,
+    addSelectedElement: state.addSelectedElement,
+    removeSelectedElement: state.removeSelectedElement,
+    clearSelectedElements: state.clearSelectedElements,
+    addAnalysisResult: state.addAnalysisResult,
+    clearAnalysisResults: state.clearAnalysisResults,
+    setModelLoading: state.setModelLoading,
+    setModelError: state.setModelError,
+    updateViewerSettings: state.updateViewerSettings,
+    openBIMViewer: state.openBIMViewer,
+    clearBIMState: state.clearBIMState,
+  }));

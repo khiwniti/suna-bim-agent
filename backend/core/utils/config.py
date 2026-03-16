@@ -329,7 +329,10 @@ class Configuration:
     REDIS_MAX_CONNECTIONS: Optional[int] = 300
     REDIS_SSL: Optional[bool] = True
     
-    # Daytona sandbox configuration (optional - sandbox features disabled if not configured)
+    # E2B sandbox configuration
+    E2B_API_KEY: Optional[str] = None
+
+    # Daytona sandbox configuration (kept for backward compat, no longer used)
     DAYTONA_API_KEY: Optional[str] = None
     DAYTONA_SERVER_URL: Optional[str] = None
     DAYTONA_TARGET: Optional[str] = None

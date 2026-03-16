@@ -1,0 +1,255 @@
+# =============================================================================
+# Suna — Makefile
+# Package managers: pnpm (frontend)  |  uv (Python backend)
+#
+# Services
+#   frontend  → apps/frontend   Next.js  :3000
+#   backend   → backend/        FastAPI  :8000
+#   redis     → Docker          Redis    :6379
+#
+# Quick start (local):   make install && make dev
+# Quick start (Docker):  make docker-up
+# =============================================================================
+
+.DEFAULT_GOAL := help
+.PHONY: help \
+        install install-frontend install-backend \
+        dev dev-frontend dev-backend \
+        start start-frontend start-backend \
+        stop restart \
+        build build-frontend \
+        docker-up docker-down docker-build docker-logs docker-logs-api docker-logs-redis docker-ps \
+        test test-frontend test-backend test-backend-cov \
+        lint lint-frontend lint-backend lint-fix \
+        format format-check typecheck \
+        verify check \
+        db-migrate db-reset \
+        env-frontend env-backend \
+        clean clean-frontend clean-backend
+
+# ── Colours ───────────────────────────────────────────────────────────────────
+CYAN  := \033[36m
+GREEN := \033[32m
+BOLD  := \033[1m
+RESET := \033[0m
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+FRONTEND := apps/frontend
+BACKEND  := backend
+
+# =============================================================================
+# HELP
+# =============================================================================
+help:
+	@printf "$(BOLD)Suna$(RESET) — AI Agent Platform\n"
+	@printf "$(CYAN)Usage: make <target>$(RESET)\n\n"
+	@printf "$(BOLD)━━ Setup ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)install$(RESET)            Install all deps (pnpm + uv)\n"
+	@printf "  $(GREEN)install-frontend$(RESET)   pnpm install  (Next.js)\n"
+	@printf "  $(GREEN)install-backend$(RESET)    uv sync       (FastAPI)\n"
+	@printf "  $(GREEN)env-frontend$(RESET)       Create apps/frontend/.env.local from example\n"
+	@printf "  $(GREEN)env-backend$(RESET)        Create backend/.env from example\n"
+	@printf "\n$(BOLD)━━ Development (local, no Docker) ━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)dev$(RESET)                Frontend + backend concurrently\n"
+	@printf "  $(GREEN)dev-frontend$(RESET)       Next.js dev server only    :3000\n"
+	@printf "  $(GREEN)dev-backend$(RESET)        FastAPI dev server only    :8000\n"
+	@printf "\n$(BOLD)━━ Docker (full stack) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)docker-up$(RESET)          Start all services (detached)\n"
+	@printf "  $(GREEN)docker-down$(RESET)        Stop all services\n"
+	@printf "  $(GREEN)docker-build$(RESET)       Rebuild Docker images\n"
+	@printf "  $(GREEN)docker-logs$(RESET)        Tail all logs\n"
+	@printf "  $(GREEN)docker-logs-api$(RESET)    Tail API logs only\n"
+	@printf "  $(GREEN)docker-logs-redis$(RESET)  Tail Redis logs only\n"
+	@printf "  $(GREEN)docker-ps$(RESET)          Show running containers\n"
+	@printf "  $(GREEN)restart$(RESET)            docker-down + docker-up\n"
+	@printf "\n$(BOLD)━━ Build ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)build$(RESET)              Production build (Next.js)\n"
+	@printf "\n$(BOLD)━━ Database ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)db-migrate$(RESET)         Apply Supabase migrations\n"
+	@printf "  $(GREEN)db-reset$(RESET)           Reset local Supabase DB\n"
+	@printf "\n$(BOLD)━━ Quality ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)test$(RESET)               Run all tests\n"
+	@printf "  $(GREEN)test-frontend$(RESET)      (placeholder — add vitest when ready)\n"
+	@printf "  $(GREEN)test-backend$(RESET)       pytest\n"
+	@printf "  $(GREEN)lint$(RESET)               ESLint + Ruff\n"
+	@printf "  $(GREEN)typecheck$(RESET)          TypeScript check\n"
+	@printf "  $(GREEN)format$(RESET)             Prettier + Ruff format\n"
+	@printf "  $(GREEN)verify$(RESET)             Backend build verification\n"
+	@printf "\n$(BOLD)━━ Cleanup ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)clean$(RESET)              Remove all build artefacts\n"
+
+# =============================================================================
+# SETUP
+# =============================================================================
+env-frontend:
+	@if [ ! -f $(FRONTEND)/.env.local ]; then \
+		cp $(FRONTEND)/.env.example $(FRONTEND)/.env.local 2>/dev/null || \
+		cp $(FRONTEND)/.env.sample  $(FRONTEND)/.env.local 2>/dev/null || \
+		{ printf "$(CYAN)No .env.example found — creating blank $(FRONTEND)/.env.local$(RESET)\n"; touch $(FRONTEND)/.env.local; }; \
+		printf "$(GREEN)✔ Created $(FRONTEND)/.env.local$(RESET)\n"; \
+	else \
+		printf "$(CYAN)$(FRONTEND)/.env.local already exists — skipping.$(RESET)\n"; \
+	fi
+
+env-backend:
+	@if [ ! -f $(BACKEND)/.env ]; then \
+		cp $(BACKEND)/.env.example $(BACKEND)/.env 2>/dev/null || \
+		{ printf "$(CYAN)No .env.example found — creating blank $(BACKEND)/.env$(RESET)\n"; touch $(BACKEND)/.env; }; \
+		printf "$(GREEN)✔ Created $(BACKEND)/.env$(RESET)\n"; \
+	else \
+		printf "$(CYAN)$(BACKEND)/.env already exists — skipping.$(RESET)\n"; \
+	fi
+
+install: install-frontend install-backend
+	@printf "$(GREEN)✔ All dependencies installed.$(RESET)\n"
+
+install-frontend:
+	@printf "$(CYAN)▶ Installing frontend dependencies (pnpm)…$(RESET)\n"
+	pnpm install
+
+install-backend:
+	@printf "$(CYAN)▶ Installing backend dependencies (uv)…$(RESET)\n"
+	cd $(BACKEND) && uv sync
+
+# =============================================================================
+# DEVELOPMENT (local, no Docker)
+# =============================================================================
+dev: dev-backend dev-frontend
+	@printf "$(GREEN)✔ Both servers started.$(RESET)\n"
+
+dev-frontend:
+	@printf "$(CYAN)▶ Starting Next.js dev server on :3000…$(RESET)\n"
+	pnpm --filter Kortix dev
+
+dev-backend:
+	@printf "$(CYAN)▶ Starting FastAPI dev server on :8000…$(RESET)\n"
+	cd $(BACKEND) && uv run uvicorn api:app --reload --host 0.0.0.0 --port 8000
+
+# =============================================================================
+# BUILD
+# =============================================================================
+build: build-frontend
+
+build-frontend:
+	@printf "$(CYAN)▶ Building Next.js for production…$(RESET)\n"
+	pnpm --filter Kortix build
+
+# =============================================================================
+# DOCKER — full stack (api + redis)
+# =============================================================================
+docker-up:
+	@printf "$(CYAN)▶ Starting Suna services via Docker Compose…$(RESET)\n"
+	cd $(BACKEND) && docker compose up -d
+	@printf "$(GREEN)✔ Services running:$(RESET)\n"
+	@printf "   API    → http://localhost:8000\n"
+	@printf "   Redis  → localhost:6379\n"
+	@printf "$(CYAN)   Start frontend separately: make dev-frontend$(RESET)\n"
+
+docker-down:
+	@printf "$(CYAN)▶ Stopping Docker services…$(RESET)\n"
+	cd $(BACKEND) && docker compose down
+
+docker-build:
+	@printf "$(CYAN)▶ Rebuilding Docker images…$(RESET)\n"
+	cd $(BACKEND) && docker compose build --no-cache
+
+docker-logs:
+	cd $(BACKEND) && docker compose logs -f
+
+docker-logs-api:
+	cd $(BACKEND) && docker compose logs -f api
+
+docker-logs-redis:
+	cd $(BACKEND) && docker compose logs -f redis
+
+docker-ps:
+	cd $(BACKEND) && docker compose ps
+
+restart: docker-down docker-up
+
+# Combined: Docker backend + local frontend dev
+start: docker-up dev-frontend
+
+stop: docker-down
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+db-migrate:
+	@printf "$(CYAN)▶ Applying Supabase migrations…$(RESET)\n"
+	cd $(BACKEND) && uv run supabase db push 2>/dev/null || \
+		npx supabase db push
+
+db-reset:
+	@printf "$(CYAN)▶ Resetting local Supabase DB…$(RESET)\n"
+	cd $(BACKEND) && uv run supabase db reset 2>/dev/null || \
+		npx supabase db reset
+
+# =============================================================================
+# TESTING
+# =============================================================================
+test: test-backend
+
+test-frontend:
+	@printf "$(CYAN)▶ Frontend tests (add vitest config to enable)…$(RESET)\n"
+	pnpm --filter Kortix test 2>/dev/null || \
+		printf "$(CYAN)No test script configured in frontend yet.$(RESET)\n"
+
+test-backend:
+	@printf "$(CYAN)▶ Running pytest…$(RESET)\n"
+	cd $(BACKEND) && uv run pytest tests/ -v --tb=short
+
+test-backend-cov:
+	cd $(BACKEND) && uv run pytest tests/ -v --cov=core --cov-report=term --cov-report=html
+
+# =============================================================================
+# CODE QUALITY
+# =============================================================================
+lint: lint-frontend lint-backend
+
+lint-frontend:
+	@printf "$(CYAN)▶ ESLint…$(RESET)\n"
+	pnpm --filter Kortix lint
+
+lint-backend:
+	@printf "$(CYAN)▶ Ruff check…$(RESET)\n"
+	cd $(BACKEND) && uv run ruff check core/
+
+lint-fix:
+	pnpm --filter Kortix lint --fix 2>/dev/null || true
+	cd $(BACKEND) && uv run ruff check --fix core/
+
+typecheck:
+	@printf "$(CYAN)▶ TypeScript type check…$(RESET)\n"
+	pnpm --filter Kortix exec tsc --noEmit
+
+format:
+	@printf "$(CYAN)▶ Prettier…$(RESET)\n"
+	pnpm --filter Kortix format
+	@printf "$(CYAN)▶ Ruff format…$(RESET)\n"
+	cd $(BACKEND) && uv run ruff format core/
+
+format-check:
+	pnpm --filter Kortix format:check
+	cd $(BACKEND) && uv run ruff format --check core/
+
+verify:
+	@printf "$(CYAN)▶ Backend build verification…$(RESET)\n"
+	cd $(BACKEND) && uv run python core/utils/scripts/verify_build.py
+
+check: verify lint format-check typecheck
+
+# =============================================================================
+# CLEANUP
+# =============================================================================
+clean: clean-frontend clean-backend
+	@printf "$(GREEN)✔ Cleaned.$(RESET)\n"
+
+clean-frontend:
+	rm -rf $(FRONTEND)/.next $(FRONTEND)/out $(FRONTEND)/dist
+	rm -rf $(FRONTEND)/node_modules/.cache
+
+clean-backend:
+	cd $(BACKEND) && rm -rf .venv __pycache__ .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage logs/
+	find $(BACKEND) -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find $(BACKEND) -type f -name "*.pyc" -delete 2>/dev/null || true

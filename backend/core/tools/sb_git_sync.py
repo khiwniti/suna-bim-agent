@@ -9,7 +9,6 @@ from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.sandbox.tool_base import SandboxToolsBase
 from core.agentpress.thread_manager import ThreadManager
 from core.utils.logger import logger
-from daytona_sdk import SessionExecuteRequest
 
 GIT_AGENT_COMMIT_GUIDELINES = """
 You are working in a local-only git repository inside a sandbox workspace (/workspace).
@@ -261,22 +260,12 @@ class SandboxGitTool(SandboxToolsBase):
             return self.fail_response(f"Unexpected error during git commit: {str(e)}")
 
     async def _run_shell(self, cmd: str) -> None:
-        """Run a shell command inside the sandbox using Daytona process session APIs."""
+        """Run a shell command inside the sandbox using E2B commands API."""
         await self._ensure_sandbox()
-
-        session_id = f"session_{uuid.uuid4().hex}"
         try:
-            # Create a session and execute the command synchronously
-            await self.sandbox.process.create_session(session_id)
-            request = SessionExecuteRequest(command=f"bash -lc {shlex.quote(cmd)}", var_async=False)
-            await self.sandbox.process.execute_session_command(session_id, request)
+            result = await self.sandbox.commands.run(f"bash -lc {shlex.quote(cmd)}")
+            if result.exit_code != 0:
+                raise RuntimeError(f"Command failed with exit code {result.exit_code}: {result.stderr}")
         except Exception as e:
-            logger.error(f"Error executing shell command in sandbox session: {str(e)}")
+            logger.error(f"Error executing shell command in sandbox: {str(e)}")
             raise
-        finally:
-            # Best-effort cleanup of the session (if supported)
-            try:
-                if hasattr(self.sandbox.process, 'delete_session'):
-                    await self.sandbox.process.delete_session(session_id)
-            except Exception:
-                pass
