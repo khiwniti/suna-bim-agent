@@ -91,7 +91,7 @@ export function ComplianceResultView({ toolCall, toolResult, isStreaming }: Tool
     );
   }
 
-  const overallCfg = OVERALL_CONFIG[result.overallCompliance];
+  const overallCfg = OVERALL_CONFIG[result.overallCompliance] ?? OVERALL_CONFIG['needs_review'];
 
   // Group codes by prefix (e.g. "มยผ." group)
   const codesByGroup = result.codesChecked.reduce<Record<string, typeof result.codesChecked>>((acc, c) => {

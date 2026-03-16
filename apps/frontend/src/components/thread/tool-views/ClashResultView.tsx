@@ -136,7 +136,7 @@ export function ClashResultView({ toolCall, toolResult, isStreaming }: ToolViewP
             <ScrollArea className="max-h-72">
               <div className="flex flex-col divide-y">
                 {result.clashes.map((clash) => {
-                  const cfg = SEVERITY_CONFIG[clash.severity];
+                  const cfg = SEVERITY_CONFIG[clash.severity as keyof typeof SEVERITY_CONFIG] ?? SEVERITY_CONFIG['warning'];
                   return (
                     <div key={clash.id} className="flex flex-col gap-1 px-1 py-2">
                       <div className="flex items-center justify-between gap-2">

@@ -177,14 +177,14 @@ export function CarbonResultView({ toolCall, toolResult, isStreaming }: ToolView
       )}
 
       {/* Recommendations */}
-      {result.recommendations.length > 0 && (
+      {(result.recommendations ?? []).length > 0 && (
         <Card>
           <CardHeader className="pb-1 pt-3 px-3">
             <CardTitle className="text-sm">ข้อเสนอแนะ</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
             <div className="flex flex-col gap-2">
-              {result.recommendations.slice(0, 3).map((rec, i) => (
+              {(result.recommendations ?? []).slice(0, 3).map((rec, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
                   <Badge
                     variant={rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'secondary' : 'outline'}
