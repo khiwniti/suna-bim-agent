@@ -19,8 +19,8 @@
         stop restart \
         build build-frontend \
         docker-up docker-down docker-build docker-logs docker-logs-api docker-logs-redis docker-ps \
-        dokploy-setup dokploy-build dokploy-up dokploy-down dokploy-logs \
-        test test-frontend test-backend test-backend-cov \
+        dokploy-setup dokploy-build dokploy-up dokploy-down dokploy-logs dokploy-validate \
+        test test-e2e test-frontend test-backend test-backend-cov \
         lint lint-frontend lint-backend lint-fix \
         format format-check typecheck \
         verify check \
@@ -64,6 +64,7 @@ help:
 	@printf "  $(GREEN)docker-ps$(RESET)          Show running containers\n"
 	@printf "  $(GREEN)restart$(RESET)            docker-down + docker-up\n"
 	@printf "\n$(BOLD)━━ Dokploy (production) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)dokploy-validate$(RESET)   Validate compose file syntax\n"
 	@printf "  $(GREEN)dokploy-setup$(RESET)      Copy .env.dokploy → .env for local test\n"
 	@printf "  $(GREEN)dokploy-build$(RESET)      Build production images\n"
 	@printf "  $(GREEN)dokploy-up$(RESET)         Start production stack (detached)\n"
@@ -75,7 +76,8 @@ help:
 	@printf "  $(GREEN)db-migrate$(RESET)         Apply Supabase migrations\n"
 	@printf "  $(GREEN)db-reset$(RESET)           Reset local Supabase DB\n"
 	@printf "\n$(BOLD)━━ Quality ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
-	@printf "  $(GREEN)test$(RESET)               Run all tests\n"
+	@printf "  $(GREEN)test$(RESET)               Run all tests (backend + E2E)\n"
+	@printf "  $(GREEN)test-e2e$(RESET)           Playwright E2E tests (BIM features)\n"
 	@printf "  $(GREEN)test-frontend$(RESET)      (placeholder — add vitest when ready)\n"
 	@printf "  $(GREEN)test-backend$(RESET)       pytest\n"
 	@printf "  $(GREEN)lint$(RESET)               ESLint + Ruff\n"
@@ -204,6 +206,11 @@ dokploy-down:
 dokploy-logs:
 	docker compose -f docker-compose.dokploy.yml logs -f
 
+dokploy-validate:
+	@printf "$(CYAN)▶ Validating docker-compose.dokploy.yml syntax…$(RESET)\n"
+	docker compose -f docker-compose.dokploy.yml config --quiet && \
+		printf "$(GREEN)✔ Compose file is valid$(RESET)\n"
+
 # Combined: Docker backend + local frontend dev
 start: docker-up dev-frontend
 
@@ -225,7 +232,11 @@ db-reset:
 # =============================================================================
 # TESTING
 # =============================================================================
-test: test-backend
+test: test-backend test-e2e
+
+test-e2e:
+	@printf "$(CYAN)▶ Running Playwright E2E tests (BIM features)…$(RESET)\n"
+	cd $(FRONTEND) && ./node_modules/.bin/playwright test e2e/bim-features.spec.ts --project=chromium
 
 test-frontend:
 	@printf "$(CYAN)▶ Frontend tests (add vitest config to enable)…$(RESET)\n"
