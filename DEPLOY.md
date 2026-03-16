@@ -125,6 +125,64 @@ make dokploy-logs    # Tail all service logs
 
 ---
 
+## Deploy via Dokploy CLI (Alternative)
+
+If you prefer automating deployment from your terminal instead of using the dashboard, use the [`@dokploy/cli`](https://www.npmjs.com/package/@dokploy/cli).
+
+### 1. Install the CLI
+
+```bash
+make dokploy-cli-install
+# or: npm install -g @dokploy/cli
+```
+
+### 2. Set your server URL and token
+
+Edit `.env.dokploy` and fill in `DOKPLOY_SERVER_URL`:
+
+```bash
+DOKPLOY_SERVER_URL=https://your-panel-domain.com   # ← your Dokploy panel URL
+DOKPLOY_TOKEN=aDYMjp...  # already set
+```
+
+Then load them into your shell:
+
+```bash
+export $(grep -v '^#' .env.dokploy | xargs)
+```
+
+### 3. Authenticate
+
+```bash
+make dokploy-cli-auth
+# or: dokploy authenticate --url="$DOKPLOY_SERVER_URL" --token="$DOKPLOY_TOKEN"
+```
+
+### 4. Find your Application ID
+
+```bash
+make dokploy-cli-projects    # list projects and app IDs
+# or: dokploy app list
+```
+
+Copy the `applicationId` from the output.
+
+### 5. Push environment variables
+
+```bash
+make dokploy-cli-env-push APP_ID=<applicationId>
+```
+
+### 6. Deploy
+
+```bash
+make dokploy-cli-deploy APP_ID=<applicationId>
+```
+
+The CLI will trigger a new deployment and stream the progress. Your app will be live at `NEXT_PUBLIC_URL` once the healthcheck passes.
+
+---
+
 ## BIM-Specific Notes
 
 ### IFC File Storage

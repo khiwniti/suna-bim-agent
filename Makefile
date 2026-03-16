@@ -20,6 +20,7 @@
         build build-frontend \
         docker-up docker-down docker-build docker-logs docker-logs-api docker-logs-redis docker-ps \
         dokploy-setup dokploy-build dokploy-up dokploy-down dokploy-logs dokploy-validate \
+        dokploy-cli-install dokploy-cli-auth dokploy-cli-verify dokploy-cli-projects dokploy-cli-deploy dokploy-cli-env-push \
         test test-e2e test-frontend test-backend test-backend-cov \
         lint lint-frontend lint-backend lint-fix \
         format format-check typecheck \
@@ -64,12 +65,18 @@ help:
 	@printf "  $(GREEN)docker-ps$(RESET)          Show running containers\n"
 	@printf "  $(GREEN)restart$(RESET)            docker-down + docker-up\n"
 	@printf "\n$(BOLD)━━ Dokploy (production) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
-	@printf "  $(GREEN)dokploy-validate$(RESET)   Validate compose file syntax\n"
-	@printf "  $(GREEN)dokploy-setup$(RESET)      Copy .env.dokploy → .env for local test\n"
-	@printf "  $(GREEN)dokploy-build$(RESET)      Build production images\n"
-	@printf "  $(GREEN)dokploy-up$(RESET)         Start production stack (detached)\n"
-	@printf "  $(GREEN)dokploy-down$(RESET)       Stop production stack\n"
-	@printf "  $(GREEN)dokploy-logs$(RESET)       Tail production logs\n"
+	@printf "  $(GREEN)dokploy-validate$(RESET)      Validate compose file syntax\n"
+	@printf "  $(GREEN)dokploy-setup$(RESET)         Copy .env.dokploy → .env for local test\n"
+	@printf "  $(GREEN)dokploy-build$(RESET)         Build production images\n"
+	@printf "  $(GREEN)dokploy-up$(RESET)            Start production stack (detached)\n"
+	@printf "  $(GREEN)dokploy-down$(RESET)          Stop production stack\n"
+	@printf "  $(GREEN)dokploy-logs$(RESET)          Tail production logs\n"
+	@printf "\n$(BOLD)━━ Dokploy CLI ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
+	@printf "  $(GREEN)dokploy-cli-install$(RESET)   Install @dokploy/cli globally\n"
+	@printf "  $(GREEN)dokploy-cli-auth$(RESET)      Authenticate CLI (needs DOKPLOY_SERVER_URL)\n"
+	@printf "  $(GREEN)dokploy-cli-verify$(RESET)    Verify CLI authentication\n"
+	@printf "  $(GREEN)dokploy-cli-deploy$(RESET)    Deploy app via CLI (needs APP_ID)\n"
+	@printf "  $(GREEN)dokploy-cli-env-push$(RESET)  Push .env.dokploy to remote app\n"
 	@printf "\n$(BOLD)━━ Build ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@printf "  $(GREEN)build$(RESET)              Production build (Next.js)\n"
 	@printf "\n$(BOLD)━━ Database ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
@@ -210,6 +217,51 @@ dokploy-validate:
 	@printf "$(CYAN)▶ Validating docker-compose.dokploy.yml syntax…$(RESET)\n"
 	docker compose -f docker-compose.dokploy.yml config --quiet && \
 		printf "$(GREEN)✔ Compose file is valid$(RESET)\n"
+
+# =============================================================================
+# DOKPLOY CLI  — Remote deployment via @dokploy/cli
+# Requires: DOKPLOY_SERVER_URL and DOKPLOY_TOKEN set in environment or .env.dokploy
+# Usage:
+#   export $(grep -v '^#' .env.dokploy | xargs)  # load vars
+#   make dokploy-cli-auth
+#   make dokploy-cli-deploy APP_ID=<applicationId>
+# =============================================================================
+
+# Load .env.dokploy vars into the shell if present
+_DOKPLOY_ENV := $(shell test -f .env.dokploy && echo "set -a && . ./.env.dokploy && set +a &&")
+
+dokploy-cli-install:
+	@printf "$(CYAN)▶ Installing @dokploy/cli…$(RESET)\n"
+	npm install -g @dokploy/cli
+	@printf "$(GREEN)✔ dokploy CLI installed: $$(dokploy --version)$(RESET)\n"
+
+dokploy-cli-auth:
+	@test -n "$(DOKPLOY_SERVER_URL)" || (printf "$(BOLD)ERROR: DOKPLOY_SERVER_URL is not set.\n  Run: export DOKPLOY_SERVER_URL=https://your-panel-domain.com\n  Or load .env.dokploy first: export \$$(grep -v '^#' .env.dokploy | xargs)$(RESET)\n" && exit 1)
+	@printf "$(CYAN)▶ Authenticating Dokploy CLI with $(DOKPLOY_SERVER_URL)…$(RESET)\n"
+	dokploy authenticate \
+		--url="$(DOKPLOY_SERVER_URL)" \
+		--token="$(DOKPLOY_TOKEN)"
+	@printf "$(GREEN)✔ Authenticated. Run 'make dokploy-cli-verify' to confirm.$(RESET)\n"
+
+dokploy-cli-verify:
+	@printf "$(CYAN)▶ Verifying Dokploy CLI token…$(RESET)\n"
+	dokploy verify
+
+dokploy-cli-projects:
+	@printf "$(CYAN)▶ Listing Dokploy projects…$(RESET)\n"
+	dokploy project list
+
+dokploy-cli-deploy:
+	@test -n "$(APP_ID)" || (printf "$(BOLD)ERROR: APP_ID is not set.\n  Usage: make dokploy-cli-deploy APP_ID=<applicationId>$(RESET)\n" && exit 1)
+	@printf "$(CYAN)▶ Deploying application $(APP_ID)…$(RESET)\n"
+	dokploy app deploy --applicationId="$(APP_ID)" --skipConfirm
+	@printf "$(GREEN)✔ Deploy triggered for $(APP_ID)$(RESET)\n"
+
+dokploy-cli-env-push:
+	@test -n "$(APP_ID)" || (printf "$(BOLD)ERROR: APP_ID is not set.\n  Usage: make dokploy-cli-env-push APP_ID=<applicationId>$(RESET)\n" && exit 1)
+	@printf "$(CYAN)▶ Pushing .env.dokploy to application $(APP_ID)…$(RESET)\n"
+	dokploy env push .env.dokploy
+	@printf "$(GREEN)✔ Environment variables pushed$(RESET)\n"
 
 # Combined: Docker backend + local frontend dev
 start: docker-up dev-frontend
