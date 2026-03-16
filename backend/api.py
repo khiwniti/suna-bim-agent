@@ -441,6 +441,9 @@ api_router.include_router(stateless_admin_router)
 # Auth OTP endpoint for expired magic links
 api_router.include_router(auth_api.router)
 
+from core.bim.api import router as bim_router
+api_router.include_router(bim_router)
+
 @api_router.get("/health", summary="Health Check", operation_id="health_check", tags=["system"])
 async def health_check():
     logger.debug("Health check endpoint called")
