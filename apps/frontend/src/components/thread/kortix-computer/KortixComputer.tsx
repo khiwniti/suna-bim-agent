@@ -24,6 +24,7 @@ import {
 } from '@/stores/kortix-computer-store';
 import { FileBrowserView } from './FileBrowserView';
 import { FileViewerView } from './FileViewerView';
+import { BIMPanel } from './BIMPanel';
 import { ToolCallData, ToolResultData } from '../tool-views/types';
 import { PanelHeader } from './components/PanelHeader';
 import { NavigationControls } from './components/NavigationControls';
@@ -713,6 +714,10 @@ export const KortixComputer = memo(function KortixComputer({
     );
   };
 
+  const renderBimView = () => {
+    return <BIMPanel />;
+  };
+
   const renderContent = () => {
     return (
       <div className="flex flex-col h-full max-h-full max-w-full overflow-hidden min-w-0" style={{ contain: 'strict' }}>
@@ -753,6 +758,7 @@ export const KortixComputer = memo(function KortixComputer({
           {activeView === 'tools' && renderToolsView()}
           {activeView === 'files' && renderFilesView()}
           {!HIDE_BROWSER_TAB && activeView === 'browser' && renderBrowserView()}
+          {activeView === 'bim' && renderBimView()}
         </div>
       </div>
     );
@@ -795,6 +801,7 @@ export const KortixComputer = memo(function KortixComputer({
             {activeView === 'tools' && renderToolsView()}
             {activeView === 'files' && renderFilesView()}
             {!HIDE_BROWSER_TAB && activeView === 'browser' && renderBrowserView()}
+            {activeView === 'bim' && renderBimView()}
           </div>
 
           {activeView === 'tools' && (displayTotalCalls > 1 || (isCurrentToolStreaming && totalCompletedCalls > 0)) && (
