@@ -129,7 +129,11 @@
     "sending": "กำลังส่ง...",
     "magicLinkSent": "เราได้ส่ง Magic Link ไปที่",
     "magicLinkDescription": "คลิกลิงก์ในอีเมลเพื่อเข้าสู่ระบบ ลิงก์จะหมดอายุใน 1 ชั่วโมง",
-    "magicLinkExplanation": "เราจะส่งลิงก์ที่ปลอดภัยให้คุณเข้าสู่ระบบโดยไม่ต้องใช้รหัสผ่าน"
+    "magicLinkExplanation": "เราจะส่งลิงก์ที่ปลอดภัยให้คุณเข้าสู่ระบบโดยไม่ต้องใช้รหัสผ่าน",
+    "openProvider": "เปิด {provider}",
+    "phoneVerification": {
+      "resendInSeconds": "ส่งใหม่ใน {seconds}วินาที"
+    }
   },
   "billing": {
     "title": "การชำระเงิน & การสมัครสมาชิก",
@@ -172,6 +176,21 @@
       "understandingCredits": {
         "title": "ทำความเข้าใจเครดิต"
       }
+    },
+    "confirmDowngradeDescription": "คุณกำลังจะเปลี่ยนไปใช้แผน {planName} การเปลี่ยนแปลงนี้จะมีผลเมื่อสิ้นสุดรอบบิลปัจจุบันของคุณ.",
+    "projectLimit": "ขีดจำกัดโปรเจกต์ ({current}/{limit})",
+    "threadLimit": "ขีดจำกัดเธรด ({current}/{limit})",
+    "workerLimit": "ขีดจำกัด worker ({current}/{limit})",
+    "triggerLimit": "ขีดจำกัด trigger ({current}/{limit})",
+    "features": {
+      "creditsPerMonth": "{count} เครดิต/เดือน",
+      "customWorker": "{count} custom Worker",
+      "customWorkers": "{count} custom workers",
+      "privateProject": "{count} โปรเจกต์ส่วนตัว",
+      "customTrigger": "{count} custom trigger"
+    },
+    "downgradeDialog": {
+      "confirmDescription": "คุณกำลังจะเปลี่ยนไปใช้แผน {planName} การเปลี่ยนแปลงนี้จะมีผลเมื่อสิ้นสุดรอบบิลปัจจุบันของคุณ คุณจะยังคงได้รับสิทธิประโยชน์เดิมจนกว่าจะถึงเวลานั้น."
     }
   },
   "dashboard": {
@@ -299,8 +318,22 @@
       "deleteAccount": {
         "title": "ลบบัญชี",
         "description": "ลบบัญชีและข้อมูลทั้งหมดอย่างถาวร",
-        "button": "ลบบัญชี"
+        "button": "ลบบัญชี",
+        "scheduledDescription": "บัญชีของคุณจะถูกลบอย่างถาวรในวันที่ {date}."
       }
+    },
+    "billing": {
+      "renewalIn": "ต่ออายุใน {days} {days, plural, one {day} other {days}}",
+      "renews": "ต่ออายุ {date}",
+      "activeUntil": "ใช้งานได้ถึง {date}",
+      "subscriptionCancelled": "การสมัครสมาชิกของคุณจะถูกยกเลิกในวันที่ {date}",
+      "cancelDialogDescription": "คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการสมัครสมาชิก? คุณจะยังสามารถใช้งานได้จนถึง {date}.",
+      "insufficientCreditsMessage": "ตรวจสอบการชำระเงินล้มเหลว: เครดิตไม่เพียงพอ ยอดเงินของคุณคือ {balance} กรุณาเติมเครดิตเพื่อใช้งานต่อ.",
+      "failedToStartAgent": "เริ่มต้น worker {agentName} ไม่สำเร็จ: {message}"
+    },
+    "memory": {
+      "available": "มี {count} ความทรงจำที่พร้อมใช้งาน",
+      "deleteAllDescription": "การดำเนินการนี้จะลบ {count} ความทรงจำทั้งหมดอย่างถาวร AI จะไม่จดจำข้อมูลจากการสนทนาเก่าอีกต่อไป การกระทำนี้ไม่สามารถย้อนกลับได้."
     }
   },
   "showcase": {
@@ -434,7 +467,11 @@
     "title": "เธรด",
     "newThread": "เธรดใหม่",
     "sendMessage": "ส่งข้อความ",
-    "placeholder": "พิมพ์ข้อความของคุณ..."
+    "placeholder": "พิมพ์ข้อความของคุณ...",
+    "uploadingFiles": "กำลังอัปโหลด {count} ไฟล์{plural}...",
+    "uploadingFilesOne": "กำลังอัปโหลด {count} ไฟล์...",
+    "uploadingFilesMany": "กำลังอัปโหลด {count} ไฟล์...",
+    "toolCurrentlyExecuting": "{toolName} กำลังทำงานอยู่ ผลลัพธ์จะแสดงที่นี่เมื่อเสร็จสิ้น."
   },
   "threads": {
     "executeCommand": "กำลังดำเนินการคำสั่ง",
@@ -560,4 +597,3 @@
     "editAppBasedTask": "แก้ไขงานแบบแอป"
   }
 }
-
