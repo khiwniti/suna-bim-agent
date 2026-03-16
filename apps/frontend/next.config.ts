@@ -44,8 +44,22 @@ const nextConfig = (): NextConfig => ({
   },
   
   // Webpack configuration to make Konva work with Next.js
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.externals = [...config.externals, { canvas: 'canvas' }]; // required to make Konva & react-konva work
+    
+    // WASM support for @thatopen/components IFC parsing
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    };
+    
+    // Handle .wasm files
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'asset/resource',
+    });
+    
     return config;
   },
   
