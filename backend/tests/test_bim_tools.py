@@ -40,7 +40,7 @@ async def test_carbon_tool_mock_response(mocker):
     mocker.patch.object(tool, "load_ifc_content", return_value=b"")
     result = await tool.calculate_carbon(file_path="/nonexistent/model.ifc")
     assert result is not None
-    assert hasattr(result, "output") or hasattr(result, "error")
+    assert result.success is True, f"Tool returned error: {result.output}"
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_clash_tool_mock_response(mocker):
     mocker.patch.object(tool, "load_ifc_content", return_value=b"")
     result = await tool.detect_clashes(file_path="/nonexistent/model.ifc")
     assert result is not None
-    assert hasattr(result, "output") or hasattr(result, "error")
+    assert result.success is True, f"Tool returned error: {result.output}"
 
 
 @pytest.mark.asyncio
@@ -60,7 +60,7 @@ async def test_compliance_tool_mock_response(mocker):
     mocker.patch.object(tool, "load_ifc_content", return_value=b"")
     result = await tool.check_compliance(file_path="/nonexistent/model.ifc")
     assert result is not None
-    assert hasattr(result, "output") or hasattr(result, "error")
+    assert result.success is True, f"Tool returned error: {result.output}"
 
 
 def test_bim_router_importable():
