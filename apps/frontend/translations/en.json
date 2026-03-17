@@ -546,7 +546,7 @@
     "credits": "Credits",
     "popular": "Popular",
     "creditsExplained": "Credits explained",
-      "creditsExhausted": "+100 Credits in {time}. Upgrade to use now.",
+    "creditsExhausted": "+100 Credits in {time}. Upgrade to use now.",
     "creditsExhaustedRefreshIn": "You've exhausted your credits. They will refresh in {time}",
     "trialActive": "Trial Active",
     "trialBadge": "7-Day Trial",
@@ -1333,11 +1333,31 @@
       "usColumn": "BIM Carbon",
       "othersColumn": "Others",
       "rows": {
-        "setupTime": { "feature": "Setup Time", "us": "5 minutes", "others": "2-4 weeks" },
-        "monthlyCost": { "feature": "Monthly Cost", "us": "From ฿0", "others": "฿50,000+" },
-        "thaiMaterials": { "feature": "Thai Materials", "us": "104+ items", "others": "Limited" },
-        "aiRecommendations": { "feature": "AI Recommendations", "us": "Included", "others": "Extra cost" },
-        "learningCurve": { "feature": "Learning Curve", "us": "None", "others": "Training required" }
+        "setupTime": {
+          "feature": "Setup Time",
+          "us": "5 minutes",
+          "others": "2-4 weeks"
+        },
+        "monthlyCost": {
+          "feature": "Monthly Cost",
+          "us": "From ฿0",
+          "others": "฿50,000+"
+        },
+        "thaiMaterials": {
+          "feature": "Thai Materials",
+          "us": "104+ items",
+          "others": "Limited"
+        },
+        "aiRecommendations": {
+          "feature": "AI Recommendations",
+          "us": "Included",
+          "others": "Extra cost"
+        },
+        "learningCurve": {
+          "feature": "Learning Curve",
+          "us": "None",
+          "others": "Training required"
+        }
       }
     },
     "features": {
@@ -1466,6 +1486,17 @@
       "button": "Start Free Analysis",
       "demo": "Watch demo"
     }
+  },
+  "nav": {
+    "calculator": "Calculator",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "pricing": "Pricing"
+  },
+  "footer": {
+    "copyright": "© 2024 Carbon BIM. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
   }
 }
-
