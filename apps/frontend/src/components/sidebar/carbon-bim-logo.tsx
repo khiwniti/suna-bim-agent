@@ -1,5 +1,6 @@
 'use client';
 
+import { Leaf } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CarbonBIMLogoProps {
@@ -9,28 +10,25 @@ interface CarbonBIMLogoProps {
 }
 
 export function CarbonBIMLogo({ size = 24, variant = 'symbol', className }: CarbonBIMLogoProps) {
-  // For logomark variant, use logomark-white.svg which is already white
-  // and invert it for light mode using CSS (no JS needed)
   if (variant === 'logomark') {
     return (
-      <img
-        src="/logomark-white.svg"
-        alt="Carbon BIM"
-        className={cn('invert dark:invert-0 flex-shrink-0', className)}
-        style={{ height: `${size}px`, width: 'auto' }}
-        suppressHydrationWarning
-      />
+      <span
+        className={cn('inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 flex-shrink-0', className)}
+        style={{ fontSize: `${size}px` }}
+      >
+        <Leaf style={{ width: size, height: size }} strokeWidth={2} />
+        <span style={{ fontSize: `${Math.round(size * 0.75)}px` }}>Carbon BIM</span>
+      </span>
     );
   }
 
-  // Default symbol variant behavior - invert for dark mode
+  // symbol variant — leaf icon only
   return (
-    <img
-      src="/carbon-bim-symbol.svg"
-      alt="Carbon BIM"
-      className={cn('dark:invert flex-shrink-0', className)}
-      style={{ width: `${size}px`, height: `${size}px` }}
-      suppressHydrationWarning
+    <Leaf
+      aria-label="Carbon BIM"
+      className={cn('text-emerald-600 dark:text-emerald-400 flex-shrink-0', className)}
+      style={{ width: size, height: size }}
+      strokeWidth={2}
     />
   );
 }
