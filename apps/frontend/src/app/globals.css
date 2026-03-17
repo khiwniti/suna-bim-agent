@@ -1037,3 +1037,24 @@
 .carbon-bim-border {
   border-color: oklch(0.49 0.18 152 / 30%);
 }
+
+/* Carbon BIM custom property aliases used by landing/calculator components */
+:root {
+  --carbon-primary: oklch(0.49 0.18 152);          /* emerald-600 */
+  --carbon-primary-hover: oklch(0.44 0.17 152);    /* emerald-700 */
+  --carbon-primary-glow: oklch(0.49 0.18 152 / 20%);
+  --carbon-accent: oklch(0.54 0.17 185);            /* teal-600 */
+  --carbon-foreground: oklch(0.15 0.015 152);
+  --carbon-muted-foreground: oklch(0.45 0.02 152);
+  --carbon-border: oklch(0.49 0.18 152 / 30%);
+}
+
+.dark {
+  --carbon-primary: oklch(0.62 0.20 152);          /* emerald-400 */
+  --carbon-primary-hover: oklch(0.68 0.18 152);    /* emerald-300 */
+  --carbon-primary-glow: oklch(0.62 0.20 152 / 25%);
+  --carbon-accent: oklch(0.65 0.16 185);            /* teal-400 */
+  --carbon-foreground: oklch(0.96 0.005 152);
+  --carbon-muted-foreground: oklch(0.70 0.025 152);
+  --carbon-border: oklch(0.62 0.20 152 / 30%);
+}
