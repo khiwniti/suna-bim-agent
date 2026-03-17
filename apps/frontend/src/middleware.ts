@@ -75,7 +75,17 @@ function detectMobilePlatformFromUA(userAgent: string | null): 'ios' | 'android'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
+  // 🔓 AUTH DISABLED — allow all routes without authentication
+  // Remove or comment this block to re-enable auth
+  if (
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/favicon') &&
+    !pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
   // 🚀 HYPER-FAST: Mobile app store redirect for /milano, /berlin, and /app
   // This runs at the edge before ANY page rendering
   if (pathname === '/milano' || pathname === '/berlin' || pathname === '/app') {
