@@ -19,7 +19,7 @@ import {
   Trash2,
   MessageSquare,
 } from 'lucide-react';
-import { KortixLoader } from '@/components/ui/kortix-loader';
+import { CarbonBIMLoader } from '@/components/ui/carbon-bim-loader';
 
 interface OtpVerificationProps {
   phoneNumber?: string;
@@ -213,7 +213,7 @@ export function OtpVerification({
               >
                 {isLoading ? (
                   <>
-                    <KortixLoader size="small" />
+                    <CarbonBIMLoader size="small" />
                     {t('verifying')}
                   </>
                 ) : (
@@ -248,7 +248,7 @@ export function OtpVerification({
                 >
                   {isLoading ? (
                     <>
-                      <KortixLoader size="small" />
+                      <CarbonBIMLoader size="small" />
                       {t('sending')}
                     </>
                   ) : (

@@ -250,7 +250,7 @@ test.describe('BIM Panel source structure', () => {
   const root = path.join(__dirname, '..');
 
   test('BIMPanel has 4 sub-tab values: viewer, elements, carbon, issues', () => {
-    const src = fs.readFileSync(path.join(root, 'src/components/thread/kortix-computer/BIMPanel.tsx'), 'utf8');
+    const src = fs.readFileSync(path.join(root, 'src/components/thread/carbon-bim-computer/BIMPanel.tsx'), 'utf8');
     expect(src).toContain('value="viewer"');
     expect(src).toContain('value="elements"');
     expect(src).toContain('value="carbon"');
@@ -258,13 +258,13 @@ test.describe('BIM Panel source structure', () => {
   });
 
   test('BIMViewer has ≥4 mounted guards after each await', () => {
-    const src = fs.readFileSync(path.join(root, 'src/components/thread/kortix-computer/BIMViewer.tsx'), 'utf8');
+    const src = fs.readFileSync(path.join(root, 'src/components/thread/carbon-bim-computer/BIMViewer.tsx'), 'utf8');
     const guards = (src.match(/if \(!mounted\)/g) ?? []).length;
     expect(guards).toBeGreaterThanOrEqual(4);
   });
 
   test('BIMViewer checks response.ok before parsing', () => {
-    const src = fs.readFileSync(path.join(root, 'src/components/thread/kortix-computer/BIMViewer.tsx'), 'utf8');
+    const src = fs.readFileSync(path.join(root, 'src/components/thread/carbon-bim-computer/BIMViewer.tsx'), 'utf8');
     expect(src).toContain('response.ok');
   });
 

@@ -6,6 +6,6 @@ export { Input } from './input';
 export { Text } from './text';
 export { SearchBar } from './SearchBar';
 export { NativeOnlyAnimatedView } from './native-only-animated-view';
-export { KortixLoader } from './kortix-loader';
+export { CarbonBIMLoader } from './carbon-bim-loader';
 export { ToastProvider, useToast } from './toast-provider';
 export type { Toast, ToastType } from './toast';

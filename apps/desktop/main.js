@@ -2,7 +2,7 @@ const { app, BrowserWindow, clipboard, nativeImage, Menu } = require('electron')
 const path = require('path');
 
 // Custom protocol scheme for deep linking
-const PROTOCOL_SCHEME = 'kortix';
+const PROTOCOL_SCHEME = 'carbon-bim';
 
 // Get URL from environment variable or default to production
 const APP_URL = process.env.APP_URL || 'https://kortix.com/';
@@ -28,10 +28,10 @@ const isLocal = isLocalhost(normalizedUrl);
 
 // Set app name for macOS menu bar
 if (process.platform === 'darwin') {
-  app.setName('Kortix');
+  app.setName('Carbon BIM');
 }
 
-// Register as default protocol handler for kortix://
+// Register as default protocol handler for carbon-bim://
 // This allows magic links to open in the desktop app
 if (process.defaultApp) {
   // Development mode - register with path to electron executable
@@ -122,7 +122,7 @@ const loadingHTML = `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Kortix</title>
+  <title>Carbon BIM</title>
   <style>
     * {
       margin: 0;
@@ -211,12 +211,12 @@ function createWindow() {
   });
 
   // Set custom user agent to identify Electron app
-  webContents.setUserAgent(webContents.getUserAgent() + ' Electron/Kortix-Desktop');
+  webContents.setUserAgent(webContents.getUserAgent() + ' Electron/Carbon BIM-Desktop');
 
   // Create menu with back/forward navigation
   const template = [
     ...(process.platform === 'darwin' ? [{
-      label: 'Kortix',
+      label: 'Carbon BIM',
       submenu: [
         { role: 'about' },
         { type: 'separator' },

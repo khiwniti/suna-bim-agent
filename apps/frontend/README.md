@@ -1,4 +1,4 @@
-# Kortix Frontend
+# Carbon BIM Frontend
 
 ## Quick Setup
 

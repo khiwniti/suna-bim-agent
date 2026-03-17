@@ -9,7 +9,7 @@ import { NavWorkers } from '@/components/sidebar/nav-workers';
 import { NavGlobalConfig } from '@/components/sidebar/nav-global-config';
 import { NavTriggerRuns } from '@/components/sidebar/nav-trigger-runs';
 import { NavUserWithTeams } from '@/components/sidebar/nav-user-with-teams';
-import { KortixLogo } from '@/components/sidebar/kortix-logo';
+import { CarbonBIMLogo } from '@/components/sidebar/carbon-bim-logo';
 import { siteConfig } from '@/lib/site-config';
 import {
   Sidebar,
@@ -256,7 +256,7 @@ export function SidebarLeft({
           )}>
 
             <Link href="/dashboard" onClick={() => isMobile && setOpenMobile(false)} className="flex items-center justify-center">
-              <KortixLogo 
+              <CarbonBIMLogo 
                 size={20} 
                 className={cn(
                   "flex-shrink-0 transition-[transform,opacity] duration-300 ease-out hover:rotate-180 hover:duration-700 transform-gpu",
@@ -516,11 +516,11 @@ export function SidebarLeft({
               <p className="text-xs text-muted-foreground mb-4">
                 Request custom AI Workers implementation
               </p>
-              <KortixProcessModal>
+              <CarbonBIMProcessModal>
                 <Button size="sm" className="w-full text-xs h-8">
                   Learn More
                 </Button>
-              </KortixProcessModal>
+              </CarbonBIMProcessModal>
             </div>
           </div>
         )

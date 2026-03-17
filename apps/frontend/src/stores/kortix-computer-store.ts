@@ -29,7 +29,7 @@ function normalizeWorkspacePath(path: string): string {
   return `/workspace/${path.replace(/^\//, '')}`;
 }
 
-interface KortixComputerState {
+interface CarbonBIMComputerState {
   // === SANDBOX CONTEXT ===
   // Track which sandbox the current file state belongs to
   // This is the KEY to preventing stale state across thread switches
@@ -98,7 +98,7 @@ interface KortixComputerState {
   // Navigate to a specific tool call (clicking tool in ThreadContent)
   navigateToToolCall: (toolIndex: number) => void;
   
-  // Clear pending tool nav after KortixComputer processes it
+  // Clear pending tool nav after CarbonBIMComputer processes it
   clearPendingToolNav: () => void;
   
   // Panel control
@@ -182,7 +182,7 @@ const initialState = {
   unsavedFileState: {} as Record<string, boolean>,
 };
 
-export const useKortixComputerStore = create<KortixComputerState>()(
+export const useCarbonBIMComputerStore = create<CarbonBIMComputerState>()(
   devtools(
     (set, get) => ({
       ...initialState,
@@ -194,7 +194,7 @@ export const useKortixComputerStore = create<KortixComputerState>()(
         
         // If sandbox changed, clear all file-related state
         if (currentSandboxId !== sandboxId) {
-          console.log('[KortixComputerStore] Sandbox context changed:', currentSandboxId, '->', sandboxId);
+          console.log('[CarbonBIMComputerStore] Sandbox context changed:', currentSandboxId, '->', sandboxId);
           set({
             currentSandboxId: sandboxId,
             // Reset all file state when sandbox changes
@@ -205,7 +205,7 @@ export const useKortixComputerStore = create<KortixComputerState>()(
       },
       
       clearFileState: () => {
-        console.log('[KortixComputerStore] Clearing file state');
+        console.log('[CarbonBIMComputerStore] Clearing file state');
         set({
           ...initialFileState,
         });
@@ -517,17 +517,17 @@ export const useKortixComputerStore = create<KortixComputerState>()(
       },
       
       clearBIMState: () => {
-        console.log('[KortixComputerStore] Clearing BIM state');
+        console.log('[CarbonBIMComputerStore] Clearing BIM state');
         set(initialBIMState);
       },
       
       reset: () => {
-        console.log('[KortixComputerStore] Full reset');
+        console.log('[CarbonBIMComputerStore] Full reset');
         set(initialState);
       },
     }),
     {
-      name: 'kortix-computer-store',
+      name: 'carbon-bim-computer-store',
     }
   )
 );
@@ -535,44 +535,44 @@ export const useKortixComputerStore = create<KortixComputerState>()(
 // === SELECTOR HOOKS ===
 
 // Sandbox context
-export const useKortixComputerSandboxId = () =>
-  useKortixComputerStore((state) => state.currentSandboxId);
+export const useCarbonBIMComputerSandboxId = () =>
+  useCarbonBIMComputerStore((state) => state.currentSandboxId);
 
 export const useSetSandboxContext = () =>
-  useKortixComputerStore((state) => state.setSandboxContext);
+  useCarbonBIMComputerStore((state) => state.setSandboxContext);
 
 // Main view state
-export const useKortixComputerActiveView = () => 
-  useKortixComputerStore((state) => state.activeView);
+export const useCarbonBIMComputerActiveView = () => 
+  useCarbonBIMComputerStore((state) => state.activeView);
 
 // Individual selectors for files state (stable, primitive values)
-export const useKortixComputerFilesSubView = () =>
-  useKortixComputerStore((state) => state.filesSubView);
+export const useCarbonBIMComputerFilesSubView = () =>
+  useCarbonBIMComputerStore((state) => state.filesSubView);
 
-export const useKortixComputerCurrentPath = () =>
-  useKortixComputerStore((state) => state.currentPath);
+export const useCarbonBIMComputerCurrentPath = () =>
+  useCarbonBIMComputerStore((state) => state.currentPath);
 
-export const useKortixComputerSelectedFilePath = () =>
-  useKortixComputerStore((state) => state.selectedFilePath);
+export const useCarbonBIMComputerSelectedFilePath = () =>
+  useCarbonBIMComputerStore((state) => state.selectedFilePath);
 
-export const useKortixComputerFilePathList = () =>
-  useKortixComputerStore((state) => state.filePathList);
+export const useCarbonBIMComputerFilePathList = () =>
+  useCarbonBIMComputerStore((state) => state.filePathList);
 
-export const useKortixComputerCurrentFileIndex = () =>
-  useKortixComputerStore((state) => state.currentFileIndex);
+export const useCarbonBIMComputerCurrentFileIndex = () =>
+  useCarbonBIMComputerStore((state) => state.currentFileIndex);
 
 // Legacy combined selector (for backward compatibility) - use individual selectors in components
-export const useKortixComputerFilesState = () => ({
-  filesSubView: useKortixComputerStore((state) => state.filesSubView),
-  currentPath: useKortixComputerStore((state) => state.currentPath),
-  selectedFilePath: useKortixComputerStore((state) => state.selectedFilePath),
-  filePathList: useKortixComputerStore((state) => state.filePathList),
-  currentFileIndex: useKortixComputerStore((state) => state.currentFileIndex),
+export const useCarbonBIMComputerFilesState = () => ({
+  filesSubView: useCarbonBIMComputerStore((state) => state.filesSubView),
+  currentPath: useCarbonBIMComputerStore((state) => state.currentPath),
+  selectedFilePath: useCarbonBIMComputerStore((state) => state.selectedFilePath),
+  filePathList: useCarbonBIMComputerStore((state) => state.filePathList),
+  currentFileIndex: useCarbonBIMComputerStore((state) => state.currentFileIndex),
 });
 
 // Actions are stable references (functions don't change)
-export const useKortixComputerActions = () =>
-  useKortixComputerStore((state) => ({
+export const useCarbonBIMComputerActions = () =>
+  useCarbonBIMComputerStore((state) => ({
     setActiveView: state.setActiveView,
     openFile: state.openFile,
     goBackToBrowser: state.goBackToBrowser,
@@ -592,56 +592,56 @@ export const useKortixComputerActions = () =>
   }));
 
 // Individual selectors for pending tool navigation (stable primitives)
-export const useKortixComputerPendingToolNavIndex = () =>
-  useKortixComputerStore((state) => state.pendingToolNavIndex);
+export const useCarbonBIMComputerPendingToolNavIndex = () =>
+  useCarbonBIMComputerStore((state) => state.pendingToolNavIndex);
 
-export const useKortixComputerClearPendingToolNav = () =>
-  useKortixComputerStore((state) => state.clearPendingToolNav);
+export const useCarbonBIMComputerClearPendingToolNav = () =>
+  useCarbonBIMComputerStore((state) => state.clearPendingToolNav);
 
 // Side panel state selectors
 export const useIsSidePanelOpen = () =>
-  useKortixComputerStore((state) => state.isSidePanelOpen);
+  useCarbonBIMComputerStore((state) => state.isSidePanelOpen);
 
 export const useSetIsSidePanelOpen = () =>
-  useKortixComputerStore((state) => state.setIsSidePanelOpen);
+  useCarbonBIMComputerStore((state) => state.setIsSidePanelOpen);
 
 // === BIM SELECTORS ===
 
 export const useBimSubView = () =>
-  useKortixComputerStore((state) => state.bimSubView);
+  useCarbonBIMComputerStore((state) => state.bimSubView);
 
 export const useLoadedModel = () =>
-  useKortixComputerStore((state) => state.loadedModel);
+  useCarbonBIMComputerStore((state) => state.loadedModel);
 
 export const useSelectedElements = () =>
-  useKortixComputerStore((state) => state.selectedElements);
+  useCarbonBIMComputerStore((state) => state.selectedElements);
 
 export const useAnalysisResults = () =>
-  useKortixComputerStore((state) => state.analysisResults);
+  useCarbonBIMComputerStore((state) => state.analysisResults);
 
 export const useIsModelLoading = () =>
-  useKortixComputerStore((state) => state.isModelLoading);
+  useCarbonBIMComputerStore((state) => state.isModelLoading);
 
 export const useModelError = () =>
-  useKortixComputerStore((state) => state.modelError);
+  useCarbonBIMComputerStore((state) => state.modelError);
 
 export const useViewerSettings = () =>
-  useKortixComputerStore((state) => state.viewerSettings);
+  useCarbonBIMComputerStore((state) => state.viewerSettings);
 
 // Combined BIM state selector
 export const useBIMState = () => ({
-  bimSubView: useKortixComputerStore((state) => state.bimSubView),
-  loadedModel: useKortixComputerStore((state) => state.loadedModel),
-  selectedElements: useKortixComputerStore((state) => state.selectedElements),
-  analysisResults: useKortixComputerStore((state) => state.analysisResults),
-  isModelLoading: useKortixComputerStore((state) => state.isModelLoading),
-  modelError: useKortixComputerStore((state) => state.modelError),
-  viewerSettings: useKortixComputerStore((state) => state.viewerSettings),
+  bimSubView: useCarbonBIMComputerStore((state) => state.bimSubView),
+  loadedModel: useCarbonBIMComputerStore((state) => state.loadedModel),
+  selectedElements: useCarbonBIMComputerStore((state) => state.selectedElements),
+  analysisResults: useCarbonBIMComputerStore((state) => state.analysisResults),
+  isModelLoading: useCarbonBIMComputerStore((state) => state.isModelLoading),
+  modelError: useCarbonBIMComputerStore((state) => state.modelError),
+  viewerSettings: useCarbonBIMComputerStore((state) => state.viewerSettings),
 });
 
 // BIM actions selector
 export const useBIMActions = () =>
-  useKortixComputerStore((state) => ({
+  useCarbonBIMComputerStore((state) => ({
     setBimSubView: state.setBimSubView,
     loadModel: state.loadModel,
     unloadModel: state.unloadModel,

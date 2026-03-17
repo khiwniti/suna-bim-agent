@@ -336,7 +336,7 @@ allowed_origins = [
     "https://prod-test.kortix.com",
 ]
 # Allow all *.kortix.com subdomains and Vercel preview deployments
-allow_origin_regex = r"https://([a-z0-9-]+\.)?kortix\.com|https://.*-kortixai\.vercel\.app"
+allow_origin_regex = r"https://([a-z0-9-]+\.)?carbon-bim\.com|https://.*-kortixai\.vercel\.app"
 
 # Add local origins for development
 if config.ENV_MODE == EnvMode.LOCAL:

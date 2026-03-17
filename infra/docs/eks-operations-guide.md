@@ -1,4 +1,4 @@
-# Kortix EKS Operations Guide
+# Carbon BIM EKS Operations Guide
 
 Everything you need to know about how our Kubernetes setup works, how to monitor, scale, and what happens when things go wrong.
 

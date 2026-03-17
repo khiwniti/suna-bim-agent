@@ -1,5 +1,5 @@
-name: kortix-infra-dev
-description: Kortix DEV environment - Lightsail + Cloudflare Tunnel
+name: carbon-bim-infra-dev
+description: Carbon BIM DEV environment - Lightsail + Cloudflare Tunnel
 runtime:
   name: nodejs
   options:

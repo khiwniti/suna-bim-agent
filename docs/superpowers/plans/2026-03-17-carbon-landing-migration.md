@@ -2,13 +2,41 @@
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrate the complete carbon landing page and components from src.zip to Kortix, matching `autonomous-bim-agent.vercel.app` while preserving all existing Kortix features.
+**Goal:** Complete the migration of carbon landing page and components from src.zip to Carbon BIM, with zero regression to existing features.
 
-**Architecture:** CSS-only theme injection using `--carbon-*` namespaced variables. All 37+ new files are ADDITIVE - no existing Kortix files are modified except globals.css (additive) and translation files (merge keys only). Landing page uses carbon theme; dashboard keeps existing Kortix theme.
+**Architecture:** Namespaced CSS variables (`--carbon-*`) prevent conflicts with 590+ existing Carbon BIM components. Landing uses `bg-[var(--carbon-primary)]` instead of `bg-primary`.
 
 **Tech Stack:** Next.js 14+, Tailwind CSS v4, Framer Motion, next-intl, Zustand, lucide-react
 
 **Spec Reference:** `docs/superpowers/specs/2026-03-17-carbon-landing-migration-design.md`
+
+---
+
+## Implementation Status (Updated 2026-03-17)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| CSS Variables | ✅ DONE | globals.css lines 967-1116 |
+| Landing Components (10) | ✅ DONE | CarbonLogo, FloatingParticles, landing-page, etc. |
+| landing/index.ts | ✅ DONE | Exports all components |
+| Calculator Components (8) | ✅ DONE | CarbonCalculator, BOQAnalyzer, etc. |
+| calculator/index.ts | ✅ DONE | Exports all components |
+| Carbon Lib - types.ts | ✅ DONE | All types defined |
+| Carbon Lib - calculator.ts | ✅ DONE | Calculation functions |
+| Carbon Lib - emission-factors.ts | ✅ DONE | 104+ Thai materials |
+| Carbon Lib - trees-certification.ts | ✅ DONE | TREES module |
+| Carbon Lib - tver-templates.ts | ✅ DONE | T-VER templates |
+| Carbon Lib - kkp-boq-integration.ts | ✅ DONE | BOQ integration |
+| Carbon Lib - ifc-material-mapper.ts | ✅ DONE | IFC mapping |
+| lib/carbon/index.ts | ❌ MISSING | **Needs creation** |
+| lib/carbon/thai-materials.ts | ❌ MISSING | **Needs creation** |
+| lib/carbon/analysis-pipeline.ts | ❌ MISSING | **Needs creation** |
+| lib/carbon/knowledge-graph.ts | ❌ MISSING | **Needs creation** |
+| lib/carbon/ifc-calculator-integration.ts | ❌ MISSING | **Needs creation** |
+| lib/carbon/bank-reports.ts | ❌ MISSING | **Needs creation** |
+| i18n Translations | ✅ DONE | en.json, th.json merged |
+| stores/carbon-store.ts | ❌ MISSING | **Needs creation** |
+| hooks/useCarbonData.ts | ❌ MISSING | **Needs creation** |
 
 ---
 
@@ -154,7 +182,7 @@ git add apps/frontend/src/app/globals.css
 git commit -m "feat(css): add carbon-namespaced CSS variables
 
 Add --carbon-* prefixed variables for landing page theming.
-These are purely additive and don't affect existing Kortix styles.
+These are purely additive and don't affect existing Carbon BIM styles.
 Includes light and dark mode variants.
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
@@ -393,7 +421,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ---
 
-### Task 1.4: Verify Kortix Regression (Phase 1 Gate)
+### Task 1.4: Verify Carbon BIM Regression (Phase 1 Gate)
 
 **Files:** None (verification only)
 
@@ -1552,7 +1580,7 @@ git commit -m "feat: complete carbon landing page migration
 Migration Summary:
 - ~37 new files added
 - 3 files modified (additive only)
-- All existing Kortix features preserved
+- All existing Carbon BIM features preserved
 - Landing page matches autonomous-bim-agent.vercel.app
 
 Testing completed:
@@ -1593,9 +1621,836 @@ git cherry-pick <fix-commit-hash>
 ## Success Criteria Checklist
 
 - [ ] Landing page visually matches `autonomous-bim-agent.vercel.app`
-- [ ] All existing Kortix pages work WITHOUT any visual changes
+- [ ] All existing Carbon BIM pages work WITHOUT any visual changes
 - [ ] Dark/light mode works on BOTH themes
 - [ ] No TypeScript/ESLint errors
 - [ ] No console errors
 - [ ] Build completes successfully
 - [ ] All regression tests pass
+
+---
+
+## REMAINING WORK (Updated 2026-03-17)
+
+The following tasks remain to be completed. Most components have been migrated successfully.
+
+---
+
+## Chunk 7: Complete Carbon Library
+
+### Task 7.1: Create lib/carbon/index.ts barrel export
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/index.ts`
+
+- [ ] **Step 1: Create the barrel export file**
+
+```typescript
+// Carbon Library - Main Entry Point
+// Re-exports all carbon calculation utilities and types
+
+// Types
+export * from './types';
+
+// Emission factors database
+export {
+  THAI_EMISSION_FACTORS,
+  getEmissionFactor,
+  searchMaterials,
+  getEmissionFactorsByCategory,
+} from './emission-factors';
+
+// Calculator functions
+export {
+  calculateMaterialCarbon,
+  calculateBOQCarbon,
+  calculateTransportEmissions,
+  generateCarbonReport,
+} from './calculator';
+
+// TREES certification
+export {
+  TREES_THRESHOLDS,
+  calculateMRCredits,
+  determineTREESLevel,
+  pointsToNextLevel,
+  assessTREESCertification,
+} from './trees-certification';
+
+// T-VER templates
+export {
+  TVER_TEMPLATES,
+  generateTVERReport,
+  getTVERTemplate,
+} from './tver-templates';
+
+// KKP BOQ integration
+export {
+  KKP_BOQ_CODES,
+  parseKKPBOQ,
+  mapKKPToCarbon,
+} from './kkp-boq-integration';
+
+// IFC material mapper
+export {
+  IFC_MATERIAL_MAPPINGS,
+  mapIFCMaterial,
+  extractMaterialsFromIFC,
+} from './ifc-material-mapper';
+```
+
+- [ ] **Step 2: Verify TypeScript compilation**
+
+Run: `cd /teamspace/studios/this_studio/suna-bim-agent && npx tsc --noEmit --project apps/frontend/tsconfig.json 2>&1 | head -50`
+Expected: No errors related to carbon lib imports
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/index.ts
+git commit -m "feat(carbon): add barrel export for carbon library"
+```
+
+---
+
+### Task 7.2: Create thai-materials.ts (extended materials database)
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/thai-materials.ts`
+
+- [ ] **Step 1: Create the Thai materials database**
+
+```typescript
+/**
+ * Thai Materials Database
+ * Extended material definitions with BOQ codes and alternatives
+ */
+
+import type { ThaiMaterial } from './types';
+
+/**
+ * Thai construction materials with carbon data
+ * References: TGO CFP, MTEC Thai LCI, SCG EPD
+ */
+export const THAI_MATERIALS: ThaiMaterial[] = [
+  // Concrete Materials
+  {
+    id: 'concrete-ready-mix-c20',
+    name: 'Ready-mix Concrete C20/25',
+    nameTh: 'คอนกรีตผสมเสร็จ C20/25',
+    category: 'concrete',
+    subcategory: 'ready-mix',
+    boqCode: 'C01-001',
+    emissionFactorId: 'concrete-normal-c20',
+    emissionFactor: 265,
+    unit: 'kgCO2e/m3',
+    isLocallyProduced: true,
+    productionRegion: 'Central Thailand',
+    manufacturers: ['CPAC', 'TPI', 'INSEE'],
+    alternatives: [
+      {
+        materialId: 'concrete-low-carbon-c20',
+        name: 'Low-Carbon Concrete C20/25',
+        nameTh: 'คอนกรีตคาร์บอนต่ำ C20/25',
+        emissionFactor: 185,
+        unit: 'kgCO2e/m3',
+        carbonReduction: 30,
+        costImpact: 'higher',
+        availabilityInThailand: 'available',
+      },
+    ],
+  },
+  // Steel Materials
+  {
+    id: 'steel-rebar-sd40',
+    name: 'Reinforcement Steel SD40',
+    nameTh: 'เหล็กเส้น SD40',
+    category: 'steel',
+    subcategory: 'reinforcement',
+    boqCode: 'S01-001',
+    emissionFactorId: 'steel-rebar',
+    emissionFactor: 1.99,
+    unit: 'kgCO2e/kg',
+    isLocallyProduced: true,
+    productionRegion: 'Eastern Thailand',
+    manufacturers: ['SSI', 'TATA Steel', 'Millcon'],
+    recycledContentPercent: 25,
+    alternatives: [
+      {
+        materialId: 'steel-rebar-recycled',
+        name: 'Recycled Steel Rebar',
+        nameTh: 'เหล็กเส้นรีไซเคิล',
+        emissionFactor: 0.42,
+        unit: 'kgCO2e/kg',
+        carbonReduction: 79,
+        costImpact: 'same',
+        availabilityInThailand: 'available',
+      },
+    ],
+  },
+];
+
+/**
+ * Search materials by name, category, or BOQ code
+ */
+export function searchThaiMaterials(query: string): ThaiMaterial[] {
+  const normalizedQuery = query.toLowerCase();
+  return THAI_MATERIALS.filter(
+    (m) =>
+      m.name.toLowerCase().includes(normalizedQuery) ||
+      m.nameTh.includes(query) ||
+      m.category.includes(normalizedQuery) ||
+      m.boqCode?.includes(query.toUpperCase())
+  );
+}
+
+/**
+ * Get material by ID
+ */
+export function getThaiMaterial(id: string): ThaiMaterial | undefined {
+  return THAI_MATERIALS.find((m) => m.id === id);
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/thai-materials.ts
+git commit -m "feat(carbon): add Thai materials database with BOQ codes"
+```
+
+---
+
+### Task 7.3: Create analysis-pipeline.ts
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/analysis-pipeline.ts`
+
+- [ ] **Step 1: Create the analysis pipeline**
+
+```typescript
+/**
+ * Carbon Analysis Pipeline
+ * Full workflow for analyzing BIM/BOQ data and generating reports
+ */
+
+import type {
+  BOQCarbonAnalysis,
+  BOQCarbonItem,
+  MaterialCategory,
+  EdgeCalculation,
+  CarbonRecommendation,
+} from './types';
+import { getEmissionFactor } from './emission-factors';
+
+/**
+ * Analyze a BOQ and generate carbon analysis
+ */
+export async function analyzeBOQ(
+  projectId: string,
+  projectName: string,
+  items: Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    unit: string;
+    materialCode?: string;
+  }>,
+  grossFloorArea: number
+): Promise<BOQCarbonAnalysis> {
+  const carbonItems: BOQCarbonItem[] = [];
+  let totalCarbon = 0;
+
+  for (const item of items) {
+    const ef = item.materialCode ? getEmissionFactor(item.materialCode) : null;
+    if (!ef) continue;
+
+    const embodiedCarbon = item.quantity * ef.emissionFactor;
+    totalCarbon += embodiedCarbon;
+
+    carbonItems.push({
+      id: `carbon-${item.id}`,
+      boqItemId: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      unitCost: 0,
+      materialCode: item.materialCode,
+      emissionFactorId: ef.id,
+      embodiedCarbon,
+      carbonIntensity: ef.emissionFactor,
+      scope1Emissions: 0,
+      scope2Emissions: 0,
+      scope3Emissions: embodiedCarbon,
+    });
+  }
+
+  return {
+    projectId,
+    projectName,
+    totalEmbodiedCarbon: totalCarbon,
+    carbonPerSquareMeter: grossFloorArea > 0 ? totalCarbon / grossFloorArea : 0,
+    grossFloorArea,
+    categoryBreakdown: [],
+    scopeBreakdown: { scope1: 0, scope2: 0, scope3: totalCarbon },
+    hotspots: carbonItems.slice(0, 5).map(item => ({
+      itemId: item.boqItemId,
+      description: item.description,
+      carbon: item.embodiedCarbon,
+      percentage: totalCarbon > 0 ? (item.embodiedCarbon / totalCarbon) * 100 : 0,
+    })),
+    items: carbonItems,
+    calculatedAt: new Date(),
+    methodology: 'tgo_cfp',
+  };
+}
+
+/**
+ * Generate EDGE calculation from carbon analysis
+ */
+export function calculateEdgeCertification(
+  analysis: BOQCarbonAnalysis,
+  baselineIntensity: number = 500
+): EdgeCalculation {
+  const baselineCarbon = baselineIntensity * analysis.grossFloorArea;
+  const carbonReduction = baselineCarbon > 0
+    ? ((baselineCarbon - analysis.totalEmbodiedCarbon) / baselineCarbon) * 100
+    : 0;
+
+  return {
+    projectId: analysis.projectId,
+    baselineCarbon,
+    optimizedCarbon: analysis.totalEmbodiedCarbon,
+    carbonReduction,
+    certificationLevel: carbonReduction >= 40 ? 'edge_advanced' : carbonReduction >= 20 ? 'edge_certified' : undefined,
+    meetsEdgeThreshold: carbonReduction >= 20,
+    improvements: [],
+    materialBreakdown: [],
+  };
+}
+
+/**
+ * Generate carbon reduction recommendations
+ */
+export function generateRecommendations(
+  analysis: BOQCarbonAnalysis
+): CarbonRecommendation[] {
+  return analysis.hotspots.slice(0, 3).map((hotspot) => ({
+    id: `rec-${hotspot.itemId}`,
+    type: 'material_swap' as const,
+    priority: 'high' as const,
+    title: `Replace ${hotspot.description.substring(0, 30)}...`,
+    description: `Consider using a low-carbon alternative. Potential savings: ${(hotspot.carbon * 0.3).toFixed(0)} kgCO2e`,
+    currentCarbon: hotspot.carbon,
+    potentialCarbon: hotspot.carbon * 0.7,
+    savingsPercent: 30,
+    affectedElements: [hotspot.itemId],
+  }));
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/analysis-pipeline.ts
+git commit -m "feat(carbon): add BOQ analysis pipeline and EDGE calculation"
+```
+
+---
+
+### Task 7.4: Create knowledge-graph.ts
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/knowledge-graph.ts`
+
+- [ ] **Step 1: Create the knowledge graph module**
+
+```typescript
+/**
+ * Standards Knowledge Graph
+ * Relationships between Thai and international standards
+ */
+
+import type { StandardNode, StandardRelationship, StandardsKnowledgeGraph } from './types';
+
+export const STANDARD_NODES: StandardNode[] = [
+  {
+    id: 'tgo-cfp',
+    name: 'TGO Carbon Footprint for Products',
+    nameTh: 'โครงการคาร์บอนฟุตพริ้นท์ของผลิตภัณฑ์',
+    type: 'thai',
+    organization: 'Thailand Greenhouse Gas Management Organization',
+    relatedStandards: ['iso-14067', 'tver'],
+    dataRequirements: ['product-life-cycle', 'emission-factors'],
+    outputDocuments: ['cfp-label', 'cfp-certificate'],
+  },
+  {
+    id: 'trees',
+    name: 'TREES Certification',
+    nameTh: 'มาตรฐานอาคารเขียวไทย',
+    type: 'thai',
+    organization: 'Thai Green Building Institute',
+    relatedStandards: ['leed', 'edge'],
+    dataRequirements: ['building-materials', 'energy-consumption'],
+    outputDocuments: ['trees-certificate'],
+  },
+  {
+    id: 'edge',
+    name: 'EDGE Certification',
+    nameTh: 'มาตรฐาน EDGE',
+    type: 'international',
+    organization: 'IFC World Bank',
+    relatedStandards: ['trees', 'iso-14064'],
+    dataRequirements: ['baseline-comparison', 'material-carbon'],
+    outputDocuments: ['edge-certificate'],
+  },
+];
+
+export const STANDARD_RELATIONSHIPS: StandardRelationship[] = [
+  {
+    fromId: 'tgo-cfp',
+    toId: 'iso-14067',
+    relationshipType: 'extends',
+    description: 'TGO CFP follows ISO 14067 methodology with Thai-specific factors',
+  },
+  {
+    fromId: 'trees',
+    toId: 'leed',
+    relationshipType: 'alternative',
+    description: 'TREES is Thai alternative to LEED with local adaptations',
+  },
+];
+
+export function createKnowledgeGraph(): StandardsKnowledgeGraph {
+  return {
+    nodes: STANDARD_NODES,
+    relationships: STANDARD_RELATIONSHIPS,
+    getRelatedStandards: (id: string) => {
+      const node = STANDARD_NODES.find(n => n.id === id);
+      if (!node) return [];
+      return STANDARD_NODES.filter(n => node.relatedStandards.includes(n.id));
+    },
+    getDataRequirements: (id: string) => {
+      const node = STANDARD_NODES.find(n => n.id === id);
+      return node?.dataRequirements || [];
+    },
+    getPath: (fromId: string, toId: string) => {
+      // Simple BFS implementation
+      const visited = new Set<string>();
+      const queue: StandardNode[][] = [[STANDARD_NODES.find(n => n.id === fromId)!]];
+      
+      while (queue.length > 0) {
+        const path = queue.shift()!;
+        const current = path[path.length - 1];
+        
+        if (current.id === toId) return path;
+        if (visited.has(current.id)) continue;
+        visited.add(current.id);
+        
+        const related = STANDARD_NODES.filter(n => current.relatedStandards.includes(n.id));
+        for (const node of related) {
+          queue.push([...path, node]);
+        }
+      }
+      return [];
+    },
+  };
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/knowledge-graph.ts
+git commit -m "feat(carbon): add standards knowledge graph"
+```
+
+---
+
+### Task 7.5: Create bank-reports.ts
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/bank-reports.ts`
+
+- [ ] **Step 1: Create the bank reports module**
+
+```typescript
+/**
+ * Green Loan Bank Reports Module
+ * Generate documentation for Thai green loan applications
+ */
+
+import type { GreenLoanDocument, BOQCarbonAnalysis, EdgeCalculation } from './types';
+
+/**
+ * Generate green loan documentation
+ */
+export function generateGreenLoanDocument(
+  analysis: BOQCarbonAnalysis,
+  edge: EdgeCalculation | null,
+  targetBank: GreenLoanDocument['targetBank'] = 'ghbank'
+): GreenLoanDocument {
+  const carbonReductionPercent = edge?.carbonReduction || 0;
+
+  return {
+    projectId: analysis.projectId,
+    projectName: analysis.projectName,
+    targetBank,
+    totalEmbodiedCarbon: analysis.totalEmbodiedCarbon,
+    carbonReductionPercent,
+    baselineComparison: edge?.baselineCarbon || 0,
+    edgeCertification: edge?.certificationLevel,
+    sections: {
+      executiveSummary: `Project ${analysis.projectName} demonstrates ${carbonReductionPercent.toFixed(1)}% carbon reduction compared to baseline construction methods.`,
+      projectOverview: `Total GFA: ${analysis.grossFloorArea.toLocaleString()} m². Carbon intensity: ${analysis.carbonPerSquareMeter.toFixed(1)} kgCO2e/m².`,
+      carbonAnalysis: `Total embodied carbon: ${analysis.totalEmbodiedCarbon.toLocaleString()} kgCO2e. Analysis methodology: ${analysis.methodology.toUpperCase()}.`,
+      certificationStatus: edge?.meetsEdgeThreshold 
+        ? `Eligible for ${edge.certificationLevel?.replace('_', ' ').toUpperCase()} certification.`
+        : 'Working towards EDGE certification threshold.',
+      sustainabilityMetrics: `Top 5 material hotspots identified. ${analysis.hotspots.length} optimization opportunities available.`,
+    },
+    generatedAt: new Date(),
+  };
+}
+
+/**
+ * Get bank-specific requirements
+ */
+export function getBankRequirements(bank: GreenLoanDocument['targetBank']): string[] {
+  const requirements: Record<string, string[]> = {
+    ghbank: ['EDGE certification or equivalent', 'Environmental impact assessment', 'Carbon reduction documentation'],
+    krungsri: ['Green building certification', 'Energy efficiency report', 'Sustainability plan'],
+    sme_dbank: ['Environmental compliance', 'Resource efficiency measures'],
+    exim: ['International environmental standards', 'Export sustainability requirements'],
+    other: ['Environmental documentation'],
+  };
+  return requirements[bank] || requirements.other;
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/bank-reports.ts
+git commit -m "feat(carbon): add green loan bank reports module"
+```
+
+---
+
+### Task 7.6: Create ifc-calculator-integration.ts
+
+**Files:**
+- Create: `apps/frontend/src/lib/carbon/ifc-calculator-integration.ts`
+
+- [ ] **Step 1: Create the IFC calculator integration**
+
+```typescript
+/**
+ * IFC Calculator Integration
+ * Bridge between IFC data extraction and carbon calculations
+ */
+
+import type { BIMModel, BIMElement, BOQCarbonAnalysis } from './types';
+import { mapIFCMaterial } from './ifc-material-mapper';
+import { analyzeBOQ } from './analysis-pipeline';
+
+/**
+ * Convert BIM elements to BOQ items for carbon analysis
+ */
+export function convertBIMToBOQ(
+  model: BIMModel
+): Array<{
+  id: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  materialCode?: string;
+}> {
+  return model.elements
+    .filter(elem => elem.material)
+    .map(elem => {
+      const mapping = mapIFCMaterial(elem.material || '');
+      const volume = calculateElementVolume(elem);
+      
+      return {
+        id: elem.id,
+        description: `${elem.type}: ${elem.name || elem.material}`,
+        quantity: volume,
+        unit: 'm3',
+        materialCode: mapping?.emissionFactorId,
+      };
+    });
+}
+
+/**
+ * Calculate element volume from geometry
+ */
+function calculateElementVolume(element: BIMElement): number {
+  if (!element.geometry?.boundingBox) return 1;
+  
+  const { min, max } = element.geometry.boundingBox;
+  return Math.abs((max.x - min.x) * (max.y - min.y) * (max.z - min.z));
+}
+
+/**
+ * Run full BIM carbon analysis
+ */
+export async function analyzeBIMModel(
+  model: BIMModel,
+  projectName: string
+): Promise<BOQCarbonAnalysis> {
+  const boqItems = convertBIMToBOQ(model);
+  const gfa = model.metadata?.totalArea || 1000;
+  
+  return analyzeBOQ(model.id, projectName, boqItems, gfa);
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/lib/carbon/ifc-calculator-integration.ts
+git commit -m "feat(carbon): add IFC calculator integration"
+```
+
+---
+
+## Chunk 8: State Management & Hooks
+
+### Task 8.1: Create carbon-store.ts (Zustand store)
+
+**Files:**
+- Create: `apps/frontend/src/stores/carbon-store.ts`
+
+- [ ] **Step 1: Create the Zustand store**
+
+```typescript
+/**
+ * Carbon Analysis State Store
+ */
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type {
+  BOQCarbonAnalysis,
+  EdgeCalculation,
+  TREESCertification,
+  CarbonRecommendation,
+} from '@/lib/carbon/types';
+
+interface CarbonState {
+  currentAnalysis: BOQCarbonAnalysis | null;
+  edgeCalculation: EdgeCalculation | null;
+  treesAssessment: TREESCertification | null;
+  recommendations: CarbonRecommendation[];
+  isAnalyzing: boolean;
+  analysisProgress: number;
+  error: string | null;
+
+  setAnalysis: (analysis: BOQCarbonAnalysis) => void;
+  setEdgeCalculation: (calc: EdgeCalculation) => void;
+  setTREESAssessment: (assessment: TREESCertification) => void;
+  setRecommendations: (recs: CarbonRecommendation[]) => void;
+  setAnalyzing: (isAnalyzing: boolean) => void;
+  setProgress: (progress: number) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+}
+
+export const useCarbonStore = create<CarbonState>()(
+  persist(
+    (set) => ({
+      currentAnalysis: null,
+      edgeCalculation: null,
+      treesAssessment: null,
+      recommendations: [],
+      isAnalyzing: false,
+      analysisProgress: 0,
+      error: null,
+
+      setAnalysis: (analysis) => set({ currentAnalysis: analysis }),
+      setEdgeCalculation: (calc) => set({ edgeCalculation: calc }),
+      setTREESAssessment: (assessment) => set({ treesAssessment: assessment }),
+      setRecommendations: (recs) => set({ recommendations: recs }),
+      setAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
+      setProgress: (progress) => set({ analysisProgress: progress }),
+      setError: (error) => set({ error }),
+      reset: () => set({
+        currentAnalysis: null,
+        edgeCalculation: null,
+        treesAssessment: null,
+        recommendations: [],
+        isAnalyzing: false,
+        analysisProgress: 0,
+        error: null,
+      }),
+    }),
+    {
+      name: 'carbon-analysis-store',
+      partialize: (state) => ({
+        currentAnalysis: state.currentAnalysis,
+        recommendations: state.recommendations,
+      }),
+    }
+  )
+);
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/stores/carbon-store.ts
+git commit -m "feat(carbon): add Zustand store for carbon analysis state"
+```
+
+---
+
+### Task 8.2: Create useCarbonData hook
+
+**Files:**
+- Create: `apps/frontend/src/hooks/panel-data/useCarbonData.ts`
+
+- [ ] **Step 1: Create the data hook**
+
+```typescript
+/**
+ * Carbon Data Hook
+ */
+
+import { useCallback } from 'react';
+import { useCarbonStore } from '@/stores/carbon-store';
+import {
+  analyzeBOQ,
+  calculateEdgeCertification,
+  generateRecommendations,
+} from '@/lib/carbon/analysis-pipeline';
+
+export function useCarbonData() {
+  const {
+    currentAnalysis,
+    edgeCalculation,
+    recommendations,
+    isAnalyzing,
+    analysisProgress,
+    error,
+    setAnalysis,
+    setEdgeCalculation,
+    setRecommendations,
+    setAnalyzing,
+    setProgress,
+    setError,
+  } = useCarbonStore();
+
+  const runAnalysis = useCallback(
+    async (
+      projectId: string,
+      projectName: string,
+      boqItems: Parameters<typeof analyzeBOQ>[2],
+      grossFloorArea: number
+    ) => {
+      setAnalyzing(true);
+      setError(null);
+      setProgress(0);
+
+      try {
+        setProgress(25);
+        const analysis = await analyzeBOQ(projectId, projectName, boqItems, grossFloorArea);
+        setAnalysis(analysis);
+
+        setProgress(50);
+        const edge = calculateEdgeCertification(analysis);
+        setEdgeCalculation(edge);
+
+        setProgress(75);
+        const recs = generateRecommendations(analysis);
+        setRecommendations(recs);
+
+        setProgress(100);
+        return analysis;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Analysis failed';
+        setError(message);
+        throw err;
+      } finally {
+        setAnalyzing(false);
+      }
+    },
+    [setAnalysis, setEdgeCalculation, setRecommendations, setAnalyzing, setProgress, setError]
+  );
+
+  return {
+    analysis: currentAnalysis,
+    edgeCalculation,
+    recommendations,
+    isAnalyzing,
+    progress: analysisProgress,
+    error,
+    runAnalysis,
+  };
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add apps/frontend/src/hooks/panel-data/useCarbonData.ts
+git commit -m "feat(carbon): add useCarbonData hook for analysis workflow"
+```
+
+---
+
+## Chunk 9: Final Verification
+
+### Task 9.1: Update lib/carbon/index.ts with all exports
+
+**Files:**
+- Update: `apps/frontend/src/lib/carbon/index.ts`
+
+- [ ] **Step 1: Update barrel export with all modules**
+
+After all files are created, update index.ts to export everything.
+
+- [ ] **Step 2: Run TypeScript check**
+
+```bash
+cd /teamspace/studios/this_studio/suna-bim-agent && npx tsc --noEmit --project apps/frontend/tsconfig.json
+```
+
+- [ ] **Step 3: Run build**
+
+```bash
+cd /teamspace/studios/this_studio/suna-bim-agent && npm run build --prefix apps/frontend
+```
+
+---
+
+### Task 9.2: Final Regression Testing
+
+- [ ] **Dashboard Routes** (must be visually UNCHANGED)
+  - [ ] `/dashboard` - Main dashboard loads correctly
+  - [ ] `/agents` - Agents page renders with correct styling
+  - [ ] `/settings/api-keys` - API keys page functional
+
+- [ ] **Landing Page** (new - must match reference)
+  - [ ] Visually matches `autonomous-bim-agent.vercel.app`
+  - [ ] Emerald/Teal color scheme
+  - [ ] Animations working
+  - [ ] Dark/light mode works
+
+---
+
+## Summary of Remaining Work
+
+| Task | Files | Est. Time |
+|------|-------|-----------|
+| 7.1 index.ts | 1 file | 3 min |
+| 7.2 thai-materials.ts | 1 file | 5 min |
+| 7.3 analysis-pipeline.ts | 1 file | 5 min |
+| 7.4 knowledge-graph.ts | 1 file | 5 min |
+| 7.5 bank-reports.ts | 1 file | 5 min |
+| 7.6 ifc-calculator-integration.ts | 1 file | 5 min |
+| 8.1 carbon-store.ts | 1 file | 5 min |
+| 8.2 useCarbonData.ts | 1 file | 5 min |
+| 9.1 Final verification | - | 10 min |
+| **Total** | **8 files** | **~48 min** |
+

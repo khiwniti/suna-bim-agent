@@ -71,7 +71,7 @@
   "announcements": {
     "memories": {
       "title": "แนะนำ Memories",
-      "description": "Kortix จะจดจำการตั้งค่าและบริบทของคุณในทุกการสนทนา",
+      "description": "Carbon BIM จะจดจำการตั้งค่าและบริบทของคุณในทุกการสนทนา",
       "features": {
         "personalized": {
           "title": "ประสบการณ์เฉพาะบุคคล",
@@ -96,7 +96,7 @@
     "enterCode": "กรอกรหัส",
     "logIntoAccount": "เข้าสู่บัญชีของคุณ",
     "createAccount": "สร้างบัญชี",
-    "signInOrCreateAccount": "เข้าสู่ระบบหรือสร้างบัญชี Kortix ของคุณ",
+    "signInOrCreateAccount": "เข้าสู่ระบบหรือสร้างบัญชี Carbon BIM ของคุณ",
     "continueWithGoogle": "เข้าสู่ระบบด้วย Google",
     "continueWithGitHub": "เข้าสู่ระบบด้วย GitHub",
     "orEmail": "หรืออีเมล",
@@ -172,7 +172,7 @@
     },
     "creditsExplainedPage": {
       "title": "อธิบายเครดิต",
-      "subtitle": "ทุกอย่างที่คุณควรรู้เกี่ยวกับเครดิตใน Kortix",
+      "subtitle": "ทุกอย่างที่คุณควรรู้เกี่ยวกับเครดิตใน Carbon BIM",
       "understandingCredits": {
         "title": "ทำความเข้าใจเครดิต"
       }
@@ -224,7 +224,7 @@
       ],
       "random": [
         "กลับมาแล้ว!",
-        "สวัสดี! Kortix ช่วยอะไรได้บ้าง?",
+        "สวัสดี! Carbon BIM ช่วยอะไรได้บ้าง?",
         "คุณต้องการทำอะไร?",
         "มาสร้างอะไรเจ๋งๆ กัน",
         "พร้อมเมื่อคุณพร้อม!",
@@ -337,10 +337,10 @@
     }
   },
   "showcase": {
-    "title": "Kortix: AI Worker อัตโนมัติของคุณ",
+    "title": "Carbon BIM: AI Worker อัตโนมัติของคุณ",
     "subtitle": "สร้างมาเพื่อจัดการงานซับซ้อน ออกแบบมาเพื่อทุกอย่าง ผู้ช่วย AI ที่สุดยอดที่จัดการได้ทุกอย่างตั้งแต่คำขอเล็กน้อยจนถึงโปรเจกต์ขนาดใหญ่",
     "tryItOut": "ลองใช้งาน",
-    "kortixComputer": "Kortix Computer",
+    "carbonBimComputer": "Carbon BIM Computer",
     "running": "กำลังทำงาน",
     "workers": {
       "images": {
@@ -595,5 +595,207 @@
     "editScheduledTask": "แก้ไขงานที่ตั้งเวลาไว้",
     "createScheduledTask": "สร้างงานที่ตั้งเวลาไว้",
     "editAppBasedTask": "แก้ไขงานแบบแอป"
+  },
+  "landing": {
+    "hero": {
+      "title": "คำนวณ Carbon Footprint ของโครงการ",
+      "titleHighlight": "ภายในไม่กี่นาที ไม่ใช่หลายเดือน!",
+      "subtitle": "ไม่ต้องจ้างที่ปรึกษา ไม่ต้องใช้ซอฟต์แวร์ราคาแพง แค่อัปโหลดแบบ BIM แล้วรับผลวิเคราะห์คาร์บอนทันทีพร้อมค่า Emission Factor ของวัสดุไทยเลย",
+      "description": "วิเคราะห์อาคารด้วย AI เพื่อสถาปัตยกรรมยั่งยืน ปรับปรุงประสิทธิภาพพลังงาน และจัดการอาคารอัจฉริยะ",
+      "cta": "เริ่มวิเคราะห์ฟรี ไม่ต้องสมัคร",
+      "ctaSecondary": "ดูตัวอย่าง",
+      "badge": "🇹🇭 วิเคราะห์คาร์บอนด้วย AI สำหรับก่อสร้างไทย",
+      "inputPlaceholder": "ถามเรื่องวิเคราะห์คาร์บอน เปรียบเทียบวัสดุ หรืออัปโหลดไฟล์ IFC ได้เลยนะ...",
+      "trustBadges": {
+        "tgoData": "ข้อมูลจาก อบก.",
+        "treesAligned": "รองรับ TREES",
+        "bilingualSupport": "ไทย & English"
+      },
+      "uploadModel": "อัปโหลดโมเดล IFC/BIM",
+      "supportedFormats": "รองรับ IFC, PDF, DWG"
+    },
+    "suggestions": {
+      "embodiedCarbon": "คำนวณค่าคาร์บอนที่ฝังอยู่ในอาคารของฉัน",
+      "compareMaterials": "เปรียบเทียบ Carbon Footprint ของวัสดุ",
+      "analyzeIfc": "วิเคราะห์ความยั่งยืนของโมเดล IFC",
+      "generateReport": "สร้างรายงานตามมาตรฐาน อบก."
+    },
+    "stats": {
+      "thaiMaterials": "วัสดุไทย",
+      "avgAnalysisTime": "เวลาวิเคราะห์เฉลี่ย",
+      "avgCarbonSavings": "ประหยัดคาร์บอนเฉลี่ย",
+      "projectsAnalyzed": "โครงการที่วิเคราะห์แล้ว",
+      "learnMore": "เรียนรู้เพิ่มเติม"
+    },
+    "valueProps": {
+      "minutesNotMonths": {
+        "title": "ใช้เวลาเป็นนาที ไม่ใช่เป็นเดือน",
+        "description": "ได้ค่าประมาณคาร์บอนที่แม่นยำทันที ไม่ต้องรอที่ปรึกษาหรือตั้งค่าซอฟต์แวร์ซับซ้อน",
+        "highlight": "วิเคราะห์ใน 15 นาที"
+      },
+      "thaiMaterials": {
+        "title": "วัสดุไทยกว่า 104 รายการ",
+        "description": "ค่า Emission Factor จาก อบก., MTEC และ SCG EPD แม่นยำกว่าฐานข้อมูลต่างประเทศ",
+        "highlight": "ข้อมูลเฉพาะประเทศไทย"
+      },
+      "aiOptimization": {
+        "title": "การปรับปรุงด้วย AI",
+        "description": "รับคำแนะนำทันทีสำหรับวัสดุทดแทนคาร์บอนต่ำพร้อมการประหยัดที่คาดการณ์ไว้",
+        "highlight": "ลดได้สูงสุด 35%"
+      },
+      "tgoReady": {
+        "title": "พร้อมสำหรับ TREES และ อบก.",
+        "description": "สร้างรายงานตามมาตรฐานสำหรับการรับรองอาคารเขียวและการรายงานคาร์บอน",
+        "highlight": "รายงานพร้อมส่งออก"
+      }
+    },
+    "whyChooseUs": {
+      "badge": "ทำไมต้องเลือกเรา",
+      "title": "สร้างมาเพื่อ",
+      "titleHighlight": "การก่อสร้างไทย",
+      "subtitle": "เครื่องมือวิเคราะห์คาร์บอนเพียงตัวเดียวที่มีค่า Emission Factor เฉพาะประเทศไทย รองรับ อบก. และราคาสำหรับ SMB"
+    },
+    "comparisonSection": {
+      "badge": "เปรียบเทียบ",
+      "title": "ฟีเจอร์ระดับองค์กร,",
+      "titleHighlight": "ราคา SMB",
+      "subtitle": "ได้ความสามารถเดียวกันกับที่ปรึกษาราคาแพงในราคาที่ถูกกว่ามาก",
+      "featureColumn": "ฟีเจอร์",
+      "usColumn": "BIM Carbon",
+      "othersColumn": "รายอื่น",
+      "rows": {
+        "setupTime": { "feature": "เวลาตั้งค่า", "us": "5 นาที", "others": "2-4 สัปดาห์" },
+        "monthlyCost": { "feature": "ค่าใช้จ่ายรายเดือน", "us": "เริ่มต้น ฿0", "others": "฿50,000+" },
+        "thaiMaterials": { "feature": "วัสดุไทย", "us": "104+ รายการ", "others": "จำกัด" },
+        "aiRecommendations": { "feature": "คำแนะนำจาก AI", "us": "รวมอยู่แล้ว", "others": "เสียค่าใช้จ่ายเพิ่ม" },
+        "learningCurve": { "feature": "ความยากในการเรียนรู้", "us": "ไม่มี", "others": "ต้องฝึกอบรม" }
+      }
+    },
+    "features": {
+      "title": "ทำไมต้องเลือก BIM Carbon?",
+      "subtitle": "ออกแบบมาเพื่ออุตสาหกรรมก่อสร้างไทยโดยเฉพาะ พร้อมวัสดุและมาตรฐานในประเทศ",
+      "thaiDatabase": {
+        "title": "ฐานข้อมูลวัสดุไทย",
+        "description": "วัสดุกว่า 104 รายการพร้อมค่า Emission Factor จาก อบก./MTEC"
+      },
+      "aiAnalysis": {
+        "title": "วิเคราะห์ด้วย AI",
+        "description": "อัปโหลดแปลนพื้นหรือแบบ BIM เพื่อคำนวณคาร์บอนอัตโนมัติ"
+      },
+      "tgoCompliance": {
+        "title": "รองรับมาตรฐาน อบก.",
+        "description": "สร้างรายงาน CFO/CFP พร้อมยื่นขอการรับรองอย่างเป็นทางการ"
+      },
+      "treesReady": {
+        "title": "รองรับ TREES",
+        "description": "คำนวณคะแนน TREES และจัดทำเอกสารอัตโนมัติ"
+      },
+      "optimization": {
+        "title": "คำแนะนำจาก AI",
+        "description": "แนะนำวัสดุทดแทนที่ปล่อยคาร์บอนต่ำพร้อมประหยัดต้นทุน"
+      },
+      "affordable": {
+        "title": "ราคาสำหรับ SMB",
+        "description": "เริ่มต้นฟรี อัปเกรดเมื่อพร้อม - ไม่มีราคาระดับองค์กร"
+      },
+      "floorPlan": {
+        "title": "แปลนพื้นสู่ 3D",
+        "description": "อัปโหลดแปลนพื้นใดก็ได้ และดู AI แปลงเป็นโมเดล 3D แบบโต้ตอบได้ในไม่กี่วินาที"
+      },
+      "sustainability": {
+        "title": "วิเคราะห์ความยั่งยืน",
+        "description": "คำนวณคาร์บอนฟุตพริ้นท์ ประสิทธิภาพวัสดุ และผลกระทบต่อสิ่งแวดล้อมอย่างแม่นยำ"
+      },
+      "energy": {
+        "title": "จำลองพลังงาน",
+        "description": "รันการจำลองพลังงานขั้นสูงเพื่อปรับปรุงระบบ HVAC ไฟฟ้า และประสิทธิภาพอาคารโดยรวม"
+      }
+    },
+    "howItWorks": {
+      "badge": "วิธีการทำงาน",
+      "title": "จากอัปโหลดสู่ข้อมูลเชิงลึกใน",
+      "titleHighlight": "3 ขั้นตอน",
+      "subtitle": "ไม่ต้องฝึกอบรม เริ่มวิเคราะห์ได้ในไม่กี่นาที",
+      "step1": {
+        "number": "01",
+        "title": "อัปโหลดแบบของคุณ",
+        "description": "อัปโหลดไฟล์ IFC, PDF แปลนพื้น หรือใช้เครื่องคำนวณด่วน รองรับทุกรูปแบบ BIM หลัก"
+      },
+      "step2": {
+        "number": "02",
+        "title": "AI วิเคราะห์คาร์บอน",
+        "description": "AI คำนวณค่าคาร์บอนที่ฝังอยู่โดยใช้ค่า Emission Factor ของไทย และระบุโอกาสในการปรับปรุง"
+      },
+      "step3": {
+        "number": "03",
+        "title": "รับรายงานและคำแนะนำ",
+        "description": "รับรายงานตามมาตรฐาน อบก. เอกสาร TREES และทางเลือกคาร์บอนต่ำที่นำไปใช้ได้จริง"
+      }
+    },
+    "testimonials": {
+      "badge": "รีวิวจากผู้ใช้",
+      "title": "ได้รับความไว้วางใจจาก",
+      "titleHighlight": "มืออาชีพไทย",
+      "items": {
+        "testimonial1": {
+          "quote": "ประหยัดเวลาทำรายงานคาร์บอนได้มาก เมื่อก่อนต้องจ้างที่ปรึกษา ตอนนี้ทำเองได้ใน 15 นาที",
+          "author": "คุณสมชาย",
+          "role": "Project Manager",
+          "company": "ABC Construction"
+        },
+        "testimonial2": {
+          "quote": "ฐานข้อมูลวัสดุไทยตรงตามที่เราต้องการ เครื่องมือต่างประเทศให้ค่าประมาณที่ไม่แม่นยำเสมอ",
+          "author": "Sarah Chen",
+          "role": "Sustainability Lead",
+          "company": "Green Build Co."
+        },
+        "testimonial3": {
+          "quote": "ช่วยให้เราชนะโครงการ Green Building ได้ 3 โครงการในปีนี้",
+          "author": "คุณวิภา",
+          "role": "Owner",
+          "company": "VB Contractors"
+        }
+      }
+    },
+    "ctaSection": {
+      "title": "เริ่มวิเคราะห์คาร์บอนฟรี",
+      "subtitle": "เข้าร่วมกับผู้เชี่ยวชาญด้านการก่อสร้างไทยกว่า 500 คนที่ใช้ BIM Carbon แล้ว ไม่ต้องใช้บัตรเครดิต",
+      "cta": "เริ่มวิเคราะห์ฟรี",
+      "ctaSecondary": "ดูราคา"
+    },
+    "comparison": {
+      "title": "เปรียบเทียบกับทางเลือกอื่น",
+      "subtitle": "ดูความแตกต่างด้วยตัวคุณเอง",
+      "headers": {
+        "feature": "คุณสมบัติ",
+        "us": "BIM Carbon",
+        "consultants": "ที่ปรึกษา",
+        "enterprise": "ซอฟต์แวร์องค์กร"
+      },
+      "rows": {
+        "price": "ราคา",
+        "setup": "เวลาเริ่มต้น",
+        "thaiData": "วัสดุไทย",
+        "tgoReports": "รายงาน อบก.",
+        "aiOptimization": "AI ช่วยปรับปรุง"
+      },
+      "values": {
+        "priceUs": "฿0-9,900/เดือน",
+        "priceConsultants": "฿50K-200K",
+        "priceEnterprise": "฿50K+/เดือน",
+        "setupUs": "ทันที",
+        "setupConsultants": "2-4 สัปดาห์",
+        "setupEnterprise": "1-3 เดือน",
+        "yes": "ใช่",
+        "no": "ไม่มี",
+        "limited": "จำกัด"
+      }
+    },
+    "cta": {
+      "title": "พร้อมลด Carbon Footprint ของคุณแล้วหรือยัง?",
+      "subtitle": "เริ่มวิเคราะห์โครงการของคุณวันนี้เลย ไม่ต้องใช้บัตรเครดิต",
+      "button": "เริ่มวิเคราะห์ฟรีเลย!",
+      "demo": "ดูตัวอย่าง"
+    }
   }
 }

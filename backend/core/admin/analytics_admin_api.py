@@ -361,7 +361,7 @@ def query_google_analytics(date_str: str) -> Dict[str, int]:
     
     client = get_ga_client()
     
-    # Build the request - no hostname filter needed (dedicated kortix property)
+    # Build the request - no hostname filter needed (dedicated carbon-bim property)
     request = RunReportRequest(
         property=f"properties/{property_id}",
         date_ranges=[DateRange(start_date=date_str, end_date=date_str)],

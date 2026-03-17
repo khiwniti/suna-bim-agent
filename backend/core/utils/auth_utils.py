@@ -1,10 +1,11 @@
 import hmac
+import os
 from fastapi import HTTPException, Request, Header
 from typing import Optional, Dict
 import jwt
 from jwt.exceptions import PyJWTError
 from core.utils.logger import structlog
-from core.utils.config import config
+from core.utils.config import config, EnvMode
 from core.services.supabase import DBConnection
 from core.services import redis
 from core.utils.logger import logger, structlog
@@ -26,6 +27,8 @@ def _constant_time_compare(a: str, b: str) -> bool:
 _jwks_cache: Optional[Dict] = None
 _jwks_cache_time: float = 0 
 _jwks_cache_ttl: int = 3600  # Cache for 1 hour
+LOCAL_DEV_USER_ID = os.getenv("LOCAL_DEV_USER_ID", "00000000-0000-0000-0000-000000000001")
+LOCAL_DEV_ACCESS_TOKEN = os.getenv("LOCAL_DEV_ACCESS_TOKEN", "local-dev-token")
 
 
 async def _fetch_jwks() -> Dict:
@@ -126,7 +129,7 @@ def _get_public_key_from_jwks(jwks: Dict, kid: str):
 
 
 async def verify_admin_api_key(x_admin_api_key: Optional[str] = Header(None)):
-    if not config.KORTIX_ADMIN_API_KEY:
+    if not config.CARBON_BIM_ADMIN_API_KEY:
         raise HTTPException(
             status_code=500,
             detail="Admin API key not configured on server"
@@ -139,7 +142,7 @@ async def verify_admin_api_key(x_admin_api_key: Optional[str] = Header(None)):
         )
     
     # Use constant-time comparison to prevent timing attacks
-    if not _constant_time_compare(x_admin_api_key, config.KORTIX_ADMIN_API_KEY):
+    if not _constant_time_compare(x_admin_api_key, config.CARBON_BIM_ADMIN_API_KEY):
         raise HTTPException(
             status_code=403,
             detail="Invalid admin API key"
@@ -452,6 +455,14 @@ async def verify_and_get_user_id_from_jwt(request: Request) -> str:
             )
 
     auth_header = request.headers.get('Authorization')
+
+    if config.ENV_MODE == EnvMode.LOCAL:
+        if not auth_header or auth_header == f"Bearer {LOCAL_DEV_ACCESS_TOKEN}":
+            structlog.contextvars.bind_contextvars(
+                user_id=LOCAL_DEV_USER_ID,
+                auth_method="local_dev"
+            )
+            return LOCAL_DEV_USER_ID
     
     if not auth_header or not auth_header.startswith('Bearer '):
         raise HTTPException(

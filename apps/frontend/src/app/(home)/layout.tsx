@@ -11,10 +11,13 @@ export default function HomeLayout({
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
+  if (isHomePage) {
+    return <div className="w-full min-h-dvh relative">{children}</div>;
+  }
+
   return (
     <div className="w-full min-h-dvh relative">
-      {/* Navbar is absolute on home page to not take up space, sticky on other pages */}
-      <div className={isHomePage ? 'absolute top-0 left-0 right-0 z-50' : ''}>
+      <div>
         <Navbar isAbsolute={isHomePage} />
       </div>
       {children}

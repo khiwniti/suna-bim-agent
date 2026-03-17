@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { KortixLogo } from '@/components/sidebar/kortix-logo';
+import { CarbonBIMLogo } from '@/components/sidebar/carbon-bim-logo';
 
 export function FooterSection() {
   const tablet = useMediaQuery('(max-width: 1024px)');
@@ -29,10 +29,10 @@ export function FooterSection() {
               <Link href="/" className="flex items-center gap-2">
                 {/* Wordmark on mobile, symbol on desktop */}
                 <span className="md:hidden">
-                  <KortixLogo size={18} variant="logomark" />
+                  <CarbonBIMLogo size={18} variant="logomark" />
                 </span>
                 <span className="hidden md:block">
-                  <KortixLogo size={20} variant="symbol" />
+                  <CarbonBIMLogo size={20} variant="symbol" />
                 </span>
               </Link>
               <p className="tracking-tight text-muted-foreground font-medium">
@@ -58,7 +58,7 @@ export function FooterSection() {
                   </svg>
                 </a>
                 <a
-                  href="https://x.com/kortix"
+                  href="https://x.com/carbon-bim"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="X (Twitter)"
@@ -75,7 +75,7 @@ export function FooterSection() {
                   </svg>
                 </a>
                 <a
-                  href="https://www.linkedin.com/company/kortix/"
+                  href="https://www.linkedin.com/company/carbon-bim/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClashDetectionResult } from '@/types/bim';
-import { useKortixComputerStore } from '@/stores/kortix-computer-store';
+import { useCarbonBIMComputerStore } from '@/stores/carbon-bim-computer-store';
 
 function parseClashResult(toolResult: ToolViewProps['toolResult']): ClashDetectionResult | null {
   if (!toolResult?.output) return null;
@@ -44,8 +44,8 @@ const SEVERITY_CONFIG = {
 } as const;
 
 export function ClashResultView({ toolCall, toolResult, isStreaming }: ToolViewProps) {
-  const setSelectedElements = useKortixComputerStore((s) => s.setSelectedElements);
-  const setActiveView = useKortixComputerStore((s) => s.setActiveView);
+  const setSelectedElements = useCarbonBIMComputerStore((s) => s.setSelectedElements);
+  const setActiveView = useCarbonBIMComputerStore((s) => s.setActiveView);
 
   const result = parseClashResult(toolResult);
 

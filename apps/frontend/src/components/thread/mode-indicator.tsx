@@ -31,7 +31,7 @@ const ModeLogo = memo(function ModeLogo({
       {/* Light mode image */}
       <img
         src={lightSrc}
-        alt={mode === 'advanced' ? 'Kortix Advanced' : 'Kortix Basic'}
+        alt={mode === 'advanced' ? 'Carbon BIM Advanced' : 'Carbon BIM Basic'}
         className="block dark:hidden"
         style={{ height: `${height}px`, width: 'auto' }}
         suppressHydrationWarning
@@ -39,7 +39,7 @@ const ModeLogo = memo(function ModeLogo({
       {/* Dark mode image */}
       <img
         src={darkSrc}
-        alt={mode === 'advanced' ? 'Kortix Advanced' : 'Kortix Basic'}
+        alt={mode === 'advanced' ? 'Carbon BIM Advanced' : 'Carbon BIM Basic'}
         className="hidden dark:block"
         style={{ height: `${height}px`, width: 'auto' }}
         suppressHydrationWarning
@@ -61,20 +61,20 @@ export const ModeIndicator = memo(function ModeIndicator() {
   const showAllModelsOption = !isProductionMode();
 
   const basicModel = useMemo(
-    () => modelOptions.find((m) => m.id === 'kortix/basic' || m.label === 'Kortix Basic'),
+    () => modelOptions.find((m) => m.id === 'carbon-bim/basic' || m.label === 'Carbon BIM Basic'),
     [modelOptions]
   );
   
   const powerModel = useMemo(
-    () => modelOptions.find((m) => m.id === 'kortix/power' || m.label === 'Kortix Advanced Mode'),
+    () => modelOptions.find((m) => m.id === 'carbon-bim/power' || m.label === 'Carbon BIM Advanced Mode'),
     [modelOptions]
   );
 
   // Get other models (not basic or power) for the staging section
   const otherModels = useMemo(() => {
     return modelOptions.filter(
-      (m) => m.id !== 'kortix/basic' && m.id !== 'kortix/power' && 
-             m.label !== 'Kortix Basic' && m.label !== 'Kortix Advanced Mode'
+      (m) => m.id !== 'carbon-bim/basic' && m.id !== 'carbon-bim/power' && 
+             m.label !== 'Carbon BIM Basic' && m.label !== 'Carbon BIM Advanced Mode'
     ).sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
   }, [modelOptions]);
 
@@ -110,7 +110,7 @@ export const ModeIndicator = memo(function ModeIndicator() {
         setIsOpen(false);
         usePricingModalStore.getState().openPricingModal({
           isAlert: true,
-          alertTitle: 'Upgrade to access Kortix Advanced mode',
+          alertTitle: 'Upgrade to access Carbon BIM Advanced mode',
         });
       }
     }

@@ -23,8 +23,8 @@ import {
 } from '@/components/chat';
 import { parseToolMessage } from '@agentpress/shared';
 import { ThreadHeader } from '@/components/threads';
-import { KortixComputer } from '@/components/kortix-computer';
-import { useKortixComputerStore } from '@/stores/kortix-computer-store';
+import { CarbonBIMComputer } from '@/components/carbon-bim-computer';
+import { useCarbonBIMComputerStore } from '@/stores/carbon-bim-computer-store';
 import { useVoicePlayerStore } from '@/stores/voice-player-store';
 import { useChatCommons, type UseChatReturn, useDeleteThread, useShareThread, useUpgradePaywall } from '@/hooks';
 import { useThread } from '@/lib/chat';
@@ -334,11 +334,11 @@ export function ThreadPage({
   }, []);
 
   const {
-    isOpen: isKortixComputerOpen,
+    isOpen: isCarbonBIMComputerOpen,
     openPanel,
     openFileInComputer,
     openFileBrowser,
-  } = useKortixComputerStore();
+  } = useCarbonBIMComputerStore();
 
   const deleteThreadMutation = useDeleteThread();
   const shareThreadMutation = useShareThread();
@@ -350,13 +350,13 @@ export function ThreadPage({
   );
 
   React.useEffect(() => {
-    if (isKortixComputerOpen) {
+    if (isCarbonBIMComputerOpen) {
       refetchThreadData();
     } else {
       // Clear selected tool data when panel closes
       setSelectedToolData(null);
     }
-  }, [isKortixComputerOpen, refetchThreadData]);
+  }, [isCarbonBIMComputerOpen, refetchThreadData]);
 
   // Track previous streaming state to detect when streaming ends
   const prevIsStreamingRef = React.useRef(chat.isStreaming);
@@ -1296,8 +1296,8 @@ export function ThreadPage({
       />
 
 
-      {isKortixComputerOpen && (
-        <KortixComputer
+      {isCarbonBIMComputerOpen && (
+        <CarbonBIMComputer
           toolMessages={selectedToolData?.toolMessages || []}
           currentIndex={selectedToolData?.initialIndex || 0}
           onNavigate={(newIndex) => {

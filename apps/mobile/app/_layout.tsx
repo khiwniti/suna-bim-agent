@@ -283,7 +283,7 @@ export default function RootLayout() {
         return;
       }
 
-      // Handle custom scheme: kortix://auth/callback
+      // Handle custom scheme: carbon-bim://auth/callback
       if (parsedUrl.hostname === 'auth' && parsedUrl.path === 'callback') {
         log.log('📧 Auth callback received, processing...');
 
@@ -462,7 +462,7 @@ export default function RootLayout() {
           // Path format: share/xxx
           threadId = parsedUrl.path.replace('share/', '');
         } else if (parsedUrl.hostname === 'share' && parsedUrl.path) {
-          // Custom scheme format: kortix://share/xxx -> hostname=share, path=xxx
+          // Custom scheme format: carbon-bim://share/xxx -> hostname=share, path=xxx
           threadId = parsedUrl.path.replace(/^\//, '');
         }
 

@@ -135,7 +135,7 @@ dev: dev-backend dev-frontend
 
 dev-frontend:
 	@printf "$(CYAN)▶ Starting Next.js dev server on :3000…$(RESET)\n"
-	pnpm --filter Kortix dev
+	pnpm --filter carbon-bim dev
 
 dev-backend:
 	@printf "$(CYAN)▶ Starting FastAPI dev server on :8000…$(RESET)\n"
@@ -148,7 +148,7 @@ build: build-frontend
 
 build-frontend:
 	@printf "$(CYAN)▶ Building Next.js for production…$(RESET)\n"
-	pnpm --filter Kortix build
+	pnpm --filter carbon-bim build
 
 # =============================================================================
 # DOCKER — full stack (api + redis)
@@ -292,7 +292,7 @@ test-e2e:
 
 test-frontend:
 	@printf "$(CYAN)▶ Frontend tests (add vitest config to enable)…$(RESET)\n"
-	pnpm --filter Kortix test 2>/dev/null || \
+	pnpm --filter carbon-bim test 2>/dev/null || \
 		printf "$(CYAN)No test script configured in frontend yet.$(RESET)\n"
 
 test-backend:
@@ -309,28 +309,28 @@ lint: lint-frontend lint-backend
 
 lint-frontend:
 	@printf "$(CYAN)▶ ESLint…$(RESET)\n"
-	pnpm --filter Kortix lint
+	pnpm --filter carbon-bim lint
 
 lint-backend:
 	@printf "$(CYAN)▶ Ruff check…$(RESET)\n"
 	cd $(BACKEND) && uv run ruff check core/
 
 lint-fix:
-	pnpm --filter Kortix lint --fix 2>/dev/null || true
+	pnpm --filter carbon-bim lint --fix 2>/dev/null || true
 	cd $(BACKEND) && uv run ruff check --fix core/
 
 typecheck:
 	@printf "$(CYAN)▶ TypeScript type check…$(RESET)\n"
-	pnpm --filter Kortix exec tsc --noEmit
+	pnpm --filter carbon-bim exec tsc --noEmit
 
 format:
 	@printf "$(CYAN)▶ Prettier…$(RESET)\n"
-	pnpm --filter Kortix format
+	pnpm --filter carbon-bim format
 	@printf "$(CYAN)▶ Ruff format…$(RESET)\n"
 	cd $(BACKEND) && uv run ruff format core/
 
 format-check:
-	pnpm --filter Kortix format:check
+	pnpm --filter carbon-bim format:check
 	cd $(BACKEND) && uv run ruff format --check core/
 
 verify:

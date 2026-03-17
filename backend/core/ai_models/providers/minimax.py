@@ -30,7 +30,7 @@ class MiniMaxProvider(ProviderConfig):
         
         if self._use_openrouter:
             extra_body = kwargs.get("extra_body", {})
-            extra_body["app"] = kwargs.get("app_name", "Kortix.com")
+            extra_body["app"] = kwargs.get("app_name", "Carbon BIM.com")
             params["extra_body"] = extra_body
         
         return params

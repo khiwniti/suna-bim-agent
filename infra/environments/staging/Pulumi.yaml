@@ -1,5 +1,5 @@
-name: kortix-infra-staging
-description: Kortix STAGING environment - Lightsail + Cloudflare Tunnel
+name: carbon-bim-infra-staging
+description: Carbon BIM STAGING environment - Lightsail + Cloudflare Tunnel
 runtime:
   name: nodejs
   options:

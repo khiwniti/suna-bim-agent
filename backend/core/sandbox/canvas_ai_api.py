@@ -191,8 +191,8 @@ async def process_with_gemini(
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://kortix.ai",
-        "X-Title": "Kortix Canvas AI"
+        "HTTP-Referer": "https://carbon-bim.ai",
+        "X-Title": "Carbon BIM Canvas AI"
     }
     
     payload = {
@@ -215,7 +215,7 @@ async def process_with_gemini(
             }
         ],
         "modalities": ["image", "text"],
-        "app": "Kortix.com"
+        "app": "Carbon BIM.com"
     }
     
     async with get_http_client() as client:

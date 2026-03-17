@@ -2,12 +2,12 @@ import { getRequestConfig } from 'next-intl/server';
 import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { locales, defaultLocale, type Locale } from './config';
+import { getSupabaseEnv, hasSupabaseEnv } from '@/lib/supabase/config';
 
 export default getRequestConfig(async ({ requestLocale }) => {
   let locale: Locale = defaultLocale;
   const cookieStore = await cookies();
   const headersList = await headers();
-  
   // Priority 1: Check cookie FIRST (faster, no API call needed)
   // This is set by middleware or user preference
   const localeCookie = cookieStore.get('locale')?.value;
@@ -22,32 +22,35 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // Priority 2: Check user profile preference (if authenticated)
   // Only call getUser() if no cookie preference exists (optimization)
   // This ALWAYS takes precedence over geo-detection - user explicitly set it in settings
-  try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
+  if (hasSupabaseEnv) {
+    try {
+      const { url, anonKey } = getSupabaseEnv();
+      const supabase = createServerClient(
+        url,
+        anonKey,
+        {
+          cookies: {
+            getAll() {
+              return cookieStore.getAll();
+            },
+            setAll() {
+              // No-op for server-side
+            },
           },
-          setAll() {
-            // No-op for server-side
-          },
-        },
+        }
+      );
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata?.locale && locales.includes(user.user_metadata.locale as Locale)) {
+        locale = user.user_metadata.locale as Locale;
+        return {
+          locale,
+          messages: (await import(`../../translations/${locale}.json`)).default
+        };
       }
-    );
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.user_metadata?.locale && locales.includes(user.user_metadata.locale as Locale)) {
-      locale = user.user_metadata.locale as Locale;
-      return {
-        locale,
-        messages: (await import(`../../translations/${locale}.json`)).default
-      };
+    } catch (error) {
+      // User might not be authenticated, continue with other methods
     }
-  } catch (error) {
-    // User might not be authenticated, continue with other methods
   }
   
   // Priority 3: If locale is provided in the URL path (e.g., /de, /it), use it for marketing pages
@@ -77,4 +80,3 @@ export default getRequestConfig(async ({ requestLocale }) => {
     messages: (await import(`../../translations/${locale}.json`)).default
   };
 });
-

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Wand2 } from 'lucide-react';
-import { KortixLoader } from '@/components/ui/kortix-loader';
+import { CarbonBIMLoader } from '@/components/ui/carbon-bim-loader';
 import {
     Dialog,
     DialogContent,
@@ -234,7 +234,7 @@ export function AgentEditorDialog({
                             className="gap-2"
                         >
                             {generateIconMutation.isPending ? (
-                                <KortixLoader customSize={16} />
+                                <CarbonBIMLoader customSize={16} />
                             ) : (
                                 <Wand2 className="h-4 w-4" />
                             )}

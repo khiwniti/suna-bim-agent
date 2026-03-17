@@ -71,8 +71,8 @@ def mock_config() -> SetupConfig:
     # Composio
     config.composio.COMPOSIO_API_KEY = "test-composio-api-key"
 
-    # Kortix
-    config.kortix.KORTIX_ADMIN_API_KEY = "test-admin-api-key"
+    # Carbon BIM
+    config.carbon_bim.CARBON_BIM_ADMIN_API_KEY = "test-admin-api-key"
 
     return config
 

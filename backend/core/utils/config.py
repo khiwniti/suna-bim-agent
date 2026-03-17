@@ -297,7 +297,7 @@ class Configuration:
     ACTIVATE_MCPS_TRIG: bool = True
     MEMORY_EMBEDDING_PROVIDER: Optional[str] = "openai"
     MEMORY_EMBEDDING_MODEL: Optional[str] = "text-embedding-3-small"
-    MEMORY_EXTRACTION_MODEL: Optional[str] = "kortix/basic"
+    MEMORY_EXTRACTION_MODEL: Optional[str] = "carbon-bim/basic"
     VOYAGE_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
     OPENROUTER_API_KEY: Optional[str] = None
@@ -308,7 +308,7 @@ class Configuration:
     OPENAI_COMPATIBLE_API_KEY: Optional[str] = None
     OPENAI_COMPATIBLE_API_BASE: Optional[str] = None
     OR_SITE_URL: Optional[str] = "https://www.kortix.com"
-    OR_APP_NAME: Optional[str] = "Kortix.com"
+    OR_APP_NAME: Optional[str] = "Carbon BIM.com"
     
     # Frontend URL configuration
     FRONTEND_URL_ENV: Optional[str] = None
@@ -379,8 +379,8 @@ class Configuration:
     STRIPE_PRODUCT_ID_STAGING: Optional[str] = 'prod_SCgIj3G7yPOAWY'
     
     # Sandbox configuration
-    SANDBOX_IMAGE_NAME = "kortix/suna:0.1.3.30"
-    SANDBOX_SNAPSHOT_NAME = "kortix/suna:0.1.3.30"
+    SANDBOX_IMAGE_NAME = "carbon-bim/suna:0.1.3.30"
+    SANDBOX_SNAPSHOT_NAME = "carbon-bim/suna:0.1.3.30"
     SANDBOX_ENTRYPOINT = "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
     
     # Debug configuration
@@ -404,7 +404,7 @@ class Configuration:
     LANGFUSE_HOST: Optional[str] = "https://cloud.langfuse.com"
 
     # Admin API key for server-side operations
-    KORTIX_ADMIN_API_KEY: Optional[str] = None
+    CARBON_BIM_ADMIN_API_KEY: Optional[str] = None
 
     # API Keys system configuration
     API_KEY_SECRET: Optional[str] = "default-secret-key-change-in-production"
@@ -530,7 +530,7 @@ class Configuration:
             return 'http://localhost:3000'
     
     def _generate_admin_api_key(self) -> str:
-        """Generate a secure admin API key for Kortix administrative functions."""
+        """Generate a secure admin API key for Carbon BIM administrative functions."""
         # Generate 32 random bytes and encode as hex for a readable API key
         key_bytes = secrets.token_bytes(32)
         return key_bytes.hex()
@@ -554,9 +554,9 @@ class Configuration:
         self._load_from_env()
         
         # Auto-generate admin API key if not present
-        if not self.KORTIX_ADMIN_API_KEY:
-            self.KORTIX_ADMIN_API_KEY = self._generate_admin_api_key()
-            logger.info("Auto-generated KORTIX_ADMIN_API_KEY for administrative functions")
+        if not self.CARBON_BIM_ADMIN_API_KEY:
+            self.CARBON_BIM_ADMIN_API_KEY = self._generate_admin_api_key()
+            logger.info("Auto-generated CARBON_BIM_ADMIN_API_KEY for administrative functions")
         
         # Perform validation
         self._validate()
@@ -621,6 +621,9 @@ class Configuration:
             # Check if the field is Optional
             is_optional = hasattr(field_type, "__origin__") and field_type.__origin__ is Union and type(None) in field_type.__args__
             
+            if self.ENV_MODE == EnvMode.LOCAL and field == "SUPABASE_JWT_SECRET":
+                continue
+
             # If not optional and value is None, add to missing fields
             if not is_optional and getattr(self, field) is None:
                 missing_fields.append(field)

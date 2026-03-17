@@ -6,12 +6,12 @@
 
 ## Overview
 
-Migrate the complete carbon credit landing page and related components from `src.zip` to the Kortix project, **preserving all existing Kortix features** (agents, dashboard, settings, billing, thread, triggers, etc.).
+Migrate the complete carbon credit landing page and related components from `src.zip` to the Carbon BIM project, **preserving all existing Carbon BIM features** (agents, dashboard, settings, billing, thread, triggers, etc.).
 
 ## Goals
 
 1. **Exact Visual Match**: Landing page should look identical to `autonomous-bim-agent.vercel.app`
-2. **Zero Regression**: All existing Kortix features must work perfectly
+2. **Zero Regression**: All existing Carbon BIM features must work perfectly
 3. **Theme Coexistence**: Carbon theme for landing/public pages, existing theme for dashboard/app
 
 ## Architecture
@@ -24,8 +24,8 @@ Migrate the complete carbon credit landing page and related components from `src
 ┌─────────────────────────────────────────────────────────────┐
 │                        globals.css                           │
 ├─────────────────────────────────────────────────────────────┤
-│  :root { /* Existing Kortix variables - UNCHANGED */ }      │
-│  .dark { /* Existing Kortix dark mode - UNCHANGED */ }      │
+│  :root { /* Existing Carbon BIM variables - UNCHANGED */ }      │
+│  .dark { /* Existing Carbon BIM dark mode - UNCHANGED */ }      │
 │                                                              │
 │  /* NEW: Carbon-namespaced variables (NO CONFLICTS) */      │
 │  :root {                                                     │
@@ -296,7 +296,7 @@ apps/frontend/src/
 
 ### Logo & Branding Components
 
-**IMPORTANT**: Carbon branding elements for landing page ONLY (does not replace Kortix/dashboard logos).
+**IMPORTANT**: Carbon branding elements for landing page ONLY (does not replace Carbon BIM/dashboard logos).
 
 **Source Files:**
 - Logo component: `/tmp/src_extract/src/components/ui/Logo.tsx`
@@ -306,7 +306,7 @@ apps/frontend/src/
 **Brand Elements to Migrate:**
 
 1. **Carbon Logo Icon**:
-   - Icon: `Leaf` from lucide-react (NOT Building2 used in Kortix)
+   - Icon: `Leaf` from lucide-react (NOT Building2 used in Carbon BIM)
    - Container: `w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-accent to-purple-500`
    - Shadow: `shadow-lg shadow-primary/30`
    - Hover effect: `rotate: 10, scale: 1.1` with spring animation
@@ -358,8 +358,8 @@ components/landing/
 // Source imports → Target adaptations
 import { useTranslation } from '@/i18n/provider'  →  import { useTranslations } from 'next-intl'
 import { LanguageSwitcher } from '@/i18n/...'     →  import { LocaleSwitcher } from '@/components/home/locale-switcher'
-import { cn } from '@/lib/utils'                   →  SAME (exists in Kortix)
-import { Button } from '@/components/ui/button'    →  SAME (exists in Kortix)
+import { cn } from '@/lib/utils'                   →  SAME (exists in Carbon BIM)
+import { Button } from '@/components/ui/button'    →  SAME (exists in Carbon BIM)
 ```
 
 **CSS Class Adaptations in Components:**
@@ -367,7 +367,7 @@ import { Button } from '@/components/ui/button'    →  SAME (exists in Kortix)
 // Source uses standard Tailwind classes that reference --primary, --accent, etc.
 // These need to be changed to carbon-namespaced classes:
 
-// BEFORE (would break Kortix)
+// BEFORE (would break Carbon BIM)
 className="bg-primary text-primary-foreground"
 className="from-primary to-accent"
 
@@ -401,7 +401,7 @@ className="bg-[var(--carbon-primary)] text-[var(--carbon-primary-foreground)]"
 
 **IMPORTANT**: Use existing `next-intl` infrastructure, NOT new provider.
 
-**Existing Kortix i18n:**
+**Existing Carbon BIM i18n:**
 - Config: `src/i18n/config.ts`
 - Translations: `apps/frontend/translations/en.json`, `th.json` (already exists, 40KB)
 - Switcher: `components/home/locale-switcher.tsx`
@@ -433,12 +433,12 @@ export default function HomeLayout({ children }) {
 1. Add `--carbon-*` namespaced variables to globals.css (additive only)
 2. Add `carbon-*` utility classes
 3. Add `carbon-*` keyframe animations
-4. **VERIFY**: Run existing Kortix app, confirm NO visual changes
+4. **VERIFY**: Run existing Carbon BIM app, confirm NO visual changes
 
 ### Phase 2: Landing Page Components
 1. Create new component files in `components/landing/`
 2. Migrate LandingPage.tsx with CSS class adaptations
-3. Update imports to use existing Kortix utilities
+3. Update imports to use existing Carbon BIM utilities
 4. **VERIFY**: Landing page matches reference site
 
 ### Phase 3: Carbon Library
@@ -523,7 +523,7 @@ git checkout main  # Rollback to pre-migration state
 ## Success Criteria
 
 1. ✅ Landing page visually matches `autonomous-bim-agent.vercel.app`
-2. ✅ All existing Kortix pages work WITHOUT any visual changes
+2. ✅ All existing Carbon BIM pages work WITHOUT any visual changes
 3. ✅ Dark/light mode works on BOTH themes
 4. ✅ No TypeScript/ESLint errors
 5. ✅ No console errors
@@ -549,4 +549,4 @@ git checkout main  # Rollback to pre-migration state
 - Brand text is "BIM Carbon" with gradient effect
 - Thailand badge "🇹🇭" shows regional focus
 - Footer uses smaller logo variant
-- ALL logo styling uses `--carbon-*` variables (no conflict with Kortix logos)
+- ALL logo styling uses `--carbon-*` variables (no conflict with Carbon BIM logos)

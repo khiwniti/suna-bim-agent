@@ -24,7 +24,7 @@ import { ImageLoader } from './shared/ImageLoader';
 import { JsonViewer } from './shared/JsonViewer';
 import { ToolViewIconTitle } from './shared/ToolViewIconTitle';
 import { ToolViewFooter } from './shared/ToolViewFooter';
-import { KortixComputerHeader } from '../kortix-computer/KortixComputerHeader';
+import { CarbonBIMComputerHeader } from '../carbon-bim-computer/CarbonBIMComputerHeader';
 import { useSmoothToolField } from '@/hooks/messages';
 
 interface BrowserHeaderProps {
@@ -35,7 +35,7 @@ interface BrowserHeaderProps {
 
 export const BrowserHeader: React.FC<BrowserHeaderProps> = ({ isConnected, onRefresh, viewToggle }) => {
   return (
-    <KortixComputerHeader
+    <CarbonBIMComputerHeader
       icon={Globe}
       title="Browser"
       actions={

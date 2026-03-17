@@ -25,7 +25,7 @@ function normalizeWorkspacePath(path: string): string {
   return `/workspace/${path.replace(/^\//, '')}`;
 }
 
-interface KortixComputerState {
+interface CarbonBIMComputerState {
   // Main view state
   activeView: ViewType;
   
@@ -73,7 +73,7 @@ interface KortixComputerState {
   // Navigate to a specific tool call (clicking tool in ThreadContent)
   navigateToToolCall: (toolIndex: number) => void;
   
-  // Clear pending tool nav after KortixComputer processes it
+  // Clear pending tool nav after CarbonBIMComputer processes it
   clearPendingToolNav: () => void;
   
   // Panel control
@@ -108,7 +108,7 @@ const initialState = {
   unsavedFileState: {} as Record<string, boolean>,
 };
 
-export const useKortixComputerStore = create<KortixComputerState>((set, get) => ({
+export const useCarbonBIMComputerStore = create<CarbonBIMComputerState>((set, get) => ({
   ...initialState,
   
   setActiveView: (view: ViewType) => {
@@ -302,44 +302,44 @@ export const useKortixComputerStore = create<KortixComputerState>((set, get) => 
 }));
 
 // Selector hooks for common use cases
-export const useKortixComputerActiveView = () => 
-  useKortixComputerStore((state) => state.activeView);
+export const useCarbonBIMComputerActiveView = () => 
+  useCarbonBIMComputerStore((state) => state.activeView);
 
-export const useKortixComputerIsOpen = () =>
-  useKortixComputerStore((state) => state.isOpen);
+export const useCarbonBIMComputerIsOpen = () =>
+  useCarbonBIMComputerStore((state) => state.isOpen);
 
 // Individual selectors for files state (stable, primitive values)
-export const useKortixComputerFilesSubView = () =>
-  useKortixComputerStore((state) => state.filesSubView);
+export const useCarbonBIMComputerFilesSubView = () =>
+  useCarbonBIMComputerStore((state) => state.filesSubView);
 
-export const useKortixComputerCurrentPath = () =>
-  useKortixComputerStore((state) => state.currentPath);
+export const useCarbonBIMComputerCurrentPath = () =>
+  useCarbonBIMComputerStore((state) => state.currentPath);
 
-export const useKortixComputerSelectedFilePath = () =>
-  useKortixComputerStore((state) => state.selectedFilePath);
+export const useCarbonBIMComputerSelectedFilePath = () =>
+  useCarbonBIMComputerStore((state) => state.selectedFilePath);
 
-export const useKortixComputerFilePathList = () =>
-  useKortixComputerStore((state) => state.filePathList);
+export const useCarbonBIMComputerFilePathList = () =>
+  useCarbonBIMComputerStore((state) => state.filePathList);
 
-export const useKortixComputerCurrentFileIndex = () =>
-  useKortixComputerStore((state) => state.currentFileIndex);
+export const useCarbonBIMComputerCurrentFileIndex = () =>
+  useCarbonBIMComputerStore((state) => state.currentFileIndex);
 
 // Individual selectors for pending tool navigation (stable primitives)
-export const useKortixComputerPendingToolNavIndex = () =>
-  useKortixComputerStore((state) => state.pendingToolNavIndex);
+export const useCarbonBIMComputerPendingToolNavIndex = () =>
+  useCarbonBIMComputerStore((state) => state.pendingToolNavIndex);
 
-export const useKortixComputerClearPendingToolNav = () =>
-  useKortixComputerStore((state) => state.clearPendingToolNav);
+export const useCarbonBIMComputerClearPendingToolNav = () =>
+  useCarbonBIMComputerStore((state) => state.clearPendingToolNav);
 
 // Version history selectors
-export const useKortixComputerSelectedVersion = () =>
-  useKortixComputerStore((state) => state.selectedVersion);
+export const useCarbonBIMComputerSelectedVersion = () =>
+  useCarbonBIMComputerStore((state) => state.selectedVersion);
 
-export const useKortixComputerSelectedVersionDate = () =>
-  useKortixComputerStore((state) => state.selectedVersionDate);
+export const useCarbonBIMComputerSelectedVersionDate = () =>
+  useCarbonBIMComputerStore((state) => state.selectedVersionDate);
 
-export const useKortixComputerVersionActions = () =>
-  useKortixComputerStore((state) => ({
+export const useCarbonBIMComputerVersionActions = () =>
+  useCarbonBIMComputerStore((state) => ({
     setSelectedVersion: state.setSelectedVersion,
     clearSelectedVersion: state.clearSelectedVersion,
   }));

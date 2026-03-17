@@ -1,9 +1,9 @@
 {
-  "name": "kortix-desktop",
+  "name": "carbon-bim-desktop",
   "version": "1.0.0",
-  "description": "Kortix Desktop",
+  "description": "Carbon BIM Desktop",
   "author": {
-    "name": "Kortix",
+    "name": "Carbon BIM",
     "email": "support@kortix.com",
     "url": "https://kortix.com"
   },
@@ -24,11 +24,11 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.kortix.desktop",
-    "productName": "Kortix",
+    "appId": "com.carbon-bim.desktop",
+    "productName": "Carbon BIM",
     "protocols": {
-      "name": "Kortix",
-      "schemes": ["kortix"]
+      "name": "Carbon BIM",
+      "schemes": ["carbon-bim"]
     },
     "mac": {
       "target": "dmg",

@@ -2,9 +2,9 @@
   "name": "agentpress",
   "private": true,
   "scripts": {
-    "dev:frontend": "pnpm --filter Kortix dev",
-    "dev:mobile": "pnpm --filter kortix dev",
-    "build:frontend": "pnpm --filter Kortix build"
+    "dev:frontend": "pnpm --filter Carbon BIM dev",
+    "dev:mobile": "pnpm --filter carbon-bim dev",
+    "build:frontend": "pnpm --filter Carbon BIM build"
   },
   "pnpm": {
     "overrides": {

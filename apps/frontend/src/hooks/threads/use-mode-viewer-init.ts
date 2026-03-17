@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useKortixComputerStore } from '@/stores/kortix-computer-store';
+import { useCarbonBIMComputerStore } from '@/stores/carbon-bim-computer-store';
 
 type Mode = 'slides' | 'sheets' | 'docs' | 'canvas' | 'video' | 'research';
 
@@ -16,7 +16,7 @@ export function useModeViewerInit(
   accessToken?: string
 ) {
   const hasInitialized = useRef(false);
-  const openFileBrowser = useKortixComputerStore((state) => state.openFileBrowser);
+  const openFileBrowser = useCarbonBIMComputerStore((state) => state.openFileBrowser);
 
   useEffect(() => {
     // Only run once per thread
@@ -54,7 +54,7 @@ export function useModeViewerInit(
 function handleModeInit(mode: Mode, openFileBrowser: () => void) {
   switch (mode) {
     case 'slides':
-      // Open Files tab in Kortix Computer to show presentations folder
+      // Open Files tab in Carbon BIM Computer to show presentations folder
       openFileBrowser();
       console.log('[ModeViewerInit] Opening Files panel for presentations');
       break;

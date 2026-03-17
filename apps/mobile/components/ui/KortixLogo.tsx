@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { View, type ViewProps, type ViewStyle } from 'react-native';
 import { useColorScheme } from 'nativewind';
-import KortixSymbolBlack from '@/assets/brand/kortix-symbol.svg';
-import KortixSymbolWhite from '@/assets/brand/Symbol.svg';
+import CarbonBIMSymbolBlack from '@/assets/brand/carbon-bim-symbol.svg';
+import CarbonBIMSymbolWhite from '@/assets/brand/Symbol.svg';
 import LogomarkBlack from '@/assets/brand/Logomark-Black.svg';
 import LogomarkWhite from '@/assets/brand/Logomark-White.svg';
 
-interface KortixLogoProps extends Omit<ViewProps, 'style'> {
+interface CarbonBIMLogoProps extends Omit<ViewProps, 'style'> {
   size?: number;
   variant?: 'symbol' | 'logomark';
   className?: string;
@@ -14,14 +14,14 @@ interface KortixLogoProps extends Omit<ViewProps, 'style'> {
   color?: 'light' | 'dark';
 }
 
-export function KortixLogo({ 
+export function CarbonBIMLogo({ 
   size = 24, 
   variant = 'symbol',
   className,
   style,
   color = 'dark',
   ...props 
-}: KortixLogoProps) {
+}: CarbonBIMLogoProps) {
   const { colorScheme } = useColorScheme();
   
   const isDark = colorScheme === 'dark';
@@ -62,7 +62,7 @@ export function KortixLogo({
     ...style,
   };
 
-  const SymbolComponent = color === 'dark' ? KortixSymbolWhite : KortixSymbolBlack;
+  const SymbolComponent = color === 'dark' ? CarbonBIMSymbolWhite : CarbonBIMSymbolBlack;
 
   return (
     <View 

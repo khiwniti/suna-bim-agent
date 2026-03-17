@@ -99,4 +99,4 @@ cd infra/environments/staging && pulumi stack output
 cd infra/environments/prod && pulumi stack output
 ```
 
-Pulumi Cloud: https://app.pulumi.com/kortix
+Pulumi Cloud: https://app.pulumi.com/carbon-bim

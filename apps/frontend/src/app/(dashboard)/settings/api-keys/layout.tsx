@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'API Keys | Kortix',
-  description: 'Manage your API keys for programmatic access to Kortix',
+  title: 'API Keys | Carbon BIM',
+  description: 'Manage your API keys for programmatic access to Carbon BIM',
   openGraph: {
-    title: 'API Keys | Kortix',
-    description: 'Manage your API keys for programmatic access to Kortix',
+    title: 'API Keys | Carbon BIM',
+    description: 'Manage your API keys for programmatic access to Carbon BIM',
     type: 'website',
   },
 };

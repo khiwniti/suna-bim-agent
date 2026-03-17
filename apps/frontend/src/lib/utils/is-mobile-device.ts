@@ -93,12 +93,12 @@ export function isAndroidTablet(): boolean {
  * Store links for mobile app downloads
  */
 export const MOBILE_APP_STORE_LINKS = {
-  ios: 'https://apps.apple.com/ie/app/kortix/id6754448524',
-  android: 'https://play.google.com/store/apps/details?id=com.kortix.app',
+  ios: 'https://apps.apple.com/ie/app/carbon-bim/id6754448524',
+  android: 'https://play.google.com/store/apps/details?id=com.carbon-bim.app',
 } as const;
 
 /**
- * Deep link scheme for opening the Kortix app
+ * Deep link scheme for opening the Carbon BIM app
  */
-export const KORTIX_DEEP_LINK = 'kortix://';
+export const CARBON_BIM_DEEP_LINK = 'carbon-bim://';
 

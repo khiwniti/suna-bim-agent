@@ -1,5 +1,11 @@
 // Custom protocol scheme for Electron deep linking
-const ELECTRON_PROTOCOL = 'kortix';
+const ELECTRON_PROTOCOL = 'carbon-bim';
+
+type ElectronWindow = Window & {
+  process?: {
+    type?: string;
+  };
+};
 
 /**
  * Detects if the app is running in Electron (desktop app) vs web browser
@@ -9,15 +15,15 @@ export function isElectron(): boolean {
     return false;
   }
 
-  // Check user agent for Electron (we append "Electron/Kortix-Desktop" in main.js)
+  // Check user agent for Electron (we append "Electron/Carbon BIM-Desktop" in main.js)
   if (typeof navigator !== 'undefined' && navigator.userAgent) {
     return navigator.userAgent.toLowerCase().includes('electron');
   }
 
   // Check for Electron-specific globals
   if (typeof window !== 'undefined') {
-    // @ts-expect-error - Electron may inject these
-    return !!(window.process && window.process.type === 'renderer');
+    const electronWindow = window as ElectronWindow;
+    return electronWindow.process?.type === 'renderer';
   }
 
   return false;
@@ -26,7 +32,7 @@ export function isElectron(): boolean {
 /**
  * Gets the auth callback URL for the current environment
  * - Web: returns the web URL (https://kortix.com/auth/callback)
- * - Electron: returns the custom protocol URL (kortix://auth/callback)
+ * - Electron: returns the custom protocol URL (carbon-bim://auth/callback)
  */
 export function getAuthCallbackUrl(returnUrl?: string, termsAccepted?: boolean): string {
   const params = new URLSearchParams();

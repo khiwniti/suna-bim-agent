@@ -1,4 +1,4 @@
-# Kortix SDK
+# Carbon BIM SDK
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
 
@@ -27,17 +27,17 @@ uv add "kortix @ git+https://github.com/kortix-ai/suna.git@main#subdirectory=sdk
 
 ```python
 import asyncio
-from kortix import kortix
+from carbon-bim import carbon-bim
 
 async def main():
-    mcp_tools = kortix.MCPTools(
+    mcp_tools = carbon-bim.MCPTools(
         "http://localhost:4000/mcp/",  # Point to any HTTP MCP server
-        "Kortix",
+        "Carbon BIM",
     )
     await mcp_tools.initialize()
 
     # Initialize the client
-    client = kortix.Kortix(api_key="your-api-key")
+    client = carbon-bim.Carbon BIM(api_key="your-api-key")
 
     # Create an agent
     agent = await client.Agent.create(

@@ -1,5 +1,5 @@
 [project]
-name = "kortix"
+name = "carbon-bim"
 version = "1.0"
 description = "platform to build, manage and train AI Agents"
 authors = [{ name = "marko-kraemer", email = "mail@markokraemer.com" }]

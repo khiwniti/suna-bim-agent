@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Users, User, ChevronDown, Sparkles } from "lucide-react";
-import { KortixLoader } from '@/components/ui/kortix-loader';
+import { CarbonBIMLoader } from '@/components/ui/carbon-bim-loader';
 import {
   Collapsible,
   CollapsibleContent,
@@ -122,7 +122,7 @@ export default function NotificationManagementPage() {
             >
               {triggerWorkflowMutation.isPending ? (
                 <>
-                  <KortixLoader size="small" />
+                  <CarbonBIMLoader size="small" />
                   Sending...
                 </>
               ) : (
@@ -177,7 +177,7 @@ export default function NotificationManagementPage() {
                     {loadingWorkflows ? (
                       <SelectItem value="loading" disabled>
                         <div className="flex items-center gap-2">
-                          <KortixLoader size="small" />
+                          <CarbonBIMLoader size="small" />
                           Loading workflows...
                         </div>
                       </SelectItem>

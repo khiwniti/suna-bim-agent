@@ -28,7 +28,7 @@ const PUBLIC_ROUTES = [
   '/master-login', // Master password admin login
   '/checkout', // Public checkout wrapper for Apple compliance
   '/support', // Support page should be public
-  '/suna', // Kortix rebrand page should be public for SEO
+  '/suna', // Carbon BIM rebrand page should be public for SEO
   '/help', // Help center and documentation should be public
   '/credits-explained', // Credits explained page should be public
   '/agents-101',
@@ -60,8 +60,8 @@ const PROTECTED_ROUTES = [
 
 // App store links for mobile redirect
 const APP_STORE_LINKS = {
-  ios: 'https://apps.apple.com/ie/app/kortix/id6754448524',
-  android: 'https://play.google.com/store/apps/details?id=com.kortix.app',
+  ios: 'https://apps.apple.com/ie/app/carbon-bim/id6754448524',
+  android: 'https://play.google.com/store/apps/details?id=com.carbon-bim.app',
 };
 
 // Detect mobile platform from User-Agent header (edge-optimized)
@@ -254,6 +254,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const isLocalMode = process.env.NEXT_PUBLIC_ENV_MODE?.toLowerCase() === 'local';
+  if (isLocalMode) {
+    return NextResponse.next();
+  }
+
   // Everything else requires authentication - reuse the user we already fetched
   try {
     
@@ -263,12 +268,6 @@ export async function middleware(request: NextRequest) {
       url.pathname = '/auth';
       url.searchParams.set('redirect', pathname);
       return NextResponse.redirect(url);
-    }
-
-    // Skip billing checks in local mode
-    const isLocalMode = process.env.NEXT_PUBLIC_ENV_MODE?.toLowerCase() === 'local'
-    if (isLocalMode) {
-      return supabaseResponse;
     }
 
     // Skip billing checks for billing-related routes

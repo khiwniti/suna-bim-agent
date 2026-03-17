@@ -214,9 +214,9 @@ class TriggerTool(AgentBuilderBaseTool):
                         "type": "string",
                         "description": "Optional search text to filter workers by name"
                     },
-                    "include_kortix": {
+                    "include_carbon_bim": {
                         "type": "boolean",
-                        "description": "Whether to include the built-in Kortix worker in results. Defaults to false."
+                        "description": "Whether to include the built-in Carbon BIM worker in results. Defaults to false."
                     }
                 },
                 "required": []
@@ -226,7 +226,7 @@ class TriggerTool(AgentBuilderBaseTool):
     async def list_account_workers(
         self,
         search: Optional[str] = None,
-        include_kortix: bool = False,
+        include_carbon_bim: bool = False,
     ) -> ToolResult:
         try:
             workers = await self._get_account_workers()
@@ -237,10 +237,10 @@ class TriggerTool(AgentBuilderBaseTool):
             for worker in workers:
                 raw_metadata = worker.get('metadata')
                 metadata: Dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
-                is_kortix = bool(metadata.get('is_suna_default'))
+                is_carbon_bim = bool(metadata.get('is_suna_default'))
                 name = worker.get('name') or 'Untitled Worker'
 
-                if not include_kortix and is_kortix:
+                if not include_carbon_bim and is_carbon_bim:
                     continue
                 if search_text and search_text not in name.lower():
                     continue
@@ -249,7 +249,7 @@ class TriggerTool(AgentBuilderBaseTool):
                     "agent_id": worker.get('agent_id'),
                     "name": name,
                     "is_default": bool(worker.get('is_default')),
-                    "is_kortix": is_kortix,
+                    "is_carbon_bim": is_carbon_bim,
                     "is_current": str(worker.get('agent_id')) == str(self.agent_id),
                     "created_at": worker.get('created_at'),
                     "updated_at": worker.get('updated_at'),
@@ -309,7 +309,7 @@ class TriggerTool(AgentBuilderBaseTool):
                     },
                     "model": {
                         "type": "string",
-                        "description": "Model to use for the scheduled execution. Options: 'kortix/basic' (default, free tier) or 'kortix/power' (requires paid subscription). If not specified, defaults to 'kortix/basic'."
+                        "description": "Model to use for the scheduled execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'."
                     }
                 },
                 "required": ["name", "cron_expression", "agent_prompt"]
@@ -345,7 +345,7 @@ class TriggerTool(AgentBuilderBaseTool):
                 "cron_expression": cron_expression,
                 "provider_id": "schedule",
                 "agent_prompt": agent_prompt,
-                "model": model or "kortix/basic"
+                "model": model or "carbon-bim/basic"
             }
             
             if variables:
@@ -438,7 +438,7 @@ class TriggerTool(AgentBuilderBaseTool):
                     "description": trigger.description,
                     "cron_expression": trigger.config.get("cron_expression"),
                     "agent_prompt": trigger.config.get("agent_prompt"),
-                    "model": trigger.config.get("model", "kortix/basic"),
+                    "model": trigger.config.get("model", "carbon-bim/basic"),
                     "is_active": trigger.is_active
                 }
                 
@@ -647,7 +647,7 @@ class TriggerTool(AgentBuilderBaseTool):
                     "name": {"type": "string", "description": "Optional friendly name for the trigger"},
                     "agent_prompt": {"type": "string", "description": "Prompt to pass to the agent when triggered. Can include variables like {{variable_name}} that will be replaced when users install the template. For example: 'New email received for {{company_name}}...'"},
                     "connected_account_id": {"type": "string", "description": "Optional Composio connected account id (format: ca_...). If omitted, it is auto-derived from profile_id when possible. Do not pass profile UUID here."},
-                    "model": {"type": "string", "description": "Model to use for the event execution. Options: 'kortix/basic' (default, free tier) or 'kortix/power' (requires paid subscription). If not specified, defaults to 'kortix/basic'."}
+                    "model": {"type": "string", "description": "Model to use for the event execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'."}
                 },
                 "required": ["slug", "profile_id", "agent_prompt"]
             }
@@ -838,7 +838,7 @@ class TriggerTool(AgentBuilderBaseTool):
                 "profile_id": resolved_profile_id,
                 "connected_account_id": resolved_connected_account_id,
                 "agent_prompt": agent_prompt,
-                "model": model or "kortix/basic"
+                "model": model or "carbon-bim/basic"
             }
             
             if variables:

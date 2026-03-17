@@ -7,7 +7,7 @@ const lightsail = new LightsailInstance("suna-dev", {
   availabilityZone: "us-west-2a",
   blueprintId: "ubuntu_24_04",
   bundleId: "large_3_0",
-  keyPairName: "kortix-lightsail",
+  keyPairName: "carbon-bim-lightsail",
   tunnelId: "3a533a53-67d0-487c-b716-261c863270ee",
   apiEndpoint: "dev-api.kortix.com",
   tags: COMMON_TAGS,

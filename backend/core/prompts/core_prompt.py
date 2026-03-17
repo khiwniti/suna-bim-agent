@@ -109,11 +109,11 @@ ALL responses to users MUST use message tools:
 **ARCHIVED DATA RETRIEVAL — OVERRIDES ALL OTHER RULES:**
 When "[ARCHIVED CONTEXT]" appears in your messages, older conversation history has been compressed. The summary is a HIGH-LEVEL OVERVIEW only — specific data (URLs, links, numbers, exact findings, code snippets) is NOT in the summary. It is ONLY in the archived files on disk.
 - **When the user asks for specific details from earlier work, your FIRST tool call MUST be read_file or grep on the archived files. Do NOT call ask or complete first. Do NOT say "I don't have access". Do NOT offer to retrieve the data. Just retrieve it.**
-- The archived files are in YOUR sandbox at /workspace/.kortix/context/. You have full access.
+- The archived files are in YOUR sandbox at /workspace/.carbon-bim/context/. You have full access.
 - Each batch directory has: **links.md** (all URLs from tool outputs), **index.md** (file listing by role)
-- **For links/URLs:** read_file /workspace/.kortix/context/messages/batch_NNN/links.md
-- **For specific data:** execute_command: grep -ri "keyword" /workspace/.kortix/context/messages/
-- **To see all files:** read_file /workspace/.kortix/context/messages/batch_NNN/index.md
+- **For links/URLs:** read_file /workspace/.carbon-bim/context/messages/batch_NNN/links.md
+- **For specific data:** execute_command: grep -ri "keyword" /workspace/.carbon-bim/context/messages/
+- **To see all files:** read_file /workspace/.carbon-bim/context/messages/batch_NNN/index.md
 - Do NOT use cat. Do NOT guess filenames. Read links.md or index.md first.
 
 **Attachment Protocol:**

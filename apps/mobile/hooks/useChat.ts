@@ -34,7 +34,7 @@ import { useAgent } from '@/contexts/AgentContext';
 import { useAvailableModels } from '@/lib/models';
 import { useBillingContext } from '@/contexts/BillingContext';
 import { log } from '@/lib/logger';
-import { useKortixComputerStore } from '@/stores/kortix-computer-store';
+import { useCarbonBIMComputerStore } from '@/stores/carbon-bim-computer-store';
 import { 
   extractTierLimitErrorState, 
   parseTierRestrictionError, 
@@ -262,13 +262,13 @@ export function useChat(): UseChatReturn {
   const accessibleModelsLength = accessibleModels.length;
   
   // Helper to get default model - matching frontend logic
-  // Prioritizes kortix/basic, then kortix/power, then first accessible model
+  // Prioritizes carbon-bim/basic, then carbon-bim/power, then first accessible model
   const getDefaultModelId = useCallback((models: typeof accessibleModels): string | undefined => {
-    // kortix/basic should be first for free users since power is not accessible
-    const basicModel = models.find(m => m.id === 'kortix/basic');
+    // carbon-bim/basic should be first for free users since power is not accessible
+    const basicModel = models.find(m => m.id === 'carbon-bim/basic');
     if (basicModel) return basicModel.id;
 
-    const powerModel = models.find(m => m.id === 'kortix/power');
+    const powerModel = models.find(m => m.id === 'carbon-bim/power');
     if (powerModel) return powerModel.id;
 
     // Fallback: pick from accessible models sorted by priority
@@ -280,7 +280,7 @@ export function useChat(): UseChatReturn {
   }, []);
 
   // Valid model IDs that mobile app should use (matching frontend)
-  const VALID_MODEL_IDS = useMemo(() => new Set(['kortix/basic', 'kortix/power']), []);
+  const VALID_MODEL_IDS = useMemo(() => new Set(['carbon-bim/basic', 'carbon-bim/power']), []);
 
   // Auto-select model when models first load and none is selected
   useEffect(() => {
@@ -299,8 +299,8 @@ export function useChat(): UseChatReturn {
       return;
     }
 
-    // CRITICAL: Only allow kortix/basic or kortix/power models
-    // Other models (like kortix/kimi-k2.5) are internal and should not be used
+    // CRITICAL: Only allow carbon-bim/basic or carbon-bim/power models
+    // Other models (like carbon-bim/kimi-k2.5) are internal and should not be used
     const isValidModel = VALID_MODEL_IDS.has(selectedModelId);
     const isModelAccessible = accessibleModels.some(m => m.id === selectedModelId);
 
@@ -322,8 +322,8 @@ export function useChat(): UseChatReturn {
       return undefined;
     }
 
-    // CRITICAL: Only use kortix/basic or kortix/power
-    // Never use other models like kortix/kimi-k2.5 (internal/legacy)
+    // CRITICAL: Only use carbon-bim/basic or carbon-bim/power
+    // Never use other models like carbon-bim/kimi-k2.5 (internal/legacy)
     if (selectedModelId && VALID_MODEL_IDS.has(selectedModelId)) {
       const model = accessibleModels.find(m => m.id === selectedModelId);
       if (model) {
@@ -331,11 +331,11 @@ export function useChat(): UseChatReturn {
       }
     }
 
-    // Fallback: prioritize kortix/basic, then kortix/power
-    const basicModel = accessibleModels.find(m => m.id === 'kortix/basic');
+    // Fallback: prioritize carbon-bim/basic, then carbon-bim/power
+    const basicModel = accessibleModels.find(m => m.id === 'carbon-bim/basic');
     if (basicModel) return basicModel.id;
 
-    const powerModel = accessibleModels.find(m => m.id === 'kortix/power');
+    const powerModel = accessibleModels.find(m => m.id === 'carbon-bim/power');
     if (powerModel) return powerModel.id;
 
     // Last resort fallback to first accessible model
@@ -947,9 +947,9 @@ export function useChat(): UseChatReturn {
 
     setMessages([]);
 
-    // Reset Kortix Computer state when switching threads
-    useKortixComputerStore.getState().reset();
-    log.log('[useChat] Reset Kortix Computer state');
+    // Reset Carbon BIM Computer state when switching threads
+    useCarbonBIMComputerStore.getState().reset();
+    log.log('[useChat] Reset Carbon BIM Computer state');
 
     // Dismiss keyboard before navigation to avoid stale keyboard metrics
     Keyboard.dismiss();
@@ -1017,9 +1017,9 @@ export function useChat(): UseChatReturn {
     // We don't want to stop agents running in other threads
     disconnectStream();
 
-    // Reset Kortix Computer state when starting new chat
-    useKortixComputerStore.getState().reset();
-    log.log('[useChat] Reset Kortix Computer state for new chat');
+    // Reset Carbon BIM Computer state when starting new chat
+    useCarbonBIMComputerStore.getState().reset();
+    log.log('[useChat] Reset Carbon BIM Computer state for new chat');
   }, [disconnectStream, clearStreamError, activeThreadId, agentRunId, currentHookRunId, streamHookStatus]);
 
   const updateThreadTitle = useCallback(async (newTitle: string) => {
