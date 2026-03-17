@@ -25,7 +25,7 @@ export const siteConfig = {
         { id: 1, title: 'About', url: '/about' },
         { id: 2, title: 'Careers', url: '/careers' },
         { id: 3, title: 'Support', url: '/support' },
-        { id: 4, title: 'Contact', url: 'mailto:hey@kortix.com' },
+        { id: 4, title: 'Contact', url: 'mailto:hey@carbon-bim.com' },
       ],
     },
     {

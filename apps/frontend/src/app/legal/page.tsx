@@ -120,10 +120,10 @@ function LegalContent() {
                         <p>
                           Email:{' '}
                           <a
-                            href="mailto:info@kortix.com"
+                            href="mailto:info@carbon-bim.com"
                             className="text-primary hover:underline"
                           >
-                            info@kortix.com
+                            info@carbon-bim.com
                           </a>
                         </p>
                       </div>
@@ -269,7 +269,7 @@ function LegalContent() {
                         </li>
                         <li>
                           "Notice Address" refers to the contact address for the
-                          Company, specifically legal@kortix.com
+                          Company, specifically legal@carbon-bim.com
                         </li>
                         <li>
                           "Privacy Policy" refers to the document outlining how
@@ -648,7 +648,7 @@ function LegalContent() {
                         held by others. We respect rights holders internationally,
                         and we ask our users to do the same. If you believe your
                         copyright or trademark is being infringed by the Service,
-                        please write to legal@kortix.com and we will process and
+                        please write to legal@carbon-bim.com and we will process and
                         investigate your request and take appropriate actions
                         under the Digital Millennium Copyright Act and other
                         applicable intellectual property laws with respect to any
@@ -704,10 +704,10 @@ function LegalContent() {
                       <p className="text-muted-foreground text-balance mb-4">
                         To exercise these rights, please contact us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         . We will respond to your request within a reasonable timeframe
                         and in accordance with applicable law.
@@ -749,10 +749,10 @@ function LegalContent() {
                       <p className="text-muted-foreground text-balance mb-4">
                         For GDPR-related requests, please contact us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         . Our legal basis for processing your data includes performance
                         of contract, legitimate interests, consent, and compliance with
@@ -793,10 +793,10 @@ function LegalContent() {
                       <p className="text-muted-foreground text-balance mb-6">
                         To exercise your CCPA rights, please contact us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         . We may require verification of your identity before processing
                         your request. We will not discriminate against you for exercising
@@ -812,7 +812,7 @@ function LegalContent() {
                         subscription, payable in U.S. dollars, that will
                         automatically renew. You can stop using the Service and
                         cancel your subscription at any time through the website
-                        or by emailing us at info@kortix.com. If you cancel
+                        or by emailing us at info@carbon-bim.com. If you cancel
                         your subscription, you may not receive a refund or credit
                         for any amounts that have already been billed or paid. The
                         Company reserves the right to change its prices at any
@@ -1000,10 +1000,10 @@ function LegalContent() {
                         Account at any time by following the instructions on the Service
                         or by contacting us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         . Termination of your Account will result in the deletion of
                         your data in accordance with our data retention policies.
@@ -1245,10 +1245,10 @@ function LegalContent() {
                         required. Please refer to the LICENSE file for complete terms
                         and contact{' '}
                         <a
-                          href="mailto:hey@kortix.com"
+                          href="mailto:hey@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          hey@kortix.com
+                          hey@carbon-bim.com
                         </a>
                         {' '}for commercial licensing inquiries.
                       </p>
@@ -1485,10 +1485,10 @@ function LegalContent() {
                         For questions regarding the Service, you can get in touch by
                         emailing us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         .
                       </p>
@@ -1496,10 +1496,10 @@ function LegalContent() {
                         <strong>Legal Matters:</strong> For legal inquiries, DMCA
                         notices, or other legal matters, please contact{' '}
                         <a
-                          href="mailto:legal@kortix.com"
+                          href="mailto:legal@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          legal@kortix.com
+                          legal@carbon-bim.com
                         </a>
                         .
                       </p>
@@ -1508,10 +1508,10 @@ function LegalContent() {
                         data privacy requests (access, deletion, portability, etc.),
                         please contact{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         {' '}with the subject line "Privacy Request" and include details
                         of your request.
@@ -1737,10 +1737,10 @@ function LegalContent() {
                       <p className="text-muted-foreground text-balance">
                         You can get in touch by emailing us at{' '}
                         <a
-                          href="mailto:info@kortix.com"
+                          href="mailto:info@carbon-bim.com"
                           className="text-primary hover:underline"
                         >
-                          info@kortix.com
+                          info@carbon-bim.com
                         </a>
                         .
                       </p>

@@ -20,7 +20,7 @@ function CarbonBIMSymbol({ size = 24, className }: { size?: number; className?: 
 /**
  * Universal app download URL - middleware auto-redirects to correct store based on device
  */
-export const APP_DOWNLOAD_URL = 'https://www.kortix.com/app';
+export const APP_DOWNLOAD_URL = 'https://www.carbon-bim.com/app';
 
 export interface AppDownloadQRProps {
   /** Size of the QR code in pixels */

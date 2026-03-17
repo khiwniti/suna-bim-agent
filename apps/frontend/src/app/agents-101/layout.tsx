@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Workers 101 | Carbon BIM',
     description: 'An introduction to AI Workers.',
-    url: 'https://www.kortix.com/agents-101',
+    url: 'https://www.carbon-bim.com/agents-101',
     siteName: 'Carbon BIM',
     images: [{ url: '/banner.png', width: 1200, height: 630 }],
     type: 'website',

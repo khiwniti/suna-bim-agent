@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: 'Suna is now Carbon BIM',
     description: 'Carbon BIM (formerly Suna) - Same powerful open source AI worker, new name.',
     type: 'website',
-    url: 'https://www.kortix.com/suna',
+    url: 'https://www.carbon-bim.com/suna',
     siteName: 'Carbon BIM',
     images: [
       {
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     images: ['/banner.png'],
   },
   alternates: {
-    canonical: 'https://www.kortix.com/suna',
+    canonical: 'https://www.carbon-bim.com/suna',
   },
   robots: {
     index: true,
@@ -64,8 +64,8 @@ export default function SunaPage() {
             '@type': 'Organization',
             name: 'Carbon BIM',
             alternateName: ['Suna', 'Carbon BIM Suna', 'Suna AI'],
-            url: 'https://www.kortix.com',
-            logo: 'https://www.kortix.com/favicon.png',
+            url: 'https://www.carbon-bim.com',
+            logo: 'https://www.carbon-bim.com/favicon.png',
             sameAs: [
               'https://github.com/carbon-bim-ai',
               'https://x.com/carbon-bim',
@@ -88,13 +88,13 @@ export default function SunaPage() {
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://www.kortix.com',
+                item: 'https://www.carbon-bim.com',
               },
               {
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Suna is now Carbon BIM',
-                item: 'https://www.kortix.com/suna',
+                item: 'https://www.carbon-bim.com/suna',
               },
             ],
           }),
@@ -174,7 +174,7 @@ export default function SunaPage() {
                 </h2>
                 <div className="space-y-3 text-base md:text-lg text-muted-foreground font-medium">
                   <p>Our name changed from Suna to Carbon BIM</p>
-                  <p>Our domain is now kortix.com</p>
+                  <p>Our domain is now carbon-bim.com</p>
                 </div>
               </div>
 

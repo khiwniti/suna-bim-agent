@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   description: siteMetadata.description,
   keywords: siteMetadata.keywords,
-  authors: [{ name: 'Kortix Team', url: 'https://www.kortix.com' }],
+  authors: [{ name: 'Carbon BIM Team', url: 'https://www.carbon-bim.com' }],
   creator: 'Carbon BIM Team',
   publisher: 'Carbon BIM Team',
   applicationName: siteMetadata.name,
@@ -171,16 +171,16 @@ export default function RootLayout({
         <meta name="keywords" content="Carbon BIM, AI Worker, Agentic AI, Autonomous AI Worker, AI Automation, AI Workflow Automation, AI Assistant, Task Automation" />
         <meta property="og:title" content="Carbon BIM: Your Autonomous AI Worker" />
         <meta property="og:description" content="Built for complex tasks, designed for everything. The ultimate AI assistant that handles it all—from simple requests to mega-complex projects." />
-        <meta property="og:image" content="https://kortix.com/banner.png" />
-        <meta property="og:url" content="https://kortix.com" />
+        <meta property="og:image" content="https://carbon-bim.com/banner.png" />
+        <meta property="og:url" content="https://carbon-bim.com" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Carbon BIM" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Carbon BIM: Your Autonomous AI Worker" />
         <meta name="twitter:description" content="Built for complex tasks, designed for everything. The ultimate AI assistant that handles it all—from simple requests to mega-complex projects." />
-        <meta name="twitter:image" content="https://kortix.com/banner.png" />
+        <meta name="twitter:image" content="https://carbon-bim.com/banner.png" />
         <meta name="twitter:site" content="@carbon-bim" />
-        <link rel="canonical" href="https://kortix.com" />
+        <link rel="canonical" href="https://carbon-bim.com" />
         
         {/* iOS Smart App Banner - shows native install banner in Safari */}
         {!featureFlags.disableMobileAdvertising ? (

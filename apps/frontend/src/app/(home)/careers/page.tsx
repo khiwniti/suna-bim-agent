@@ -176,7 +176,7 @@ export default function CareersPage() {
             </p>
             <div className="pt-4">
               <Button asChild size="lg" variant="outline">
-                <a href="mailto:marko@kortix.com">
+                <a href="mailto:hello@carbon-bim.com">
                   Get in touch
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </a>

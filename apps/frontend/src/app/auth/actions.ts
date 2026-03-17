@@ -21,7 +21,7 @@ export async function signIn(prevState: any, formData: FormData) {
 
   // Use magic link (passwordless) authentication
   // For desktop app, use custom protocol (carbon-bim://auth/callback) - same as mobile
-  // For web, use standard origin (https://kortix.com/auth/callback)
+  // For web, use standard origin (https://carbon-bim.com/auth/callback)
   // Include email in redirect URL so it's available if the link expires
   let emailRedirectTo: string;
   if (isDesktopApp && origin.startsWith('carbon-bim://')) {
@@ -76,7 +76,7 @@ export async function signUp(prevState: any, formData: FormData) {
 
   // Use magic link (passwordless) authentication - auto-creates account
   // For desktop app, use custom protocol (carbon-bim://auth/callback) - same as mobile
-  // For web, use standard origin (https://kortix.com/auth/callback)
+  // For web, use standard origin (https://carbon-bim.com/auth/callback)
   // Include email in redirect URL so it's available if the link expires
   let emailRedirectTo: string;
   if (isDesktopApp && origin.startsWith('carbon-bim://')) {
@@ -181,7 +181,7 @@ export async function resendMagicLink(prevState: any, formData: FormData) {
 
   // Use magic link (passwordless) authentication
   // For desktop app, use custom protocol (carbon-bim://auth/callback) - same as mobile
-  // For web, use standard origin (https://kortix.com/auth/callback)
+  // For web, use standard origin (https://carbon-bim.com/auth/callback)
   // Include email in redirect URL so it's available if the link expires
   let emailRedirectTo: string;
   if (isDesktopApp && origin.startsWith('carbon-bim://')) {
