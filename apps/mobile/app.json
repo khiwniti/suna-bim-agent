@@ -21,9 +21,9 @@
       "bundleIdentifier": "com.carbon-bim.app",
       "usesAppleSignIn": true,
       "associatedDomains": [
-        "applinks:kortix.com",
-        "applinks:www.kortix.com",
-        "applinks:staging.kortix.com"
+        "applinks:carbon-bim.com",
+        "applinks:www.carbon-bim.com",
+        "applinks:staging.carbon-bim.com"
       ],
       "infoPlist": {
         "NSCameraUsageDescription": "Carbon BIM needs camera access to let you capture photos and attach them to your saved conversations with the AI Worker. For example, you can photograph a document, whiteboard, or product for analysis and receive insights that are stored in your conversation history.",
@@ -47,17 +47,17 @@
           "data": [
             {
               "scheme": "https",
-              "host": "kortix.com",
+              "host": "carbon-bim.com",
               "pathPrefix": "/auth/callback"
             },
             {
               "scheme": "https",
-              "host": "www.kortix.com",
+              "host": "www.carbon-bim.com",
               "pathPrefix": "/auth/callback"
             },
             {
               "scheme": "https",
-              "host": "staging.kortix.com",
+              "host": "staging.carbon-bim.com",
               "pathPrefix": "/auth/callback"
             }
           ],
@@ -72,17 +72,17 @@
           "data": [
             {
               "scheme": "https",
-              "host": "kortix.com",
+              "host": "carbon-bim.com",
               "pathPrefix": "/share"
             },
             {
               "scheme": "https",
-              "host": "www.kortix.com",
+              "host": "www.carbon-bim.com",
               "pathPrefix": "/share"
             },
             {
               "scheme": "https",
-              "host": "staging.kortix.com",
+              "host": "staging.carbon-bim.com",
               "pathPrefix": "/share"
             }
           ],

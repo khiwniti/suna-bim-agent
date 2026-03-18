@@ -43,7 +43,7 @@ Set `APP_URL` environment variable to load a different URL:
 APP_URL=http://localhost:3000 npm start
 ```
 
-By default, it loads `https://kortix.com/`.
+By default, it loads `https://carbon-bim.com/`.
 
 ## Installation
 

@@ -1,6 +1,7 @@
 """
 API endpoints for serving presentation template static files (images, PDFs, slides).
 """
+
 import os
 import re
 import json
@@ -15,14 +16,16 @@ from core.utils.logger import logger
 router = APIRouter(tags=["presentations"])
 
 # Base path for presentation templates
-TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "presentations"))
+TEMPLATES_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "presentations")
+)
 
 
 class SlideInfo(BaseModel):
     number: int
     filename: str
-    
-    
+
+
 class TemplateInfo(BaseModel):
     id: str
     name: str
@@ -36,14 +39,14 @@ def _validate_template_path(template_name: str, filename: str) -> str:
     Raises HTTPException if path is invalid or file doesn't exist.
     """
     file_path = os.path.abspath(os.path.join(TEMPLATES_DIR, template_name, filename))
-    
+
     # Security check: ensure path is within templates directory
     if not file_path.startswith(TEMPLATES_DIR):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     return file_path
 
 
@@ -65,27 +68,29 @@ async def get_presentation_template_pdf(template_name: str):
     """Serve presentation template PDF files."""
     try:
         pdf_folder = os.path.abspath(os.path.join(TEMPLATES_DIR, template_name, "pdf"))
-        
+
         # Security check
         if not pdf_folder.startswith(TEMPLATES_DIR):
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         if not os.path.exists(pdf_folder):
             raise HTTPException(status_code=404, detail="Template PDF folder not found")
-        
+
         # Find the first PDF file in the folder
-        pdf_files = [f for f in os.listdir(pdf_folder) if f.lower().endswith('.pdf')]
-        
+        pdf_files = [f for f in os.listdir(pdf_folder) if f.lower().endswith(".pdf")]
+
         if not pdf_files:
             raise HTTPException(status_code=404, detail="No PDF file found in template")
-        
+
         pdf_path = os.path.join(pdf_folder, pdf_files[0])
-        
+
         encoded_filename = quote(f"{template_name}.pdf", safe="")
         return FileResponse(
             pdf_path,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"inline; filename*=UTF-8''{encoded_filename}"}
+            headers={
+                "Content-Disposition": f"inline; filename*=UTF-8''{encoded_filename}"
+            },
         )
     except HTTPException:
         raise
@@ -94,48 +99,47 @@ async def get_presentation_template_pdf(template_name: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get("/{template_name}/info", summary="Get Template Info", response_model=TemplateInfo)
+@router.get(
+    "/{template_name}/info", summary="Get Template Info", response_model=TemplateInfo
+)
 async def get_template_info(template_name: str):
     """Get template metadata including list of slides."""
     try:
         template_folder = os.path.abspath(os.path.join(TEMPLATES_DIR, template_name))
-        
+
         # Security check
         if not template_folder.startswith(TEMPLATES_DIR):
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         if not os.path.exists(template_folder):
             raise HTTPException(status_code=404, detail="Template not found")
-        
+
         # Find all slide HTML files
-        slide_pattern = re.compile(r'^slide_(\d+)\.html$')
+        slide_pattern = re.compile(r"^slide_(\d+)\.html$")
         slides = []
-        
+
         for filename in os.listdir(template_folder):
             match = slide_pattern.match(filename)
             if match:
                 slide_num = int(match.group(1))
                 slides.append(SlideInfo(number=slide_num, filename=filename))
-        
+
         # Sort by slide number
         slides.sort(key=lambda s: s.number)
-        
+
         # Try to get name from metadata.json if exists
         metadata_path = os.path.join(template_folder, "metadata.json")
-        name = template_name.replace('_', ' ').title()
+        name = template_name.replace("_", " ").title()
         if os.path.exists(metadata_path):
             try:
-                with open(metadata_path, 'r') as f:
+                with open(metadata_path, "r") as f:
                     metadata = json.load(f)
-                    name = metadata.get('name', name)
+                    name = metadata.get("name", name)
             except Exception:
                 pass
-        
+
         return TemplateInfo(
-            id=template_name,
-            name=name,
-            slide_count=len(slides),
-            slides=slides
+            id=template_name, name=name, slide_count=len(slides), slides=slides
         )
     except HTTPException:
         raise
@@ -150,17 +154,17 @@ async def get_slide_html(template_name: str, slide_number: int):
     try:
         filename = f"slide_{slide_number:02d}.html"
         slide_path = _validate_template_path(template_name, filename)
-        
+
         # Read and return HTML with proper headers for iframe embedding
-        with open(slide_path, 'r', encoding='utf-8') as f:
+        with open(slide_path, "r", encoding="utf-8") as f:
             html_content = f.read()
-        
+
         return HTMLResponse(
             content=html_content,
             headers={
                 "X-Frame-Options": "SAMEORIGIN",
-                "Content-Security-Policy": "frame-ancestors 'self' http://localhost:* https://*.kortix.com https://*.suna.so",
-            }
+                "Content-Security-Policy": "frame-ancestors 'self' http://localhost:* https://*.carbon-bim.com https://*.carbon-bim.com",
+            },
         )
     except HTTPException:
         raise
@@ -174,23 +178,22 @@ async def get_template_asset(template_name: str, filename: str):
     """Serve template asset files (images, etc.)."""
     try:
         asset_path = _validate_template_path(template_name, filename)
-        
+
         # Determine media type based on extension
         ext = os.path.splitext(filename)[1].lower()
         media_types = {
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.gif': 'image/gif',
-            '.svg': 'image/svg+xml',
-            '.webp': 'image/webp',
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".gif": "image/gif",
+            ".svg": "image/svg+xml",
+            ".webp": "image/webp",
         }
-        media_type = media_types.get(ext, 'application/octet-stream')
-        
+        media_type = media_types.get(ext, "application/octet-stream")
+
         return FileResponse(asset_path, media_type=media_type)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error serving template asset: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-

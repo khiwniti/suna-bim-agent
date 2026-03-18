@@ -9,7 +9,7 @@ const lightsail = new LightsailInstance("suna-staging", {
   bundleId: "large_3_0",
   keyPairName: "suna-staging-key",
   tunnelId: "503813f5-2426-401a-b72f-15bd11d4b4ba",
-  apiEndpoint: "staging-api.kortix.com",
+  apiEndpoint: "staging-api.carbon-bim.com",
   tags: COMMON_TAGS,
 });
 
@@ -22,5 +22,5 @@ export const tunnelId = "503813f5-2426-401a-b72f-15bd11d4b4ba";
 export const tunnelCname = `${tunnelId}.cfargotunnel.com`;
 
 export const apiEndpoints = {
-  kortix: "staging-api.kortix.com",
+  carbonbim: "staging-api.carbon-bim.com",
 };

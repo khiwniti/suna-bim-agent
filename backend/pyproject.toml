@@ -106,8 +106,8 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://www.kortix.com"
-repository = "https://github.com/kortix-ai/suna"
+homepage = "https://www.carbon-bim.com"
+repository = "https://github.com/khiwniti/carbon-bim-agent"
 
 [tool.uv]
 package = false

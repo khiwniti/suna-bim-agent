@@ -484,8 +484,8 @@
   "billing": {
     "loadingPaywall": "Cargando planes...",
     "checkoutUnavailable": "Checkout móvil no disponible",
-    "checkoutUnavailableMessage": "Para suscribirte a un plan, visita kortix.com en la web.",
-    "goToWeb": "Ir a kortix.com",
+    "checkoutUnavailableMessage": "Para suscribirte a un plan, visita 20.55.21.69 en la web.",
+    "goToWeb": "Ir a 20.55.21.69",
     "billingStatus": "Estado de Facturación",
     "loading": "Cargando información de facturación...",
     "error": "Error al cargar información de facturación",

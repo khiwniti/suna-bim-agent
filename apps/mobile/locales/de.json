@@ -470,8 +470,8 @@
   "billing": {
     "loadingPaywall": "Pläne werden geladen...",
     "checkoutUnavailable": "Mobile-Checkout nicht verfügbar",
-    "checkoutUnavailableMessage": "Um einen Plan zu abonnieren, besuche bitte kortix.com im Web.",
-    "goToWeb": "Zu kortix.com gehen",
+    "checkoutUnavailableMessage": "Um einen Plan zu abonnieren, besuche bitte 20.55.21.69 im Web.",
+    "goToWeb": "Zu 20.55.21.69 gehen",
     "billingStatus": "Abrechnungsstatus",
     "loading": "Lade Abrechnungsinformationen...",
     "error": "Fehler beim Laden der Abrechnungsinformationen",

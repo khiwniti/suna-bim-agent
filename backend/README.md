@@ -1,17 +1,17 @@
 
 **0. Launching with Docker (Manual)**
 
-You can manually launch all Suna services using Docker Compose from the project root:
+You can manually launch all Carbon BIM services using Docker Compose from the project root:
 
 ```bash
 # From project root directory
-cd /path/to/suna
+cd /path/to/carbon-bim-agent
 ```
 
 **0.1 Start all services**
 
 ```bash
-# Start all services (Redis, Backend, Frontend, Worker)
+# Start all services (Redis, Backend, Frontend)
 docker compose up -d
 
 # Or start specific services
@@ -22,16 +22,13 @@ docker compose up -d redis backend frontend
 
 ```bash
 # Start Redis only
-docker compose up -d redis
+docker compose up redis
 
 # Start Backend (depends on Redis)
-docker compose up -d backend
+docker compose up backend
 
 # Start Frontend (depends on Backend)
-docker compose up -d frontend
-
-# Start Worker (optional, for background tasks)
-docker compose up -d worker
+docker compose up frontend
 ```
 
 **0.3 View logs**
@@ -41,9 +38,9 @@ docker compose up -d worker
 docker compose logs -f
 
 # View specific service logs
-docker compose logs -f backend
-docker compose logs -f frontend
-docker compose logs -f redis
+docker compose logs backend
+docker compose logs frontend
+docker compose logs redis
 ```
 
 **0.4 Stop services**
@@ -52,7 +49,7 @@ docker compose logs -f redis
 # Stop all services
 docker compose down
 
-# Stop and remove volumes           
+# Stop and remove volumes
 docker compose down -v
 ```
 
@@ -87,7 +84,6 @@ docker compose up redis
 
 # Option B: Run locally (if installed)
 redis-server
-```
 
 
 **1.3 Running the API**
@@ -115,7 +111,6 @@ Run `make verify` or `uv run python core/utils/scripts/verify_build.py` to check
 - No syntax errors
 - No undefined names
 - API can be imported
-- Worker can be imported
 
 See `core/utils/scripts/README.md` for more details on available scripts.
 

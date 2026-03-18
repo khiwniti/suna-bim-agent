@@ -470,8 +470,8 @@
   "billing": {
     "loadingPaywall": "加载套餐中...",
     "checkoutUnavailable": "移动端结账不可用",
-    "checkoutUnavailableMessage": "要订阅套餐，请在网页上访问 kortix.com。",
-    "goToWeb": "前往 kortix.com",
+    "checkoutUnavailableMessage": "要订阅套餐，请在网页上访问 20.55.21.69。",
+    "goToWeb": "前往 20.55.21.69",
     "billingStatus": "账单状态",
     "loading": "加载账单信息中...",
     "error": "加载账单信息失败",

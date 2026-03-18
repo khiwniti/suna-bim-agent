@@ -41,7 +41,7 @@ const helpData = {
       items: [
         {
           title: "GitHub Repository",
-          url: "https://github.com/kortix-ai/suna",
+          url: "https://github.com/khiwniti/carbon-bim-agent",
           external: true,
         },
         {

@@ -550,8 +550,8 @@
   "billing": {
     "loadingPaywall": "Loading plans...",
     "checkoutUnavailable": "Mobile checkout not available",
-    "checkoutUnavailableMessage": "To subscribe to a plan, please visit kortix.com on the web.",
-    "goToWeb": "Go to kortix.com",
+    "checkoutUnavailableMessage": "To subscribe to a plan, please visit 20.55.21.69 on the web.",
+    "goToWeb": "Go to 20.55.21.69",
     "billingStatus": "Billing Status",
     "loading": "Loading billing information...",
     "error": "Failed to load billing information",

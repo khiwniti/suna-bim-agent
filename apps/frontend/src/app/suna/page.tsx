@@ -153,7 +153,7 @@ export default function SunaPage() {
                 <ArrowRight className="ml-2 size-4" />
               </Link>
               <a
-                href="https://github.com/kortix-ai/suna"
+                href="https://github.com/khiwniti/carbon-bim-agent"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-12 items-center justify-center w-full sm:w-auto px-8 text-center rounded-full border border-border bg-background hover:bg-accent/50 transition-all font-medium"

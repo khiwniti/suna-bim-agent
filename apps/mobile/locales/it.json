@@ -464,8 +464,8 @@
   "billing": {
     "loadingPaywall": "Caricamento piani...",
     "checkoutUnavailable": "Checkout mobile non disponibile",
-    "checkoutUnavailableMessage": "Per abbonarti a un piano, visita kortix.com sul web.",
-    "goToWeb": "Vai su kortix.com",
+    "checkoutUnavailableMessage": "Per abbonarti a un piano, visita 20.55.21.69 sul web.",
+    "goToWeb": "Vai su 20.55.21.69",
     "billingStatus": "Stato Fatturazione",
     "loading": "Caricamento informazioni di fatturazione...",
     "error": "Errore nel caricamento delle informazioni di fatturazione",

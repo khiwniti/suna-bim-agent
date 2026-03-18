@@ -4,8 +4,8 @@
   "description": "Carbon BIM Desktop",
   "author": {
     "name": "Carbon BIM",
-    "email": "support@kortix.com",
-    "url": "https://kortix.com"
+    "email": "support@carbon-bim.com",
+    "url": "https://carbon-bim.com"
   },
   "main": "main.js",
   "scripts": {

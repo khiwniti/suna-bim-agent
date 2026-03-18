@@ -1,6 +1,6 @@
-# Suna Infrastructure
+# Carbon BIM Infrastructure
 
-Pulumi Infrastructure-as-Code for Suna
+Pulumi Infrastructure-as-Code for Carbon BIM
 
 ## Architecture
 
@@ -8,25 +8,25 @@ Pulumi Infrastructure-as-Code for Suna
                     ┌─────────────────────────────────────────────────────────┐
                     │                    CLOUDFLARE                            │
                     │                                                          │
-                    │   api.kortix.com ──► Worker (api-kortix-router)          │
+                    │   api.carbon-bim.com ──► Worker (api-carbonbim-router)          │
                     │                          │                               │
                     │         ┌────────────────┴────────────────┐              │
                     │         ▼                                 ▼              │
                     │   ACTIVE_BACKEND=lightsail          (future: ecs)        │
                     │         │                                 │              │
                     │         ▼                                 ▼              │
-                    │   api-lightsail.kortix.com         api-ecs.kortix.com    │
+                    │   api-lightsail.carbon-bim.com         api-ecs.carbon-bim.com    │
                     │   (Tunnel)                         (Direct to ALB)       │
                     └─────────┬─────────────────────────────────┬──────────────┘
                               │                                 │
                               ▼                                 ▼
 ┌─────────────────────────────────────────┐    ┌───────────────────────────────────┐
 │         LIGHTSAIL (Prod)                │    │           ECS (Prod)              │
-│   Cloudflared → localhost:8000          │    │   Cluster: suna-ecs               │
+│   Cloudflared → localhost:8000          │    │   Cluster: carbonbim-ecs               │
 │                                         │    │   Fargate + Fargate Spot          │
 └─────────────────────────────────────────┘    │   Auto-scaling (CPU/Memory)       │
-                                               │   ALB → Target Group → Tasks      │
-                                               └───────────────────────────────────┘
+                                                 │   ALB → Target Group → Tasks      │
+                                                └───────────────────────────────────┘
 ```
 
 ## Features
@@ -199,5 +199,5 @@ pulumi stack output
 pulumi destroy
 
 # Import existing resource
-pulumi import aws:ecs/cluster:Cluster suna-ecs arn:aws:ecs:...
+pulumi import aws:ecs/cluster:Cluster carbonbim-ecs arn:aws:ecs:...
 ```

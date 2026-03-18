@@ -274,7 +274,7 @@ class AgentsClient:
         Initialize the Agents API client
 
         Args:
-            base_url: Base URL of the API (e.g., "https://api.kortix.com/v1")
+            base_url: Base URL of the API (e.g., "http://20.55.21.69:30/v1")
             auth_token: JWT token for authentication
             custom_headers: Additional headers to include in all requests
             timeout: Request timeout in seconds
@@ -550,4 +550,3 @@ def create_agents_client(
         custom_headers=custom_headers,
         timeout=timeout,
     )
-

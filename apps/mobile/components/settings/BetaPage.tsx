@@ -35,7 +35,7 @@ export function BetaPage({ visible, onClose }: BetaPageProps) {
 
   const handleVisitWeb = React.useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL('https://kortix.com');
+    Linking.openURL('http://20.55.21.69:30');
   }, []);
 
   if (!visible) return null;

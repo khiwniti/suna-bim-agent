@@ -18,7 +18,9 @@ class SetupMethodStep(BaseStep):
     def run(self) -> StepResult:
         # Check if already configured
         if self.config.setup_method:
-            self.info(f"Continuing with '{self.config.setup_method.value}' setup method.")
+            self.info(
+                f"Continuing with '{self.config.setup_method.value}' setup method."
+            )
             return StepResult.ok(
                 f"Setup method: {self.config.setup_method.value}",
                 {"setup_method": self.config.setup_method.value},
@@ -30,11 +32,19 @@ class SetupMethodStep(BaseStep):
 
         # Important note about Supabase compatibility
         self.warning("IMPORTANT - Supabase Compatibility:")
-        self.console.print("  - Docker Compose -> Only supports Cloud Supabase (Local Supabase not supported)")
-        self.console.print("  - Manual Setup -> Only supports Cloud Supabase (Local Supabase not supported)")
+        self.console.print(
+            "  - Docker Compose -> Only supports Cloud Supabase (Local Supabase not supported)"
+        )
+        self.console.print(
+            "  - Manual Setup -> Only supports Cloud Supabase (Local Supabase not supported)"
+        )
         self.console.print("")
-        self.console.print("  Why? Docker networking can't easily reach local Supabase containers.")
-        self.info("Want to fix this? See: https://github.com/kortix-ai/suna/issues/1920")
+        self.console.print(
+            "  Why? Docker networking can't easily reach local Supabase containers."
+        )
+        self.info(
+            "Want to fix this? See: https://github.com/khiwniti/carbon-bim-agent/issues/1920"
+        )
 
         choices = [
             ("1", "Manual", "Cloud Supabase only - Local not supported"),
@@ -54,7 +64,9 @@ class SetupMethodStep(BaseStep):
                 self.config.setup_method = SetupMethod.DOCKER
                 break
             else:
-                self.error("Invalid selection. Please enter '1' for Manual or '2' for Docker.")
+                self.error(
+                    "Invalid selection. Please enter '1' for Manual or '2' for Docker."
+                )
 
         self.success(f"Selected '{self.config.setup_method.value}' setup.")
 

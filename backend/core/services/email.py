@@ -6,94 +6,113 @@ from core.utils.config import config
 
 logger = logging.getLogger(__name__)
 
+
 class EmailService:
     def __init__(self):
-        self.api_token = os.getenv('MAILTRAP_API_TOKEN')
-        self.sender_email = os.getenv('MAILTRAP_SENDER_EMAIL', 'hey@kortix.com')
-        self.sender_name = os.getenv('MAILTRAP_SENDER_NAME', 'Carbon BIM Team')
-        self.hello_email = 'hello@kortix.com'
-        
+        self.api_token = os.getenv("MAILTRAP_API_TOKEN")
+        self.sender_email = os.getenv("MAILTRAP_SENDER_EMAIL", "hey@carbon-bim.com")
+        self.sender_name = os.getenv("MAILTRAP_SENDER_NAME", "Carbon BIM Team")
+        self.hello_email = "hello@carbon-bim.com"
+
         if not self.api_token:
             logger.warning("MAILTRAP_API_TOKEN not found in environment variables")
             self.client = None
         else:
             self.client = mt.MailtrapClient(token=self.api_token)
-    
-    def send_welcome_email(self, user_email: str, user_name: Optional[str] = None) -> bool:
+
+    def send_welcome_email(
+        self, user_email: str, user_name: Optional[str] = None
+    ) -> bool:
         if not self.client:
             logger.error("Cannot send email: MAILTRAP_API_TOKEN not configured")
             return False
-    
+
         if not user_name:
-            user_name = user_email.split('@')[0].title()
-        
+            user_name = user_email.split("@")[0].title()
+
         subject = "🎉 Welcome to Carbon BIM — Let's Get Started "
         html_content = self._get_welcome_email_template(user_name)
         text_content = self._get_welcome_email_text(user_name)
-        
+
         return self._send_email(
             to_email=user_email,
             to_name=user_name,
             subject=subject,
             html_content=html_content,
-            text_content=text_content
+            text_content=text_content,
         )
-    
+
     def send_referral_email(
-        self, 
-        recipient_email: str, 
+        self,
+        recipient_email: str,
         recipient_name: str,
-        sender_name: str, 
-        referral_url: str
+        sender_name: str,
+        referral_url: str,
     ) -> bool:
         if not self.client:
             logger.error("Cannot send email: MAILTRAP_API_TOKEN not configured")
             return False
-        
+
         subject = f"🎉 You're invited!"
-        html_content = self._get_referral_email_template(recipient_name, sender_name, referral_url)
-        text_content = self._get_referral_email_text(recipient_name, sender_name, referral_url)
-        
+        html_content = self._get_referral_email_template(
+            recipient_name, sender_name, referral_url
+        )
+        text_content = self._get_referral_email_text(
+            recipient_name, sender_name, referral_url
+        )
+
         try:
             sender_email_to_use = self.hello_email
-            
-            logger.info(f"Attempting to send referral email from {sender_email_to_use} to {recipient_email}")
-            
+
+            logger.info(
+                f"Attempting to send referral email from {sender_email_to_use} to {recipient_email}"
+            )
+
             mail = mt.Mail(
-                sender=mt.Address(email=sender_email_to_use, name='Carbon BIM'),
+                sender=mt.Address(email=sender_email_to_use, name="Carbon BIM"),
                 to=[mt.Address(email=recipient_email, name=recipient_name)],
                 subject=subject,
                 text=text_content,
                 html=html_content,
-                category="referral"
+                category="referral",
             )
-            
+
             response = self.client.send(mail)
-            
-            logger.info(f"Referral email sent to {recipient_email} from {sender_name}. Response: {response}")
+
+            logger.info(
+                f"Referral email sent to {recipient_email} from {sender_name}. Response: {response}"
+            )
             return True
-                
+
         except Exception as e:
             error_type = type(e).__name__
             error_details = str(e)
-            logger.error(f"Error sending referral email to {recipient_email}: {error_details}")
+            logger.error(
+                f"Error sending referral email to {recipient_email}: {error_details}"
+            )
             logger.error(f"Error type: {error_type}")
-            logger.error(f"Mailtrap API Token present: {bool(self.api_token)}, Token prefix: {self.api_token[:8] if self.api_token else 'None'}...")
+            logger.error(
+                f"Mailtrap API Token present: {bool(self.api_token)}, Token prefix: {self.api_token[:8] if self.api_token else 'None'}..."
+            )
             logger.error(f"Sender email: {sender_email_to_use}")
-            
-            if hasattr(e, 'response'):
-                logger.error(f"Response status: {e.response.status_code if hasattr(e.response, 'status_code') else 'unknown'}")
-                logger.error(f"Response body: {e.response.text if hasattr(e.response, 'text') else 'unknown'}")
-            
+
+            if hasattr(e, "response"):
+                logger.error(
+                    f"Response status: {e.response.status_code if hasattr(e.response, 'status_code') else 'unknown'}"
+                )
+                logger.error(
+                    f"Response body: {e.response.text if hasattr(e.response, 'text') else 'unknown'}"
+                )
+
             return False
-    
+
     def _send_email(
-        self, 
-        to_email: str, 
-        to_name: str, 
-        subject: str, 
-        html_content: str, 
-        text_content: str
+        self,
+        to_email: str,
+        to_name: str,
+        subject: str,
+        html_content: str,
+        text_content: str,
     ) -> bool:
         try:
             mail = mt.Mail(
@@ -102,18 +121,18 @@ class EmailService:
                 subject=subject,
                 text=text_content,
                 html=html_content,
-                category="welcome"
+                category="welcome",
             )
-            
+
             response = self.client.send(mail)
-            
+
             logger.debug(f"Welcome email sent to {to_email}. Response: {response}")
             return True
-                
+
         except Exception as e:
             logger.error(f"Error sending email to {to_email}: {str(e)}")
             return False
-    
+
     def _get_welcome_email_template(self, user_name: str) -> str:
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -191,7 +210,7 @@ class EmailService:
 
     <p>Hi {user_name},</p>
 
-    <p><em><strong>Welcome to <a href="https://www.kortix.com/">Kortix.com</a> — we're excited to have you on board!</strong></em></p>
+    <p><em><strong>Welcome to <a href="http://20.55.21.69:30/">Carbon BIM</a> — we're excited to have you on board!</strong></em></p>
 
     <p>To get started, we'd like to get to know you better: fill out this short <a href="https://docs.google.com/forms/d/e/1FAIpQLSef1EHuqmIh_iQz-kwhjnzSC3Ml-V_5wIySDpMoMU9W_j24JQ/viewform">form</a>!</p>
 
@@ -204,11 +223,11 @@ class EmailService:
   </div>
 </body>
 </html>"""
-    
+
     def _get_welcome_email_text(self, user_name: str) -> str:
         return f"""Hi {user_name},
 
-Welcome to https://www.kortix.com/ — we're excited to have you on board!
+Welcome to http://20.55.21.69:30/ — we're excited to have you on board!
 
 To get started, we'd like to get to know you better: fill out this short form!
 https://docs.google.com/forms/d/e/1FAIpQLSef1EHuqmIh_iQz-kwhjnzSC3Ml-V_5wIySDpMoMU9W_j24JQ/viewform
@@ -223,8 +242,10 @@ Thanks again, and welcome to the Carbon BIM community!
 ---
 © 2025 Carbon BIM. All rights reserved.
 You received this email because you signed up for a Carbon BIM account."""
-    
-    def _get_referral_email_template(self, recipient_name: str, sender_name: str, referral_url: str) -> str:
+
+    def _get_referral_email_template(
+        self, recipient_name: str, sender_name: str, referral_url: str
+    ) -> str:
         content = f"""<table cellpadding="0" cellspacing="0" border="0" style="padding:30px 15px; font-family:Inter, Arial, sans-serif; color:#000000;">
   <tr>
     <td>
@@ -260,7 +281,7 @@ You received this email because you signed up for a Carbon BIM account."""
     </td>
   </tr>
 </table>"""
-        
+
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -273,7 +294,7 @@ You received this email because you signed up for a Carbon BIM account."""
     <tr>
       <td>
         <div style="text-align: center; margin-bottom: 40px;">
-          <img src="https://kortix.com/Logomark.svg" alt="Kortix" style="height: 24px; width: auto; display: inline-block;" />
+          <img src="https://carbon-bim.com/Logomark.svg" alt="Carbon BIM" style="height: 24px; width: auto; display: inline-block;" />
         </div>
         <div style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px;">
           {content}
@@ -288,8 +309,10 @@ You received this email because you signed up for a Carbon BIM account."""
   </table>
 </body>
 </html>"""
-    
-    def _get_referral_email_text(self, recipient_name: str, sender_name: str, referral_url: str) -> str:
+
+    def _get_referral_email_text(
+        self, recipient_name: str, sender_name: str, referral_url: str
+    ) -> str:
         return f"""Hi {recipient_name},
 
 {sender_name} has invited you to join Carbon BIM using a personal referral code.
@@ -317,11 +340,13 @@ Claim your invite: {referral_url}
         try:
             mail = mt.Mail(
                 sender=mt.Address(email=self.sender_email, name=self.sender_name),
-                to=[mt.Address(email=user_email, name=user_email.split('@')[0].title())],
+                to=[
+                    mt.Address(email=user_email, name=user_email.split("@")[0].title())
+                ],
                 subject=subject,
                 text=text_content,
                 html=html_content,
-                category="otp"
+                category="otp",
             )
 
             response = self.client.send(mail)
@@ -345,7 +370,7 @@ Claim your invite: {referral_url}
     <tr>
       <td>
         <div style="text-align: center; margin-bottom: 40px;">
-          <img src="https://kortix.com/Logomark.svg" alt="Kortix" style="height: 24px; width: auto; display: inline-block;" />
+          <img src="https://carbon-bim.com/Logomark.svg" alt="Carbon BIM" style="height: 24px; width: auto; display: inline-block;" />
         </div>
         <div style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px; text-align: center;">
           <h1 style="font-size: 24px; font-weight: 500; color: #000; margin: 0 0 16px 0; letter-spacing: -0.02em;">
@@ -387,4 +412,4 @@ This code expires in 1 hour. If you didn't request this, you can safely ignore t
 © Carbon BIM AI Corp. All rights reserved."""
 
 
-email_service = EmailService() 
+email_service = EmailService()

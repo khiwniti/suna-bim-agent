@@ -2,219 +2,142 @@
 
 # Carbon BIM
 
-**The complete platform for creating autonomous AI agents that work for you**
+**AI Agent Platform for Building Information Modeling**
 
-Build, manage, and train sophisticated AI agents for any use case. Create powerful agents that act autonomously on your behalf.
+Specialized platform for BIM analysis with IFC model processing, carbon calculation, clash detection, and Thai building code compliance.
 
 [![Discord Follow](https://dcbadge.limes.pink/api/server/RvFhXUdZ9H?style=flat)](https://discord.com/invite/RvFhXUdZ9H)
-[![Twitter Follow](https://img.shields.io/twitter/follow/carbon-bim)](https://x.com/carbon-bim)
-[![GitHub Repo stars](https://img.shields.io/github/stars/kortix-ai/suna)](https://github.com/kortix-ai/suna)
-[![Issues](https://img.shields.io/github/issues/kortix-ai/suna)](https://github.com/kortix-ai/suna/labels/bug)
+[![GitHub Repo stars](https://img.shields.io/github/stars/khiwniti/suna-bim-agent)](https://github.com/khiwniti/suna-bim-agent)
+[![Issues](https://img.shields.io/github/issues/khiwniti/suna-bim-agent)](https://github.com/khiwniti/suna-bim-agent/labels/bug)
 
-<!-- Keep these links. Translations will automatically update with the README. -->
-[Deutsch](https://www.readme-i18n.com/kortix-ai/suna?lang=de) | 
-[Español](https://www.readme-i18n.com/kortix-ai/suna?lang=es) | 
-[français](https://www.readme-i18n.com/kortix-ai/suna?lang=fr) | 
-[日本語](https://www.readme-i18n.com/kortix-ai/suna?lang=ja) | 
-[한국어](https://www.readme-i18n.com/kortix-ai/suna?lang=ko) | 
-[Português](https://www.readme-i18n.com/kortix-ai/suna?lang=pt) | 
-[Русский](https://www.readme-i18n.com/kortix-ai/suna?lang=ru) | 
-[中文](https://www.readme-i18n.com/kortix-ai/suna?lang=zh)
-
-![Carbon BIM Screenshot](apps/frontend/public/banner.png)
+![Carbon BIM Banner](apps/frontend/public/banner.png)
 </div>
-
-
-
 
 ## BIM Features
 
 - **IFC Upload**: Upload IFC files via chat for analysis
 - **3D Viewer**: Interactive BIM model viewer in the workspace
-- **Carbon Analysis**: Thai emission factor (TGO/TREES) carbon calculation  
+- **Carbon Analysis**: Thai emission factor (TGO/TREES) carbon calculation
 - **Clash Detection**: Automated MEP/structural clash detection
 - **Code Compliance**: Thai building codes (มยผ.) compliance checking
 - **Thai Language**: Full Thai interface and analysis results
 
-## 🌟 What Makes Carbon BIM Special
+## What's Included
 
-### 🤖 Includes Carbon BIM Super Worker – Flagship Generalist AI Worker
-Meet Carbon BIM Super Worker, our showcase agent that demonstrates the full power of the Carbon BIM platform. Through natural conversation, Carbon BIM Super Worker handles research, data analysis, browser automation, file management, and complex workflows – showing you what's possible when you build with Carbon BIM.
+### 🤖 Carbon BIM Super Worker
+Flagship AI worker that demonstrates full platform capabilities through natural conversation.
 
-### 🔧 Build Custom Carbon BIM Super Worker-Type Agents
-Create your own specialized agents tailored to specific domains, workflows, or business needs. Whether you need agents for customer service, data processing, content creation, or industry-specific tasks, Carbon BIM provides the infrastructure and tools to build, deploy, and scale them.
+### 🏗️ Platform Architecture
 
-### 🚀 Complete Platform Capabilities
-- **Browser Automation**: Navigate websites, extract data, fill forms, automate web workflows
-- **File Management**: Create, edit, and organize documents, spreadsheets, presentations, code
-- **Web Intelligence**: Crawling, search capabilities, data extraction and synthesis
-- **System Operations**: Command-line execution, system administration, DevOps tasks
-- **API Integrations**: Connect with external services and automate cross-platform workflows
-- **Agent Builder**: Visual tools to configure, customize, and deploy agents
+Carbon BIM consists of four main components:
 
-## 📋 Table of Contents
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Backend API** | Python/FastAPI | REST endpoints, thread management, agent orchestration, LiteLLM integration |
+| **Frontend Dashboard** | Next.js 15 | Agent management interface, chat, configuration, deployment controls |
+| **Agent Runtime** | Docker | Isolated execution environments with browser automation, code interpreter |
+| **Database & Storage** | Supabase | Auth, user management, conversation history, file storage |
 
-- [🌟 What Makes Carbon BIM Special](#-what-makes-carbon-bim-special)
-- [🎯 Agent Examples & Use Cases](#-agent-examples--use-cases)
-- [🏗️ Platform Architecture](#️-platform-architecture)
-- [🚀 Quick Start](#-quick-start)
-- [🏠 Self-Hosting](#-self-hosting)
-- [🤝 Contributing](#-contributing)
-- [📄 License](LICENSE)
+## Quick Start
 
-## 🎯 Agent Examples & Use Cases
+### Prerequisites
 
-### Carbon BIM Super Worker - Your Generalist AI Worker
-
-Carbon BIM Super Worker demonstrates the full capabilities of the Carbon BIM platform as a versatile AI worker that can:
-
-**🔍 Research & Analysis**
-- Conduct comprehensive web research across multiple sources
-- Analyze documents, reports, and datasets
-- Synthesize information and create detailed summaries
-- Market research and competitive intelligence
-
-**🌐 Browser Automation**
-- Navigate complex websites and web applications
-- Extract data from multiple pages automatically
-- Fill forms and submit information
-- Automate repetitive web-based workflows
-
-**📁 File & Document Management**
-- Create and edit documents, spreadsheets, presentations
-- Organize and structure file systems
-- Convert between different file formats
-- Generate reports and documentation
-
-**📊 Data Processing & Analysis**
-- Clean and transform datasets from various sources
-- Perform statistical analysis and create visualizations
-- Monitor KPIs and generate insights
-- Integrate data from multiple APIs and databases
-
-**⚙️ System Administration**
-- Execute command-line operations safely
-- Manage system configurations and deployments
-- Automate DevOps workflows
-- Monitor system health and performance
-
-### Build Your Own Specialized Agents
-
-The Carbon BIM platform enables you to create agents tailored to specific needs:
-
-**🎧 Customer Service Agents**
-- Handle support tickets and FAQ responses
-- Manage user onboarding and training
-- Escalate complex issues to human agents
-- Track customer satisfaction and feedback
-
-**✍️ Content Creation Agents**
-- Generate marketing copy and social media posts
-- Create technical documentation and tutorials
-- Develop educational content and training materials
-- Maintain content calendars and publishing schedules
-
-**📈 Sales & Marketing Agents**
-- Qualify leads and manage CRM systems
-- Schedule meetings and follow up with prospects
-- Create personalized outreach campaigns
-- Generate sales reports and forecasts
-
-**🔬 Research & Development Agents**
-- Conduct academic and scientific research
-- Monitor industry trends and innovations
-- Analyze patents and competitive landscapes
-- Generate research reports and recommendations
-
-**🏭 Industry-Specific Agents**
-- Healthcare: Patient data analysis, appointment scheduling
-- Finance: Risk assessment, compliance monitoring
-- Legal: Document review, case research
-- Education: Curriculum development, student assessment
-
-Each agent can be configured with custom tools, workflows, knowledge bases, and integrations specific to your requirements.
-
-## 🏗️ Platform Architecture
-
-![Architecture Diagram](docs/images/diagram.png)
-
-Carbon BIM consists of four main components that work together to provide a complete AI agent development platform:
-
-### 🔧 Backend API
-Python/FastAPI service that powers the agent platform with REST endpoints, thread management, agent orchestration, and LLM integration with Anthropic, OpenAI, and others via LiteLLM. Includes agent builder tools, workflow management, and extensible tool system.
-
-### 🖥️ Frontend Dashboard
-Next.js/React application providing a comprehensive agent management interface with chat interfaces, agent configuration dashboards, workflow builders, monitoring tools, and deployment controls.
-
-### 🐳 Agent Runtime
-Isolated Docker execution environments for each agent instance featuring browser automation, code interpreter, file system access, tool integration, security sandboxing, and scalable agent deployment.
-
-### 🗄️ Database & Storage
-Supabase-powered data layer handling authentication, user management, agent configurations, conversation history, file storage, workflow state, analytics, and real-time subscriptions for live agent monitoring.
-
-## 🚀 Quick Start
-
-Get your Carbon BIM platform running in minutes with our automated setup wizard:
+- Node.js 20+
+- Python 3.11+
+- pnpm
+- Docker & Docker Compose (for containerized deployment)
 
 ### 1️⃣ Clone the Repository
+
 ```bash
-git clone https://github.com/kortix-ai/suna.git
-cd suna
+git clone https://github.com/khiwniti/suna-bim-agent.git
+cd suna-bim-agent
 ```
 
-### 2️⃣ Run the Setup Wizard
-```bash
-python setup.py
-```
-The wizard will guide you through configuring all required services with progress saving, so you can resume if interrupted.
+### 2️⃣ Install Dependencies
 
-### 3️⃣ Manage the Platform
 ```bash
-python start.py          # Interactive start/stop
-python start.py start    # Start all services
-python start.py stop     # Stop all services
-python start.py status   # Show service status
-python start.py restart  # Restart all services
+# Install Node.js dependencies
+pnpm install
+
+# Install Python dependencies (in backend directory)
+cd backend
+uv sync
 ```
 
-The service manager automatically detects your setup method (Docker or Manual) and manages services accordingly.
+### 3️⃣ Configure Environment
 
-### 📋 Viewing Realtime Logs
+Copy the example environment file and configure:
 
-**Manual Setup (native processes):**
 ```bash
-# View both backend and frontend logs
-tail -f backend.log frontend.log
+# Backend
+cp backend/.env.example backend/.env
 
-# View backend only
-tail -f backend.log
-
-# View frontend only
-tail -f frontend.log
+# Frontend
+cp apps/frontend/.env.example apps/frontend/.env.local
 ```
 
-**Docker Setup:**
-```bash
-# View all service logs
-docker compose logs -f
+### 4️⃣ Start Development Server
 
-# View specific service
-docker compose logs -f backend
-docker compose logs -f frontend
+```bash
+# From root directory
+pnpm dev:frontend
 ```
 
-### 4️⃣ Add More API Keys (Optional)
-After initial setup, you can run `python setup.py` again to:
-- **Add/Update API Keys** - Configure additional LLM providers (Anthropic, OpenAI, Groq, etc.), search APIs (Tavily, Firecrawl, etc.), and other integrations
-- **Clear setup and start fresh** - Remove all configuration and start over
+The frontend will be available at `http://localhost:3000`
 
-That's it! Your Carbon BIM platform will be running with Carbon BIM Super Worker ready to assist you. Ty mate
+### Production Deployment
+
+See [Self-Hosting Guide](./docs/SELF-HOSTING.md) for production deployment options.
+
+## Project Structure
+
+```
+suna-bim-agent/
+├── apps/
+│   ├── frontend/          # Next.js 15 dashboard
+│   └── mobile/            # React Native mobile app
+├── backend/
+│   ├── api.py             # FastAPI entry point
+│   └── core/
+│       ├── agentpress/    # Agent runtime framework
+│       ├── agents/        # Agent APIs
+│       ├── bim/           # BIM-specific endpoints
+│       └── tools/         # Tool implementations
+├── packages/
+│   └── shared/            # Shared TypeScript types
+└── docs/                 # Documentation
+```
+
+## Environment Variables
+
+### Backend (.env)
+
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_KEY` | Supabase anon key |
+| `REDIS_HOST` | Redis host |
+| `REDIS_PORT` | Redis port |
+| `ANTHROPIC_API_KEY` | Anthropic API key for LLM |
+| `OPENAI_API_KEY` | OpenAI API key (optional) |
+
+### Frontend (.env.local)
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `NEXT_PUBLIC_BACKEND_URL` | Backend API URL |
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
 ---
 
 <div align="center">
 
-**Ready to build your first AI agent?** 
-
-[Get Started](./docs/SELF-HOSTING.md) • [Join Discord](https://discord.com/invite/RvFhXUdZ9H) • [Follow on Twitter](https://x.com/carbon-bim)
+**Questions?** [Join Discord](https://discord.com/invite/RvFhXUdZ9H) • [Report Issue](https://github.com/khiwniti/suna-bim-agent/issues)
 
 </div>
