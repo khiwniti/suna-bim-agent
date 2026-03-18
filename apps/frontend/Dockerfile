@@ -34,7 +34,7 @@ RUN corepack enable pnpm && pnpm install --filter ./apps/frontend ${PNPM_LOCKFIL
 
 
 # ---- Builder Stage ----
-FROM base AS builder
+FROM deps AS builder
 WORKDIR /app
 
 # Build-time environment variables for Next.js (NEXT_PUBLIC_* must be available at build time)
@@ -50,9 +50,6 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 ENV NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL}
 
-# Bring the fully-installed workspace into the builder image.
-COPY --from=deps /app /app
-
 # Build the frontend app from its workspace location.
 WORKDIR /app/apps/frontend
 
@@ -61,7 +58,7 @@ WORKDIR /app/apps/frontend
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT=standalone
 
-RUN corepack enable pnpm && pnpm run build
+RUN pnpm run build
 
 
 # ---- Runner Stage ----
