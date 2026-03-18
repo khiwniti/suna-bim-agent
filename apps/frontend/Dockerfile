@@ -58,6 +58,10 @@ WORKDIR /app/apps/frontend
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT=standalone
 
+# Increase Node.js heap size for large builds with heavy dependencies
+# (Three.js, TipTap, Syncfusion, WASM/IFC parsing, etc.)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 RUN pnpm run build
 
 
