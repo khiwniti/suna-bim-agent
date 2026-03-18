@@ -1,27 +1,31 @@
-FROM ghcr.io/astral-sh/uv:python3.11-alpine
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
 ENV ENV_MODE production
 WORKDIR /app
 
-RUN apk add --no-cache curl git \
-    # Dependencies for Python package compilation
-    freetype-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    # Python compilation tools
+    build-essential \
     gcc \
-    linux-headers \
-    musl-dev \
     python3-dev \
-    # Dependencies for WeasyPrint (PDF generation)
-    pango \
-    cairo \
-    gdk-pixbuf \
-    libffi \
+    libffi-dev \
+    # WeasyPrint dependencies (PDF generation)
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libcairo2 \
+    libgdk-pixbuf2.0-dev \
+    libfreetype6-dev \
     fontconfig \
-    ttf-dejavu \
-    ttf-liberation \
-    # Dependencies for IFC/geometry support
+    fonts-dejavu-core \
+    fonts-liberation \
+    # PostgreSQL client (psycopg)
+    libpq-dev \
+    # IFC/geometry support
     gfortran \
-    openblas-dev \
-    libstdc++
+    libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Optional: Install ifcopenshell for full IFC parsing (heavy, skip for minimal builds)
 # RUN uv pip install ifcopenshell numpy networkx
@@ -29,7 +33,7 @@ RUN apk add --no-cache curl git \
 # Install Python dependencies
 COPY pyproject.toml uv.lock ./
 ENV UV_LINK_MODE=copy
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --quiet
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 
 # Copy application code
 COPY . .
