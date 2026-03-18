@@ -1,6 +1,6 @@
 /**
  * Carbon Library - Main Entry Point
- * 
+ *
  * Thai Carbon Footprint Calculation Library
  * Aligned with TGO CFP, TREES, T-VER, and EDGE standards
  */
@@ -54,109 +54,145 @@ export {
   getMaterial,
   getMaterialsByCategory,
   getLowCarbonAlternatives,
+  getLowCarbonAlternative,
   calculateCarbonReduction,
+  calculateMaterialCarbon,
   getThaiSpecificFactors,
   searchMaterials,
 } from './emission-factors';
 
 // Calculator functions
 export {
-  calculateEmbodiedCarbon,
-  calculateCarbonPerArea,
-  calculateScopeBreakdown,
+  calculateItemCarbon,
+  calculateBOQCarbon,
+  calculateEdgeCertification,
   calculateTransportEmissions,
-  calculateProjectTotal,
-  calculateEdgeScore,
+  generateCarbonSummary,
+  formatCarbon,
+  compareWithBenchmarks,
+  calculateEmbodiedCarbon,
   identifyHotspots,
-  generateRecommendations,
-  compareWithBaseline,
-  type CarbonCalculationInput,
-  type CarbonCalculationResult,
-  type TransportCalculationInput,
+  calculateScopeBreakdown,
+  type BOQInput,
+  type EmbodiedCarbonInput,
+  type HotspotInput,
+  type CarbonHotspot,
+  type ScopeBreakdown,
 } from './calculator';
 
 // TREES certification
 export {
-  TREES_CREDIT_REQUIREMENTS,
-  calculateTREESCredits,
-  assessTREESLevel,
+  TREES_LEVELS,
+  TREES_CATEGORIES,
+  TYPICAL_RECYCLED_CONTENT,
+  THAI_MATERIAL_SOURCES,
+  calculateMR4Credit,
+  calculateMR5Credit,
+  estimateMRCreditsFromBOQ,
+  estimateEA1Credit,
+  assessTREESCertification,
   generateTREESReport,
-  type TREESAssessment,
+  analyzeGapToLevel,
+  type RecycledMaterialData,
+  type LocalMaterialData,
 } from './trees-certification';
 
 // T-VER templates
 export {
-  TVER_TEMPLATES,
-  generateTVERProject,
-  calculateTVERCredits,
-  getTVERTemplate,
-  type TVERTemplate,
-  type TVERProjectData,
+  generateTVERPDD,
+  exportPDDAsMarkdown,
+  createTVERProject,
+  generatePreAuditChecklist,
+  type TVERProjectCategory,
+  type TVERMethodology,
+  type TVERStatus,
+  type TVERProjectDesignDocument,
+  type MonitoringParameter,
 } from './tver-templates';
 
-// BOQ Integration
+// BOQ Integration (KKP)
 export {
-  mapBOQToCarbon,
-  analyzeBOQCarbon,
-  getKKPMapping,
-  generateCarbonBOQReport,
-  type BOQMappingResult,
-  type BOQAnalysisConfig,
+  BOQ_WORK_SECTIONS,
+  KKP_MATERIAL_MAPPINGS,
+  parseKKPBOQ,
+  mapKKPItemToCarbon,
+  analyzeBOQReadiness,
+  importBOQFromArray,
+  exportBOQWithCarbon,
+  summarizeBOQBySection,
+  type BOQWorkSection,
+  type KKPBOQItem,
+  type KKPMaterialMapping,
 } from './kkp-boq-integration';
 
 // IFC Material Mapper
 export {
+  mapIFCMaterial,
   mapIFCMaterials,
+  getThaiMaterialsByCategory,
+  searchThaiMaterials as searchThaiMaterialsFromIFC,
   extractMaterialsFromIFC,
-  getIFCMaterialMapping,
-  calculateIFCCarbon,
-  type IFCMaterialMapping,
-  type IFCExtractionResult,
+  type MaterialMapping,
+  type MappingOptions,
+  type MaterialExtractionResult,
 } from './ifc-material-mapper';
 
 // IFC Calculator Integration
 export {
-  integrateIFCWithCalculator,
-  createCarbonAnalysisFromIFC,
-  enrichIFCWithCarbon,
-  type IFCCarbonIntegration,
-  type IFCAnalysisConfig,
+  convertBIMToAnalysisInput,
+  convertSelectedElements,
+  getMaterialSummary,
+  type IFCCalculatorOptions,
+  type IFCConversionResult,
+  type ConversionStatistics,
+  type ElementQuantities,
 } from './ifc-calculator-integration';
 
 // Knowledge Graph
 export {
-  CARBON_STANDARDS_GRAPH,
-  getRelatedStandards,
-  getDataRequirements,
-  getCompliancePath,
-  type CompliancePathResult,
+  STANDARD_NODES,
+  STANDARD_RELATIONSHIPS,
+  createKnowledgeGraph,
+  getComplianceRequirements,
+  mapBOQToCertifications,
 } from './knowledge-graph';
 
 // Analysis Pipeline
 export {
-  runCarbonAnalysis,
-  analyzeMaterialBreakdown,
-  generateCarbonReport,
   validateAnalysisInput,
+  analyzeMaterialBreakdown,
+  analyzeCategoryBreakdown,
+  generateCarbonReport,
   type AnalysisPipelineConfig,
   type AnalysisPipelineResult,
+  type CarbonAnalysisInput,
+  type ElementWithMaterial,
+  type MaterialAssignment,
+  type ValidationResult,
+  type MaterialBreakdownResult,
+  type CategoryBreakdownResult,
 } from './analysis-pipeline';
 
 // Bank Reports
 export {
+  BANK_REQUIREMENTS,
   generateGreenLoanDocument,
-  generateBankReport,
-  getBankRequirements,
-  type BankType,
-  type BankReportConfig,
-  type BankReportResult,
+  generateFullReport,
+  analyzeBankRequirements,
+  type ThaiBank,
 } from './bank-reports';
 
 // Thai Materials (extended)
 export {
   THAI_CONSTRUCTION_MATERIALS,
+  THAI_PRODUCERS,
   getThaiMaterialByCode,
   searchThaiMaterials,
   getMaterialProducers,
+  getMaterialsByRegion,
+  calculateCarbonSavings,
   type ThaiConstructionMaterial,
+  type ThaiMaterialProducer,
+  type LowCarbonAlternative,
+  type ThaiRegion,
 } from './thai-materials';

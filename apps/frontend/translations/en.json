@@ -1499,5 +1499,50 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "contact": "Contact"
+  },
+  "calculator": {
+    "title": "Carbon Calculator",
+    "subtitle": "Estimate your project's carbon footprint",
+    "steps": {
+      "building": "Building Type",
+      "materials": "Materials",
+      "results": "Results"
+    },
+    "building": {
+      "selectTitle": "Select Building Type",
+      "selectSubtitle": "Choose the type of building to get accurate emission factors"
+    },
+    "materials": {
+      "selectTitle": "Select Materials",
+      "selectSubtitle": "Add construction materials to calculate carbon emissions"
+    },
+    "results": {
+      "title": "Carbon Results",
+      "subtitle": "Your building's embodied carbon footprint"
+    },
+    "page": {
+      "headerSubtitle": "Thai Material Emission Database",
+      "backToHome": "← Back to Home",
+      "badge": "Powered by TGO & MTEC Data",
+      "heroTitle": "Calculate Your Building's",
+      "heroHighlight": "Carbon Footprint",
+      "heroDescription": "Get accurate embodied carbon estimates using Thailand-specific emission factors. Compare materials and discover low-carbon alternatives instantly.",
+      "dataSources": "Data Sources",
+      "dataSourcesList": {
+        "tgo": "TGO Thailand",
+        "mtec": "MTEC / NSTDA",
+        "scg": "SCG Environmental Product Declarations",
+        "tgbi": "Thai Green Building Institute"
+      },
+      "methodology": "Methodology",
+      "methodologyList": {
+        "en15978": "EN 15978 Life Cycle Assessment",
+        "cradleToGate": "Cradle-to-gate (A1-A3)",
+        "trees": "TREES Certification aligned"
+      },
+      "needMore": "Need More?",
+      "needMoreDescription": "Full BIM integration with IFC/Revit file analysis for professional carbon reports.",
+      "tryFullPlatform": "Try Full Platform →"
+    }
   }
 }

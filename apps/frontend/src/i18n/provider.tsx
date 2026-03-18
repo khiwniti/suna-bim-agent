@@ -36,6 +36,7 @@ export function useTranslation() {
   const tNav = useTranslations('nav');
   const tFooter = useTranslations('footer');
   const tCommon = useTranslations('common');
+  const tCalculator = useTranslations('calculator');
   const locale = useLocale() as Locale;
 
   // Create a wrapper that handles keys from multiple namespaces
@@ -58,6 +59,10 @@ export function useTranslation() {
         const subKey = key.replace('common.', '');
         // @ts-expect-error - next-intl types are strict about keys
         return tCommon(subKey, params);
+      } else if (key.startsWith('calculator.')) {
+        const subKey = key.replace('calculator.', '');
+        // @ts-expect-error - next-intl types are strict about keys
+        return tCalculator(subKey, params);
       } else {
         // Default to landing namespace for backwards compatibility
         // @ts-expect-error - next-intl types are strict about keys
@@ -89,6 +94,7 @@ export function useI18n(): I18nContextType {
   const tNav = useTranslations('nav');
   const tFooter = useTranslations('footer');
   const tCommon = useTranslations('common');
+  const tCalculator = useTranslations('calculator');
 
   const t = (key: string, params?: Record<string, string | number>) => {
     try {
@@ -108,6 +114,10 @@ export function useI18n(): I18nContextType {
         const subKey = key.replace('common.', '');
         // @ts-expect-error - next-intl types are strict about keys
         return tCommon(subKey, params);
+      } else if (key.startsWith('calculator.')) {
+        const subKey = key.replace('calculator.', '');
+        // @ts-expect-error - next-intl types are strict about keys
+        return tCalculator(subKey, params);
       } else {
         // @ts-expect-error - next-intl types are strict about keys
         return tLanding(key, params);

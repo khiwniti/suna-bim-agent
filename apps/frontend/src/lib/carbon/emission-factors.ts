@@ -747,3 +747,33 @@ export function searchMaterials(query: string): ThaiMaterial[] {
       m.description?.toLowerCase().includes(lowerQuery)
   );
 }
+
+/**
+ * Get a single low-carbon alternative for a material (first available)
+ */
+export function getLowCarbonAlternative(
+  materialId: string
+): ThaiMaterial | undefined {
+  const alternatives = getLowCarbonAlternatives(materialId);
+  if (alternatives.length === 0) return undefined;
+  // Return the first alternative material
+  return getMaterial(alternatives[0].materialId);
+}
+
+/**
+ * Calculate carbon for a material given quantity
+ */
+export function calculateMaterialCarbon(
+  materialId: string,
+  quantity: number
+): { carbon: number; unit: string } | undefined {
+  const material = getMaterial(materialId);
+  if (!material) return undefined;
+
+  // Use the material's emission factor to calculate carbon
+  const carbon = material.emissionFactor * quantity;
+  return {
+    carbon,
+    unit: 'kgCO2e',
+  };
+}
