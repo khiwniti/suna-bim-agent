@@ -71,6 +71,8 @@ jobs:
           echo "${{ secrets.REDIS_HOST }}" | wrangler secret put REDIS_HOST
           echo "${{ secrets.REDIS_PORT }}" | wrangler secret put REDIS_PORT
           echo "${{ secrets.REDIS_PASSWORD }}" | wrangler secret put REDIS_PASSWORD
+          echo "default" | wrangler secret put REDIS_USERNAME
+          echo "true" | wrangler secret put REDIS_SSL
           echo "${{ secrets.E2B_API_KEY }}" | wrangler secret put E2B_API_KEY
           echo "${{ secrets.TAVILY_API_KEY }}" | wrangler secret put TAVILY_API_KEY
           echo "${{ secrets.FIRECRAWL_API_KEY }}" | wrangler secret put FIRECRAWL_API_KEY
