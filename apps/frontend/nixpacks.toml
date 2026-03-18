@@ -1,0 +1,15 @@
+# Nixpacks configuration for Carbon BIM Frontend
+# Fixes pnpm lockfile mismatch error in monorepo builds
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "pnpm"]
+
+[phases.install]
+# Use --no-frozen-lockfile to handle monorepo workspace overrides mismatch
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm run build"]
+
+[start]
+cmd = "pnpm start"
