@@ -40,7 +40,7 @@ services:
       start_period: 10s
 
   # ---------------------------------------------------------------------------
-  # Backend — Python FastAPI (port 8000)
+  # Backend — Python FastAPI (port 40 → 8000)
   # ---------------------------------------------------------------------------
   backend:
     build:
@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "40:8000"
     networks:
       - suna_internal
     dns:
@@ -61,8 +61,8 @@ services:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
       SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
       # ── LLM Providers ─────────────────────────────────────────────────────
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       # ── Sandbox ───────────────────────────────────────────────────────────
       E2B_API_KEY: ${E2B_API_KEY}
       # ── Search / Crawl ────────────────────────────────────────────────────
@@ -84,14 +84,14 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
 
   # ---------------------------------------------------------------------------
-  # Frontend — Next.js (port 3000)
+  # Frontend — Next.js (port 30 → 3000)
   # Build args bake NEXT_PUBLIC_* values into the static bundle at build time.
   # ---------------------------------------------------------------------------
   frontend:
@@ -108,7 +108,7 @@ services:
         PNPM_LOCKFILE_MODE: ${PNPM_LOCKFILE_MODE:---frozen-lockfile}
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "30:3000"
     networks:
       - suna_internal
     depends_on:
