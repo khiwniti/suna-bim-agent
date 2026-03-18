@@ -10,6 +10,7 @@ export type {
   EmissionFactorSource,
   EmissionScope,
   MaterialCategory,
+  ThaiMaterialCategory,
   EmissionUnit,
   EmissionFactor,
   ThaiMaterial,

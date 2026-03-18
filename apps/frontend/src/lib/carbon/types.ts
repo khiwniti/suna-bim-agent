@@ -28,6 +28,8 @@ export type EmissionScope = 'scope1' | 'scope2' | 'scope3';
 /**
  * Material category for construction
  */
+// Alias for Thai-specific context
+export type ThaiMaterialCategory = MaterialCategory;
 export type MaterialCategory =
   | 'concrete'
   | 'steel'

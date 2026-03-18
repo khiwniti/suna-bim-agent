@@ -334,6 +334,10 @@ allowed_origins = [
     "https://dev.kortix.com",
     "https://staging.kortix.com",
     "https://prod-test.kortix.com",
+    "http://20.55.21.69:30",
+    "http://20.55.21.69",
+    "http://carbon-bim.ensimu.space",
+    "https://carbon-bim.ensimu.space",
 ]
 # Allow all *.kortix.com subdomains and Vercel preview deployments
 allow_origin_regex = r"https://([a-z0-9-]+\.)?carbon-bim\.com|https://.*-kortixai\.vercel\.app"

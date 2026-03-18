@@ -27,6 +27,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    mem_limit: 768m
     command: redis-server --save 60 1 --loglevel warning
     volumes:
       - redis_data:/data
@@ -47,6 +48,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    mem_limit: 768m
     ports:
       - "40:8000"
     networks:
@@ -80,9 +82,13 @@ services:
       BIM_MAX_FILE_SIZE_MB: ${BIM_MAX_FILE_SIZE_MB:-500}
       # ── Runtime ───────────────────────────────────────────────────────────
       ENV_MODE: ${ENV_MODE:-production}
+      WORKERS: ${WORKERS:-1}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      MCP_CREDENTIAL_ENCRYPTION_KEY: ${MCP_CREDENTIAL_ENCRYPTION_KEY}
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
       interval: 30s
@@ -107,10 +113,11 @@ services:
         NEXT_PUBLIC_ENV_MODE: ${NEXT_PUBLIC_ENV_MODE:-production}
         PNPM_LOCKFILE_MODE: ${PNPM_LOCKFILE_MODE:---frozen-lockfile}
     restart: unless-stopped
+    mem_limit: 768m
     ports:
       - "30:3000"
     networks:
       - suna_internal
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
