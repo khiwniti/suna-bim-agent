@@ -94,7 +94,7 @@ export function ModelProviderIcon({
   const provider = getModelProvider(modelId);
 
   const iconMap: Record<ModelProvider, string> = {
-    carbon-bim: '/carbon-bim-symbol.svg', // Carbon BIM modes use the Carbon BIM symbol
+    'carbon-bim': '/carbon-bim-symbol.svg', // Carbon BIM modes use the Carbon BIM symbol
     anthropic: '/images/models/Anthropic.svg',
     openai: '/images/models/OAI.svg',
     google: '/images/models/Gemini.svg',
@@ -160,7 +160,7 @@ export function getModelProviderName(modelId: string): string {
   const provider = getModelProvider(modelId);
 
   const nameMap: Record<ModelProvider, string> = {
-    carbon-bim: 'Carbon BIM',
+    'carbon-bim': 'Carbon BIM',
     anthropic: 'Anthropic',
     openai: 'OpenAI',
     google: 'Google',

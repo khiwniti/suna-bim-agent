@@ -447,13 +447,40 @@ export function getThaiMaterialsByCategory(category: ThaiMaterialCategory): Thai
  * Search Thai materials by query
  */
 export function searchThaiMaterials(query: string): ThaiMaterial[] {
-  const normalized = normalizeName(query);
-  return Object.values(THAI_MATERIALS).filter(
-    (m) =>
-      normalizeName(m.nameEn).includes(normalized) ||
-      m.nameTh.includes(query) ||
-      m.tags?.some((tag) => tag.toLowerCase().includes(normalized))
-  );
+	const normalized = normalizeName(query);
+	return Object.values(THAI_MATERIALS).filter(
+		(m) =>
+			normalizeName(m.nameEn).includes(normalized) ||
+			m.nameTh.includes(query) ||
+			m.tags?.some((tag) => tag.toLowerCase().includes(normalized))
+	);
+}
+
+export interface ExtractedMaterial {
+	name: string;
+	estimatedMass?: number;
+	category?: string;
+}
+
+export interface MaterialExtractionResult {
+	materials: ExtractedMaterial[];
+	totalMass?: number;
+}
+
+export function extractMaterialsFromIFC(element: { material?: string; type?: string; name?: string }): MaterialExtractionResult {
+	const materialName = element.material || element.type || element.name || 'Unknown';
+	const mapping = mapIFCMaterial(materialName);
+	
+	const extracted: ExtractedMaterial = {
+		name: mapping.thaiMaterial?.nameEn || materialName,
+		estimatedMass: mapping.estimatedMass || 0,
+		category: mapping.thaiMaterial?.category,
+	};
+	
+	return {
+		materials: [extracted],
+		totalMass: extracted.estimatedMass,
+	};
 }
 
 export default {

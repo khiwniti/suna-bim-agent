@@ -468,19 +468,97 @@ export function compareWithBenchmarks(carbonPerM2: number): {
     industrial: 400,    // Industrial buildings
   };
 
-  const avgBenchmark = 450; // Average Thai building
+const avgBenchmark = 450; // Average Thai building
 
-  const difference = ((avgBenchmark - carbonPerM2) / avgBenchmark) * 100;
+const difference = ((avgBenchmark - carbonPerM2) / avgBenchmark) * 100;
 
-  let rating: 'excellent' | 'good' | 'average' | 'poor';
-  if (difference >= 30) rating = 'excellent';
-  else if (difference >= 15) rating = 'good';
-  else if (difference >= 0) rating = 'average';
-  else rating = 'poor';
+let rating: 'excellent' | 'good' | 'average' | 'poor';
+if (difference >= 30) rating = 'excellent';
+else if (difference >= 15) rating = 'good';
+else if (difference >= 0) rating = 'average';
+else rating = 'poor';
 
-  return {
-    benchmark: `${avgBenchmark} kgCO2e/m² (Thai Average)`,
-    difference,
-    rating,
-  };
+return {
+benchmark: `${avgBenchmark} kgCO2e/m² (Thai Average)`,
+difference,
+rating,
+};
+}
+
+export interface EmbodiedCarbonInput {
+material: string;
+mass: number;
+scope?: 'A1_A3' | 'A4_A5' | 'B1_B5' | 'C1_C4';
+}
+
+export function calculateEmbodiedCarbon(input: EmbodiedCarbonInput): number {
+const { material, mass } = input;
+const lowerMaterial = material.toLowerCase();
+
+let emissionFactor = 0.5;
+
+if (lowerMaterial.includes('concrete') || lowerMaterial.includes('คอนกรีต')) {
+emissionFactor = 0.12;
+} else if (lowerMaterial.includes('steel') || lowerMaterial.includes('เหล็ก')) {
+emissionFactor = 2.85;
+} else if (lowerMaterial.includes('cement') || lowerMaterial.includes('ปูน')) {
+emissionFactor = 0.85;
+} else if (lowerMaterial.includes('brick') || lowerMaterial.includes('อิฐ')) {
+emissionFactor = 0.24;
+} else if (lowerMaterial.includes('glass') || lowerMaterial.includes('กระจก')) {
+emissionFactor = 1.45;
+} else if (lowerMaterial.includes('aluminum') || lowerMaterial.includes('อลูมิเนียม')) {
+emissionFactor = 8.3;
+} else if (lowerMaterial.includes('timber') || lowerMaterial.includes('wood') || lowerMaterial.includes('ไม้')) {
+emissionFactor = 0.45;
+} else if (lowerMaterial.includes('aggregate') || lowerMaterial.includes('sand') || lowerMaterial.includes('หิน') || lowerMaterial.includes('ทราย')) {
+emissionFactor = 0.005;
+}
+
+return mass * emissionFactor;
+}
+
+export interface HotspotInput {
+id: string;
+name: string;
+carbon: number;
+category?: string;
+}
+
+export interface CarbonHotspot {
+id: string;
+name: string;
+carbon: number;
+percentage: number;
+category?: string;
+isHotspot: boolean;
+}
+
+export function identifyHotspots(items: HotspotInput[], threshold: number = 0.05): CarbonHotspot[] {
+if (items.length === 0) return [];
+
+const totalCarbon = items.reduce((sum, item) => sum + item.carbon, 0);
+
+return items
+.map(item => ({
+id: item.id,
+name: item.name,
+carbon: item.carbon,
+percentage: item.carbon / totalCarbon,
+category: item.category,
+isHotspot: item.carbon / totalCarbon >= threshold,
+}))
+.sort((a, b) => b.carbon - a.carbon);
+}
+
+export interface ScopeBreakdown {
+A1_A3: number;
+A4_A5: number;
+}
+
+export function calculateScopeBreakdown(totalCarbon: number): ScopeBreakdown {
+return {
+A1_A3: totalCarbon * 0.85,
+A4_A5: totalCarbon * 0.15,
+};
 }

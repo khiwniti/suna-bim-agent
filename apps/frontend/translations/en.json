@@ -1281,7 +1281,8 @@
         "bilingualSupport": "Thai & English"
       },
       "uploadModel": "Upload IFC/BIM model",
-      "supportedFormats": "IFC, PDF, DWG supported"
+      "supportedFormats": "IFC, PDF, DWG supported",
+      "dropFilesHere": "Drop files here"
     },
     "suggestions": {
       "embodiedCarbon": "Calculate embodied carbon for my building",

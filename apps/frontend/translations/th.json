@@ -612,7 +612,8 @@
         "bilingualSupport": "ไทย & English"
       },
       "uploadModel": "อัปโหลดโมเดล IFC/BIM",
-      "supportedFormats": "รองรับ IFC, PDF, DWG"
+      "supportedFormats": "รองรับ IFC, PDF, DWG",
+      "dropFilesHere": "วางไฟล์ที่นี่"
     },
     "suggestions": {
       "embodiedCarbon": "คำนวณค่าคาร์บอนที่ฝังอยู่ในอาคารของฉัน",
@@ -797,5 +798,17 @@
       "button": "เริ่มวิเคราะห์ฟรีเลย!",
       "demo": "ดูตัวอย่าง"
     }
+  },
+  "nav": {
+    "calculator": "เครื่องคำนวณ",
+    "features": "คุณสมบัติ",
+    "howItWorks": "วิธีการทำงาน",
+    "pricing": "ราคา"
+  },
+  "footer": {
+    "copyright": "© 2024 Carbon BIM. สงวนลิขสิทธิ์",
+    "privacy": "ความเป็นส่วนตัว",
+    "terms": "ข้อกำหนด",
+    "contact": "ติดต่อเรา"
   }
 }

@@ -17,7 +17,7 @@ import type {
   MaterialCarbonBreakdown,
   CarbonRecommendation,
 } from './types';
-import { calculateEmbodiedCarbon, calculateScopeBreakdown, identifyHotspots } from './calculator';
+import { calculateBOQCarbon, calculateTransportEmissions, calculateEmbodiedCarbon, identifyHotspots as calcIdentifyHotspots } from './calculator';
 import { mapIFCMaterials, extractMaterialsFromIFC } from './ifc-material-mapper';
 
 // =============================================================================
@@ -123,6 +123,38 @@ export interface AnalysisPipelineResult {
   // Metadata
   analyzedAt: Date;
   processingTimeMs: number;
+}
+
+// =============================================================================
+// ANALYSIS INPUT TYPES (used by IFC integration)
+// =============================================================================
+
+export interface CarbonAnalysisInput {
+  modelId: string;
+  elements: ElementWithMaterial[];
+  grossFloorArea?: number;
+  buildingVolume?: number;
+}
+
+export interface ElementWithMaterial {
+  id: string;
+  globalId?: string;
+  name?: string;
+  elementType: string;
+  ifcType?: string;
+  levelId?: string;
+  volume?: number;
+  area?: number;
+  mass?: number;
+  materials: MaterialAssignment[];
+}
+
+export interface MaterialAssignment {
+  name: string;
+  fraction: number;
+  thickness?: number;
+  density?: number;
+  materialId: string;
 }
 
 // =============================================================================
@@ -374,7 +406,7 @@ export async function runCarbonAnalysis(
     ? totalEmbodiedCarbon / grossFloorArea
     : 0;
   
-  const hotspots = identifyHotspots(
+  const hotspots = calcIdentifyHotspots(
     model.elements.map(e => ({
       id: e.id,
       name: e.name || e.id,

@@ -595,6 +595,13 @@ export function calculateCarbonSavings(
   
   const currentEmission = material.emissionFactor * quantity;
   const alternativeEmission = alternative.emissionFactor * quantity;
-  
+
   return currentEmission - alternativeEmission;
 }
+
+// =============================================================================
+// ALIAS EXPORTS (for backward compatibility)
+// =============================================================================
+
+export const THAI_MATERIALS = THAI_CONSTRUCTION_MATERIALS;
+export type ThaiMaterial = ThaiConstructionMaterial;
