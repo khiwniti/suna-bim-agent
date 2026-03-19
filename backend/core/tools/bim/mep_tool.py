@@ -1,16 +1,7 @@
 """MEP analysis tool — mechanical, electrical, and plumbing systems."""
-import tempfile
-import os
-
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.utils.logger import logger
-from .base import BIMToolBase
-
-try:
-    import ifcopenshell
-    HAS_IFC = True
-except ImportError:
-    HAS_IFC = False
+from .base import BIMToolBase, HAS_IFC
 
 MEP_SYSTEMS = {
     'plumbing': {
@@ -108,7 +99,7 @@ class MEPAnalysisTool(BIMToolBase):
                 return self.success_response(self._mock_mep_result())
 
             content = await self.load_ifc_content(file_path)
-            ifc_model = self._open_ifc_from_bytes(content)
+            ifc_model = await self.open_ifc_model(content)
 
             systems_summary = {}
             total_elements = 0
@@ -159,18 +150,6 @@ class MEPAnalysisTool(BIMToolBase):
         except Exception as e:
             logger.error(f"analyze_mep error: {e}")
             return self.fail_response(f"MEP analysis failed: {e}")
-
-    # ------------------------------------------------------------------
-
-    def _open_ifc_from_bytes(self, content: bytes):
-        with tempfile.NamedTemporaryFile(suffix=".ifc", delete=False) as tmp:
-            tmp.write(content)
-            tmp_path = tmp.name
-        try:
-            model = ifcopenshell.open(tmp_path)
-        finally:
-            os.unlink(tmp_path)
-        return model
 
     def _mock_mep_result(self) -> dict:
         return {

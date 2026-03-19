@@ -1,17 +1,7 @@
 """Carbon calculation tool — embodied carbon footprint from IFC models."""
-import tempfile
-import os
-from typing import Optional
-
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.utils.logger import logger
-from .base import BIMToolBase
-
-try:
-    import ifcopenshell
-    HAS_IFC = True
-except ImportError:
-    HAS_IFC = False
+from .base import BIMToolBase, HAS_IFC
 
 # kgCO2e per m³ (volumetric coefficients for structural materials)
 CARBON_COEFFICIENTS = {
@@ -23,7 +13,25 @@ CARBON_COEFFICIENTS = {
     'default': 300,
 }
 
-# Map IFC element types to material categories and typical volumes (m³)
+# Material name keyword → CARBON_COEFFICIENTS key (case-insensitive substring match)
+MATERIAL_KEYWORD_MAP = [
+    ('concrete', 'concrete'),
+    ('reinforced', 'concrete'),
+    ('rc ', 'concrete'),
+    ('steel', 'steel'),
+    ('metal', 'steel'),
+    ('iron', 'steel'),
+    ('timber', 'timber'),
+    ('wood', 'timber'),
+    ('lumber', 'timber'),
+    ('glulam', 'timber'),
+    ('glass', 'glass'),
+    ('glazing', 'glass'),
+    ('alumin', 'aluminum'),
+    ('alum', 'aluminum'),
+]
+
+# Fallback: IFC element type → (material key, default volume m³) when no IfcMaterial is assigned
 ELEMENT_MATERIAL_MAP = {
     'IfcWall': ('concrete', 0.8),
     'IfcSlab': ('concrete', 1.5),
@@ -45,6 +53,15 @@ def _co2_color(co2: float) -> str:
     if co2 < 500:
         return ELEMENT_COLORS['medium']
     return ELEMENT_COLORS['high']
+
+
+def _material_to_coefficient(material_name: str) -> float:
+    """Map a material name string to a carbon coefficient via keyword matching."""
+    lower = material_name.lower()
+    for keyword, key in MATERIAL_KEYWORD_MAP:
+        if keyword in lower:
+            return CARBON_COEFFICIENTS[key]
+    return CARBON_COEFFICIENTS['default']
 
 
 @tool_metadata(
@@ -104,18 +121,25 @@ class CarbonCalculationTool(BIMToolBase):
                 return self.success_response(self._mock_carbon_result())
 
             content = await self.load_ifc_content(file_path)
-            ifc_model = self._open_ifc_from_bytes(content)
+            ifc_model = await self.open_ifc_model(content)
 
             category_totals: dict[str, float] = {}
             element_highlights = []
             total_co2 = 0.0
 
-            for ifc_type, (material, default_vol) in ELEMENT_MATERIAL_MAP.items():
-                coefficient = CARBON_COEFFICIENTS.get(material, CARBON_COEFFICIENTS['default'])
+            for ifc_type, (default_material, default_vol) in ELEMENT_MATERIAL_MAP.items():
                 category_co2 = 0.0
 
                 for element in ifc_model.by_type(ifc_type):
                     volume = self._get_element_volume(element) or default_vol
+
+                    # Prefer actual IfcMaterial assignment over the hardcoded default
+                    material_name = self.get_element_material(element)
+                    if material_name:
+                        coefficient = _material_to_coefficient(material_name)
+                    else:
+                        coefficient = CARBON_COEFFICIENTS.get(default_material, CARBON_COEFFICIENTS['default'])
+
                     co2 = volume * coefficient
                     category_co2 += co2
 
@@ -123,6 +147,7 @@ class CarbonCalculationTool(BIMToolBase):
                         element_highlights.append({
                             'express_id': element.id(),
                             'carbon': round(co2, 2),
+                            'material': material_name or default_material,
                             'color': _co2_color(co2),
                         })
 
@@ -156,18 +181,6 @@ class CarbonCalculationTool(BIMToolBase):
             logger.error(f"calculate_carbon error: {e}")
             return self.fail_response(f"Carbon calculation failed: {e}")
 
-    # ------------------------------------------------------------------
-
-    def _open_ifc_from_bytes(self, content: bytes):
-        with tempfile.NamedTemporaryFile(suffix=".ifc", delete=False) as tmp:
-            tmp.write(content)
-            tmp_path = tmp.name
-        try:
-            model = ifcopenshell.open(tmp_path)
-        finally:
-            os.unlink(tmp_path)
-        return model
-
     def _mock_carbon_result(self) -> dict:
         return {
             'note': 'ifcopenshell not installed — returning mock data',
@@ -181,7 +194,7 @@ class CarbonCalculationTool(BIMToolBase):
                 {'category': 'Beams',   'value': 1500.5, 'percentage': 12.0},
             ],
             'element_highlights': [
-                {'express_id': 101, 'carbon': 500.0, 'color': '#ef4444'},
-                {'express_id': 102, 'carbon': 80.0,  'color': '#22c55e'},
+                {'express_id': 101, 'carbon': 500.0, 'material': 'concrete', 'color': '#ef4444'},
+                {'express_id': 102, 'carbon': 80.0,  'material': 'timber',   'color': '#22c55e'},
             ],
         }

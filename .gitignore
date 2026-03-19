@@ -248,3 +248,5 @@ apps/mobile/app-example
 dump.rdb
 # Local git worktrees
 .worktrees/
+.opencode/
+.env.dokploy

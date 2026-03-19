@@ -89,6 +89,7 @@ def get_tools_by_category() -> Dict[str, List[Tuple[str, str, str]]]:
         'core': CORE_TOOLS,
         'sandbox': SANDBOX_TOOLS,
         'search': SEARCH_TOOLS,
+        'bim': BIM_TOOLS,
         'utility': UTILITY_TOOLS,
         'agent_builder': AGENT_BUILDER_TOOLS,
     }

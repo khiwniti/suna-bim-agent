@@ -27,8 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Optional: Install ifcopenshell for full IFC parsing (heavy, skip for minimal builds)
-# RUN uv pip install ifcopenshell numpy networkx
+# Install ifcopenshell and BIM analysis libraries
+RUN uv pip install ifcopenshell numpy networkx
 
 # Install Python dependencies
 COPY pyproject.toml uv.lock ./

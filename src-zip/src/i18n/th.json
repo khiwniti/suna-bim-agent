@@ -1,0 +1,2010 @@
+{
+  "common": {
+    "appName": "BIM Carbon",
+    "tagline": "AI สำหรับการก่อสร้างอย่างยั่งยืน",
+    "loading": "กำลังโหลด...",
+    "error": "มีบางอย่างผิดพลาด",
+    "errorDescription": "เกิดข้อผิดพลาดขณะโหลดหน้านี้",
+    "errorId": "รหัสข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "retry": "ลองอีกครั้ง",
+    "cancel": "ยกเลิก",
+    "save": "บันทึก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "create": "สร้าง",
+    "back": "กลับ",
+    "backToDashboard": "กลับไปแดชบอร์ด",
+    "backToProjects": "กลับไปโครงการ",
+    "next": "ถัดไป",
+    "submit": "ส่ง",
+    "search": "ค้นหา",
+    "close": "ปิด",
+    "or": "หรือ",
+    "login": "เข้าสู่ระบบ",
+    "signup": "สมัครสมาชิก",
+    "getStarted": "เริ่มกันเลย",
+    "tryFree": "ลองใช้ฟรี",
+    "learnMore": "ดูรายละเอียดเพิ่มเติม",
+    "contactUs": "ติดต่อเรา",
+    "viewPricing": "ดูราคา",
+    "language": "ภาษา",
+    "theme": "ธีม",
+    "dark": "มืด",
+    "light": "สว่าง",
+    "download": "ดาวน์โหลด",
+    "upload": "อัปโหลด",
+    "projectNotFound": "ไม่พบโครงการ",
+    "failedToLoadProject": "ไม่สามารถโหลดโครงการได้",
+    "goHome": "กลับหน้าแรก",
+    "createAccount": "สร้างบัญชี",
+    "signInRequired": "ต้องเข้าสู่ระบบ",
+    "authRequired": "ต้องยืนยันตัวตน",
+    "signInToAccess": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงฟีเจอร์นี้",
+    "browseFiles": "เลือกไฟล์",
+    "openInViewer": "เปิดในตัวแสดงผล",
+    "processingFailed": "การประมวลผลล้มเหลว",
+    "tryAgain": "ลองอีกครั้ง",
+    "more": "เพิ่มเติม",
+    "copy": "คัดลอก",
+    "copied": "คัดลอกแล้ว!",
+    "copyToClipboard": "คัดลอกไปยังคลิปบอร์ด",
+    "hide": "ซ่อน",
+    "show": "แสดง",
+    "remove": "ลบ",
+    "dismiss": "ปิด",
+    "all": "ทั้งหมด"
+  },
+  "messageActions": {
+    "regenerate": "สร้างใหม่",
+    "goodResponse": "ตอบดี",
+    "badResponse": "ตอบไม่ดี",
+    "share": "แชร์",
+    "report": "รายงาน",
+    "thanks": "ขอบคุณ!"
+  },
+  "stopButton": {
+    "stopGenerating": "หยุดสร้าง"
+  },
+  "webSearch": {
+    "searchingTheWeb": "กำลังค้นหาเว็บ...",
+    "resultsFound": "พบ {{count}} ผลลัพธ์",
+    "noResultsFound": "ไม่พบผลลัพธ์",
+    "noResultsForQuery": "ไม่พบผลลัพธ์สำหรับคำค้นหานี้"
+  },
+  "reportExport": {
+    "pdfReport": "รายงาน PDF",
+    "pdfDescription": "รายงานแบบมืออาชีพพร้อมตราสัญลักษณ์ อบก.",
+    "excelSpreadsheet": "Excel",
+    "excelDescription": "ตารางข้อมูลและแผ่นงานวิเคราะห์",
+    "csvData": "ข้อมูล CSV",
+    "csvDescription": "ข้อมูลดิบสำหรับวิเคราะห์เพิ่มเติม",
+    "markdown": "Markdown",
+    "markdownDescription": "รายงานรูปแบบข้อความ",
+    "exportReport": "ส่งออกรายงาน"
+  },
+  "navigationControls": {
+    "homeView": "มุมมองหลัก",
+    "viewPresets": "พรีเซ็ตมุมมอง"
+  },
+  "sectionTool": {
+    "clearAllSections": "ล้างระนาบตัดทั้งหมด",
+    "clickAxisInstruction": "คลิกปุ่มแกนด้านบนเพื่อสร้างระนาบตัด",
+    "position": "ตำแหน่ง: {{value}}m",
+    "axis": {
+      "x": "X (แดง)",
+      "y": "Y (เขียว)",
+      "z": "Z (น้ำเงิน)"
+    }
+  },
+  "spatialTree": {
+    "isolate": "แยกดู",
+    "copyId": "คัดลอก ID",
+    "zoomTo": "ซูมไป"
+  },
+  "materialSelector": {
+    "materialsCount": "วัสดุ ({{count}})",
+    "addMaterial": "เพิ่มวัสดุ",
+    "noMaterialsSelected": "ไม่ได้เลือกวัสดุ",
+    "clickToGetStarted": "คลิก \"เพิ่มวัสดุ\" เพื่อเริ่มต้น",
+    "searchMaterials": "ค้นหาวัสดุ...",
+    "noMaterialsFound": "ไม่พบวัสดุ",
+    "lowCarbon": "คาร์บอนต่ำ",
+    "moreMaterials": "+{{count}} วัสดุเพิ่มเติม",
+    "quantityNote": "ปริมาณต่อ m² ของพื้นที่ชั้น การปล่อยก๊าซรวมคำนวณโดยคูณด้วยพื้นที่อาคารทั้งหมด ({{area}} m²)",
+    "categories": {
+      "concrete": "คอนกรีต",
+      "steel": "เหล็ก",
+      "masonry": "ก่ออิฐ",
+      "timber": "ไม้",
+      "glass": "กระจก",
+      "insulation": "ฉนวน",
+      "finishes": "วัสดุตกแต่ง",
+      "mep": "งานระบบ",
+      "roofing": "หลังคา",
+      "waterproofing": "กันน้ำ"
+    }
+  },
+  "errorBoundaries": {
+    "viewerError": "ข้อผิดพลาด 3D Viewer",
+    "viewerErrorDescription": "BIM viewer พบปัญหา อาจเกิดจากความเข้ากันได้ของ WebGL การโหลดโมเดล หรือข้อผิดพลาดในการเรนเดอร์",
+    "reloadViewer": "โหลด Viewer ใหม่",
+    "goToDashboard": "ไปยังแดชบอร์ด",
+    "technicalDetails": "รายละเอียดทางเทคนิค",
+    "copyErrorDetails": "คัดลอกรายละเอียดข้อผิดพลาด",
+    "calculationError": "ข้อผิดพลาดในการคำนวณ",
+    "calculationErrorDescription": "เกิดข้อผิดพลาดระหว่างการวิเคราะห์คาร์บอน ข้อมูลที่คุณป้อนได้รับการเก็บรักษาไว้",
+    "retryAnalysis": "ลองวิเคราะห์อีกครั้ง",
+    "chatConnectionLost": "การเชื่อมต่อแชทหลุด",
+    "chatConnectionDescription": "ไม่สามารถเชื่อมต่อกับผู้ช่วย AI ได้ โปรดตรวจสอบการเชื่อมต่อและลองอีกครั้ง",
+    "reconnect": "เชื่อมต่อใหม่",
+    "featureUnavailable": "{{feature}} ไม่สามารถใช้งานได้ชั่วคราว"
+  },
+  "errorPage": {
+    "notFound": {
+      "title": "ไม่พบหน้าที่ค้นหา",
+      "description": "หน้าที่คุณกำลังค้นหาไม่มีอยู่หรือถูกย้ายไปแล้ว"
+    },
+    "globalError": {
+      "title": "มีบางอย่างผิดพลาด!",
+      "description": "เกิดข้อผิดพลาดที่ไม่คาดคิด เราได้รับแจ้งแล้วและกำลังดำเนินการแก้ไข"
+    }
+  },
+  "mobileNav": {
+    "home": "หน้าแรก",
+    "calculator": "เครื่องคำนวณ",
+    "boqAnalyzer": "วิเคราะห์ BOQ",
+    "pricing": "ราคา",
+    "solutions": "โซลูชัน",
+    "forContractors": "สำหรับผู้รับเหมา",
+    "forArchitects": "สำหรับสถาปนิก",
+    "forDevelopers": "สำหรับผู้พัฒนา",
+    "forConsultants": "สำหรับที่ปรึกษา",
+    "blog": "บล็อก",
+    "boq": "BOQ",
+    "account": "บัญชี"
+  },
+  "layout": {
+    "bimAgent": "BIM Agent",
+    "buildingIntelligence": "แพลตฟอร์มอัจฉริยะด้านอาคาร",
+    "demoBuilding": "อาคารตัวอย่าง",
+    "chat": "แชท",
+    "analytics": "การวิเคราะห์",
+    "aiChat": "AI แชท",
+    "analyticsDashboard": "แดชบอร์ดการวิเคราะห์",
+    "analyticsDescription": "ตัวชี้วัดความยั่งยืน การวิเคราะห์พลังงาน และข้อมูลประสิทธิภาพอาคารจะแสดงที่นี่",
+    "backToHome": "กลับหน้าแรก",
+    "modelTree": "โครงสร้างโมเดล",
+    "properties": "คุณสมบัติ",
+    "issues": "ปัญหา",
+    "settings": "การตั้งค่า",
+    "uploadFloorPlan": "อัปโหลดผังอาคาร"
+  },
+  "floorPlanUpload": {
+    "title": "อัปโหลดผังอาคาร",
+    "subtitle": "แปลงผังอาคาร 2D เป็นโมเดล 3D แบบอินเทอร์แอคทีฟ",
+    "signInRequired": "ต้องเข้าสู่ระบบ",
+    "signInMessage": "กรุณาเข้าสู่ระบบเพื่ออัปโหลดและวิเคราะห์ผังอาคาร",
+    "dropHere": "วางไฟล์ของคุณที่นี่",
+    "dragAndDrop": "ลากและวางผังอาคารของคุณ",
+    "clickToBrowse": "หรือคลิกเพื่อเลือกไฟล์ (PNG, JPG, WebP - สูงสุด 20MB)",
+    "uploading": "กำลังอัปโหลดผังอาคาร...",
+    "analyzing": "กำลังวิเคราะห์ผังอาคารด้วย AI...",
+    "generating": "กำลังสร้างโมเดล 3D...",
+    "ready": "พร้อมแล้ว!",
+    "processingComplete": "การประมวลผลเสร็จสมบูรณ์!",
+    "stages": {
+      "upload": "อัปโหลดผังอาคาร",
+      "aiAnalysis": "การวิเคราะห์และตรวจจับ AI",
+      "generate3D": "สร้างโมเดล 3D",
+      "readyForAnalysis": "พร้อมสำหรับการวิเคราะห์"
+    },
+    "stats": {
+      "elements": "องค์ประกอบ",
+      "floors": "ชั้น",
+      "area": "พื้นที่",
+      "rating": "เรตติ้ง"
+    }
+  },
+  "analytics": {
+    "title": "การวิเคราะห์ความยั่งยืน",
+    "rating": "เรตติ้ง",
+    "noData": "ไม่มีข้อมูลการวิเคราะห์",
+    "noDataDescription": "เริ่มสนทนากับ BIM Agent เพื่อวิเคราะห์ตัวชี้วัดความยั่งยืน ประสิทธิภาพพลังงาน และคาร์บอนฟุตพริ้นท์ของอาคาร",
+    "tryAsking": "ลองถาม:",
+    "suggestions": {
+      "carbonFootprint": "วิเคราะห์คาร์บอนฟุตพริ้นท์",
+      "energyEfficiency": "รายงานประสิทธิภาพพลังงาน",
+      "leedCheck": "ตรวจสอบการรับรอง LEED"
+    },
+    "poweredByAI": "ขับเคลื่อนด้วยการวิเคราะห์ AI",
+    "metrics": {
+      "embodiedCarbon": "คาร์บอนสะสม",
+      "energyIntensity": "ความเข้มข้นพลังงาน",
+      "buildingFloors": "จำนวนชั้น",
+      "totalElements": "องค์ประกอบทั้งหมด",
+      "avgFloorArea": "เฉลี่ย"
+    },
+    "spatialAnalysis": "การวิเคราะห์เชิงพื้นที่",
+    "totalVolume": "ปริมาตรรวม",
+    "netToGross": "พื้นที่สุทธิ/รวม",
+    "circulation": "พื้นที่สัญจร",
+    "avgFloorHeight": "ความสูงชั้นเฉลี่ย",
+    "carbonBreakdown": "รายละเอียดคาร์บอนตามวัสดุ",
+    "elementDistribution": "การกระจายองค์ประกอบ",
+    "egressCompliance": "การปฏิบัติตามทางออก",
+    "occupantLoad": "จำนวนผู้ใช้อาคาร",
+    "exits": "ทางออก",
+    "requiredExits": "ที่ต้องมี",
+    "maxTravel": "ระยะทางสูงสุด",
+    "status": "สถานะ",
+    "compliant": "ผ่านเกณฑ์",
+    "issuesFound": "พบปัญหา",
+    "recommendations": "คำแนะนำในการปรับปรุง",
+    "certifications": "เส้นทางการรับรอง"
+  },
+  "issues": {
+    "title": "ปัญหา",
+    "newIssue": "ปัญหาใหม่",
+    "noModelLoaded": "ไม่ได้โหลดโมเดล",
+    "loadModelToView": "โหลดโมเดล BIM เพื่อดูและสร้างปัญหา",
+    "noIssuesFound": "ไม่พบปัญหา",
+    "createFirstIssue": "สร้างปัญหาแรกเพื่อเริ่มติดตาม",
+    "noFilteredIssues": "ไม่มีปัญหา {{filter}}",
+    "filters": {
+      "all": "ทั้งหมด",
+      "open": "เปิด",
+      "inProgress": "กำลังดำเนินการ",
+      "resolved": "แก้ไขแล้ว",
+      "closed": "ปิดแล้ว"
+    },
+    "priority": {
+      "low": "ต่ำ",
+      "normal": "ปกติ",
+      "high": "สูง",
+      "critical": "วิกฤต"
+    },
+    "actions": {
+      "startProgress": "เริ่มดำเนินการ",
+      "markResolved": "ทำเครื่องหมายว่าแก้ไขแล้ว",
+      "close": "ปิด"
+    },
+    "createModal": {
+      "title": "สร้างปัญหาใหม่",
+      "titleLabel": "หัวข้อ",
+      "titlePlaceholder": "รายละเอียดสั้นๆ ของปัญหา",
+      "descriptionLabel": "รายละเอียด",
+      "descriptionPlaceholder": "รายละเอียดเพิ่มเติม...",
+      "typeLabel": "ประเภท",
+      "priorityLabel": "ความสำคัญ",
+      "types": {
+        "issue": "ปัญหา",
+        "clash": "การขัดกัน",
+        "design": "การออกแบบ",
+        "compliance": "การปฏิบัติตาม",
+        "rfi": "RFI"
+      },
+      "createButton": "สร้างปัญหา",
+      "titleRequired": "ต้องระบุหัวข้อ"
+    },
+    "meta": {
+      "elements": "องค์ประกอบ",
+      "comments": "ความคิดเห็น",
+      "by": "โดย"
+    }
+  },
+  "blog": {
+    "backToHome": "กลับหน้าแรก",
+    "title": "บล็อก CarbonBIM",
+    "subtitle": "ข้อมูลเชิงลึกเกี่ยวกับการก่อสร้างที่ยั่งยืน การคำนวณคาร์บอน และแนวปฏิบัติอาคารสีเขียว",
+    "backToBlog": "กลับไปบล็อก",
+    "share": "แชร์",
+    "postNotFound": "ไม่พบบทความ"
+  },
+  "errorBoundary": {
+    "title": "มีบางอย่างผิดพลาด",
+    "defaultMessage": "เกิดข้อผิดพลาดที่ไม่คาดคิด",
+    "tryAgain": "ลองอีกครั้ง"
+  },
+  "chat": {
+    "bimAssistant": "ผู้ช่วย BIM",
+    "askAboutModel": "ถามเกี่ยวกับโมเดล BIM ของคุณ...",
+    "attachFile": "แนบไฟล์",
+    "stopListening": "หยุดฟัง",
+    "startVoice": "เริ่มป้อนเสียง",
+    "send": "ส่ง",
+    "thinking": "กำลังคิด",
+    "agentThinking": "เอเจนต์กำลังคิด",
+    "showWorkflow": "แสดงเวิร์กโฟลว์",
+    "hideWorkflow": "ซ่อนเวิร์กโฟลว์",
+    "noMessages": "ยังไม่มีข้อความ",
+    "startConversation": "เริ่มการสนทนาเพื่อวิเคราะห์โมเดล BIM ของคุณ",
+    "bimAgent": "BIM Agent",
+    "aiPoweredBuildingIntelligence": "ระบบอัจฉริยะอาคารที่ขับเคลื่อนด้วย AI",
+    "signInToStart": "เข้าสู่ระบบเพื่อเริ่มต้น",
+    "elementsSelected": "{{count}} รายการที่เลือก",
+    "welcomeToBimAgent": "ยินดีต้อนรับสู่ BIM Agent",
+    "welcomeDescription": "ฉันสามารถช่วยคุณวิเคราะห์ข้อมูลอาคาร คำนวณตัวชี้วัดความยั่งยืน และสร้างใบเสนอราคา",
+    "suggestionFloorArea": "พื้นที่ทั้งหมดเท่าไหร่?",
+    "suggestionCarbon": "วิเคราะห์รอยเท้าคาร์บอน",
+    "suggestionEnergy": "แสดงโอกาสประหยัดพลังงาน",
+    "agentActivity": "กิจกรรมของเอเจนต์",
+    "agentWorkflow": "เวิร์กโฟลว์ของเอเจนต์",
+    "bimIntelligenceAssistant": "ผู้ช่วย BIM อัจฉริยะ",
+    "welcomePrompt": "ถามฉันเกี่ยวกับโมเดลอาคาร การวิเคราะห์คาร์บอน การเพิ่มประสิทธิภาพต้นทุน หรือข้อมูลจำเพาะวัสดุ",
+    "quickSuggestions": {
+      "carbonAnalysis": "การวิเคราะห์คาร์บอน",
+      "costBreakdown": "รายละเอียดต้นทุน",
+      "materialSpecs": "ข้อมูลวัสดุ"
+    }
+  },
+  "viewer": {
+    "spatialStructure": "โครงสร้างเชิงพื้นที่",
+    "modelTree": "โครงสร้างโมเดล",
+    "properties": "คุณสมบัติ",
+    "noProperties": "ไม่มีคุณสมบัติที่จะแสดง",
+    "selectElement": "เลือกองค์ประกอบเพื่อดูคุณสมบัติ",
+    "sectionPlanes": "ระนาบตัด",
+    "solarSimulator": "จำลองแสงอาทิตย์",
+    "error": "ข้อผิดพลาด",
+    "searchPlaceholder": "ค้นหาองค์ประกอบ...",
+    "searchHierarchy": "ค้นหาลำดับชั้น...",
+    "searchElements": "ค้นหาองค์ประกอบ...",
+    "expandAll": "ขยายทั้งหมด",
+    "collapseAll": "ยุบทั้งหมด",
+    "noModelLoaded": "ยังไม่ได้โหลดโมเดล",
+    "loadIfcToSeeTree": "โหลดไฟล์ IFC เพื่อดูโครงสร้างโมเดล",
+    "noSpatialHierarchy": "ไม่มีโครงสร้างเชิงพื้นที่",
+    "loadBimModelToSeeStructure": "โหลดโมเดล BIM เพื่อดูโครงสร้าง",
+    "spatial": "เชิงพื้นที่",
+    "types": "ประเภท",
+    "materials": "วัสดุ",
+    "identity": "ข้อมูลทั่วไป",
+    "name": "ชื่อ",
+    "type": "ประเภท",
+    "location": "ตำแหน่ง",
+    "level": "ชั้น",
+    "dimensions": "ขนาด",
+    "area": "พื้นที่",
+    "volume": "ปริมาตร",
+    "length": "ความยาว",
+    "width": "ความกว้าง",
+    "height": "ความสูง",
+    "carbonAnalysis": "การวิเคราะห์คาร์บอน",
+    "material": "วัสดุ",
+    "carbonFactor": "ค่าคาร์บอน",
+    "embodiedCarbon": "คาร์บอนฝังตัว",
+    "addToCarbonReport": "เพิ่มลงในรายงานคาร์บอน",
+    "date": "วันที่",
+    "time": "เวลา",
+    "stop": "หยุด",
+    "animateDay": "จำลองทั้งวัน",
+    "azimuth": "มุมราบ",
+    "elevation": "มุมเงย",
+    "sunBelowHorizon": "ดวงอาทิตย์อยู่ใต้ขอบฟ้า",
+    "distanceMode": "โหมดวัดระยะ",
+    "angleMode": "โหมดวัดมุม",
+    "areaMode": "โหมดวัดพื้นที่",
+    "pointMode": "โหมดจุด",
+    "points": "จุด",
+    "measurement": "การวัด",
+    "clearAll": "ล้างทั้งหมด",
+    "measurementInstructions": "คลิกบนโมเดลเพื่อวางจุดวัด",
+    "bimInspector": "BIM Inspector",
+    "selectElementToInspect": "เลือกองค์ประกอบในวิวพอร์ตเพื่อดูคุณสมบัติ",
+    "elementsSelected": "องค์ประกอบที่เลือก",
+    "byType": "ตามประเภท",
+    "totals": "รวม",
+    "totalVolume": "ปริมาตรรวม",
+    "totalArea": "พื้นที่รวม",
+    "clickToInspect": "คลิกองค์ประกอบในวิวพอร์ตเพื่อตรวจสอบ",
+    "category": "หมวดหมู่",
+    "ifcCategory": "หมวดหมู่ IFC",
+    "predefinedType": "ประเภทที่กำหนด",
+    "source": "แหล่งที่มา",
+    "loading": "กำลังโหลด...",
+    "fetchingFile": "กำลังดึงไฟล์จากเซิร์ฟเวอร์",
+    "processingIFC": "กำลังประมวลผล IFC geometry",
+    "buildingScene": "กำลังสร้าง scene graph",
+    "readyToView": "พร้อมดู",
+    "uploadBIMModel": "อัปโหลดโมเดล BIM",
+    "supportedFormats": "รองรับไฟล์ IFC หรือ FRAG"
+  },
+  "elementList": {
+    "title": "รายการองค์ประกอบ",
+    "groupedBy": "จัดกลุ่มตาม {{groupBy}}",
+    "allElements": "องค์ประกอบทั้งหมด",
+    "totalElements": "องค์ประกอบทั้งหมด",
+    "itemsCount": "{{count}} รายการ",
+    "moreElements": "+{{count}} องค์ประกอบเพิ่มเติม",
+    "showing": "แสดง {{shown}} จาก {{total}} องค์ประกอบ",
+    "elementsCount": "{{count}} องค์ประกอบ"
+  },
+  "boqAnalyzer": {
+    "title": "AI BOQ Analyzer",
+    "description": "ดึงปริมาณจากแบบ 2D และเอกสาร BOQ",
+    "dropFile": "วางไฟล์ที่นี่",
+    "dragDrop": "ลากและวางเอกสาร BOQ ของคุณ",
+    "supportedFormats": "รองรับ PDF, PNG, JPG (สูงสุด 50MB, 10 หน้า)",
+    "converting": "กำลังแปลงเอกสาร...",
+    "analyzing": "กำลังวิเคราะห์ด้วย AI...",
+    "analysisComplete": "วิเคราะห์เสร็จสิ้น",
+    "foundItems": "พบ {{items}} รายการใน {{pages}} หน้า",
+    "totalCarbon": "คาร์บอนรวม",
+    "matchedItems": "รายการที่จับคู่ได้",
+    "categories": "หมวดหมู่",
+    "categoryBreakdown": "รายละเอียดตามหมวดหมู่",
+    "item": "รายการ",
+    "itemDescription": "คำอธิบาย",
+    "qty": "จำนวน",
+    "co2e": "CO2e",
+    "analyzeAnother": "วิเคราะห์เอกสารอื่น",
+    "exportResults": "ส่งออกผลลัพธ์"
+  },
+  "bimToolbar": {
+    "view": "มุมมอง",
+    "resetView": "รีเซ็ตมุมมอง",
+    "fitToView": "พอดีกับมุมมอง",
+    "showAll": "แสดงทั้งหมด",
+    "hideGrid": "ซ่อนตาราง",
+    "showGrid": "แสดงตาราง",
+    "select": "เลือก",
+    "orbit": "หมุน",
+    "measure": "วัด",
+    "distance": "ระยะทาง",
+    "angle": "มุม",
+    "area": "พื้นที่",
+    "sectionPlanes": "ระนาบตัด",
+    "solarSimulation": "จำลองแสงอาทิตย์",
+    "inspector": "ตรวจสอบ",
+    "views": {
+      "isometric": "Isometric",
+      "top": "บน",
+      "front": "ด้านหน้า",
+      "back": "ด้านหลัง",
+      "left": "ซ้าย",
+      "right": "ขวา"
+    }
+  },
+  "generativeUi": {
+    "carbonFootprint": "รอยเท้าคาร์บอน",
+    "buildingAnalysis": "การวิเคราะห์อาคาร",
+    "breakdown": "รายละเอียด",
+    "carbonHotspots": "จุดที่มีคาร์บอนสูง",
+    "recommendations": "คำแนะนำ",
+    "clashDetection": "การตรวจจับการชนกัน",
+    "issuesFound": "พบปัญหา",
+    "noClashesDetected": "ไม่พบการชนกัน",
+    "totalClashes": "การชนกันทั้งหมด",
+    "topIssues": "ปัญหาหลัก",
+    "shown": "แสดง",
+    "clashesFound": "พบการชนกัน {{count}} รายการ",
+    "noClashes": "ไม่มีการชนกัน",
+    "codeCompliance": "การปฏิบัติตามข้อกำหนด",
+    "allRequirementsMet": "ผ่านข้อกำหนดทั้งหมด",
+    "actionRequired": "ต้องดำเนินการ",
+    "complianceScore": "คะแนนการปฏิบัติตาม",
+    "progress": "ความคืบหน้า",
+    "checksPassed": "รายการที่ผ่าน",
+    "passed": "ผ่าน",
+    "warnings": "คำเตือน",
+    "failed": "ไม่ผ่าน",
+    "complianceChecks": "การตรวจสอบการปฏิบัติตาม",
+    "compliant": "ปฏิบัติตาม ({{score}}%)",
+    "nonCompliant": "ไม่ปฏิบัติตาม ({{score}}%)",
+    "billOfQuantities": "บัญชีแสดงปริมาณ",
+    "itemsAcross": "รายการใน",
+    "categories": "หมวดหมู่",
+    "totalEstimatedCost": "ค่าใช้จ่ายโดยประมาณทั้งหมด",
+    "description": "รายละเอียด",
+    "quantity": "ปริมาณ",
+    "unitCost": "ราคาต่อหน่วย",
+    "total": "รวม",
+    "clickToExpand": "คลิกหมวดหมู่เพื่อขยายรายละเอียด",
+    "exportBOQ": "ส่งออก BOQ",
+    "openPanel": "เปิดแผง →"
+  },
+  "workspacePanel": {
+    "noModelLoaded": "ยังไม่ได้โหลดโมเดล",
+    "uploadModelForCarbon": "อัปโหลดโมเดล BIM เพื่อวิเคราะห์การปล่อยคาร์บอน",
+    "noCarbonData": "ไม่มีข้อมูลคาร์บอน",
+    "startCarbonCalculation": "เริ่มคำนวณคาร์บอนในแชทเพื่อดูผลลัพธ์ที่นี่",
+    "totalCarbonFootprint": "รอยเท้าคาร์บอนทั้งหมด",
+    "materialBreakdown": "การแยกตามวัสดุ",
+    "categoryBreakdown": "การแยกตามหมวดหมู่",
+    "pieChartAriaLabel": "แผนภูมิวงกลมแสดงการปล่อยคาร์บอนตามวัสดุ",
+    "barChartAriaLabel": "แผนภูมิแท่งแสดงการปล่อยคาร์บอนตามหมวดหมู่",
+    "carbon": "คาร์บอน",
+    "exportPDF": "ส่งออก PDF",
+    "exportExcel": "ส่งออก Excel",
+    "noBoqData": "ไม่มีข้อมูล BOQ",
+    "startBoqAnalysis": "เริ่มวิเคราะห์ BOQ ในแชทเพื่อดูผลลัพธ์ที่นี่",
+    "totalProjectCost": "ต้นทุนโครงการทั้งหมด",
+    "itemsCount": "{{count}} รายการ",
+    "item": "รายการ",
+    "description": "รายละเอียด",
+    "quantity": "ปริมาณ",
+    "unit": "หน่วย",
+    "unitCost": "ราคาต่อหน่วย",
+    "total": "รวม",
+    "noDocumentLoaded": "ไม่มีเอกสารที่โหลด",
+    "generatedReport": "รายงานที่สร้างขึ้น",
+    "askAiToGenerate": "ขอให้ AI สร้างรายงานหรือเอกสารเพื่อแก้ไขที่นี่",
+    "carbonReportTemplate": "เทมเพลตรายงานคาร์บอน",
+    "boqSummaryTemplate": "เทมเพลตสรุป BOQ",
+    "preview": "ดูตัวอย่าง",
+    "edit": "แก้ไข",
+    "exportAsPDF": "ส่งออกเป็น PDF",
+    "writeMarkdown": "เขียนเอกสารของคุณในรูปแบบ Markdown...",
+    "documentContentEditor": "ตัวแก้ไขเนื้อหาเอกสาร",
+    "lastModified": "แก้ไขล่าสุด",
+    "noFloorPlanLoaded": "ไม่มีแปลนชั้นที่โหลด",
+    "uploadFloorPlan": "อัปโหลดภาพแปลนชั้น (PDF, PNG, JPG) ในแชทเพื่อดูที่นี่",
+    "floorPlanControls": "ตัวควบคุมแปลนชั้น",
+    "zoomIn": "ขยาย",
+    "zoomOut": "ย่อ",
+    "rotate90": "หมุน 90 องศา",
+    "resetView": "รีเซ็ตมุมมอง",
+    "resetViewTitle": "รีเซ็ตการซูม การหมุน และการเลื่อน",
+    "floorPlanViewerAriaLabel": "ตัวแสดงแปลนชั้น - ลากเพื่อเลื่อน เลื่อนล้อเพื่อซูม",
+    "annotations": "คำอธิบายประกอบ",
+    "noClashData": "ไม่มีข้อมูลการชน",
+    "runClashDetection": "เริ่มตรวจจับการชนในแชทเพื่อดูผลลัพธ์ที่นี่",
+    "clashAnalysis": "การวิเคราะห์การชน",
+    "clashReport": "รายงานการชน",
+    "clashesFound": "พบการชน",
+    "all": "ทั้งหมด",
+    "critical": "วิกฤต",
+    "major": "สำคัญ",
+    "minor": "เล็กน้อย",
+    "resolved": "แก้ไขแล้ว",
+    "clashesResolved": "การชนที่แก้ไขแล้ว",
+    "remaining": "ที่เหลือ",
+    "distance": "ระยะทาง"
+  },
+  "agentState": {
+    "agentState": "สถานะตัวแทน",
+    "idle": "ว่าง",
+    "noEventsYet": "ยังไม่มีเหตุการณ์",
+    "active": "กำลังทำงาน",
+    "input": "อินพุต",
+    "output": "เอาต์พุต",
+    "task": "งาน",
+    "thinking": "กำลังคิด"
+  },
+  "workflow": {
+    "workflow": "เวิร์กโฟลว์"
+  },
+  "toolVisualizer": {
+    "description": "รายละเอียด",
+    "qty": "จำนวน",
+    "amount": "ยอดเงิน",
+    "moreItems": "+{{count}} รายการเพิ่มเติม",
+    "analyzing": "กำลังวิเคราะห์...",
+    "analysisFailed": "การวิเคราะห์ล้มเหลว",
+    "noVisualization": "ไม่มีการแสดงผลสำหรับเครื่องมือนี้",
+    "noOutput": "ไม่มีผลลัพธ์",
+    "noErrors": "ไม่มีข้อผิดพลาด"
+  },
+  "streaming": {
+    "pauseStreaming": "หยุดชั่วคราว",
+    "resumeStreaming": "เล่นต่อ",
+    "stopStreaming": "หยุด",
+    "phases": {
+      "idle": "พร้อม",
+      "thinking": "กำลังคิด",
+      "reasoning": "กำลังวิเคราะห์",
+      "toolCalling": "กำลังเรียกเครื่องมือ",
+      "toolExecuting": "กำลังดำเนินการ",
+      "synthesizing": "กำลังสังเคราะห์",
+      "responding": "กำลังตอบกลับ",
+      "error": "ข้อผิดพลาด"
+    },
+    "metrics": {
+      "tokensPerSecond": "โทเค็น/วินาที",
+      "tokens": "โทเค็น",
+      "secondsRemaining": "เหลืออีก ~{{seconds}} วินาที"
+    },
+    "aiStatus": "AI กำลัง{{phase}}"
+  },
+  "mobileNav": {
+    "openMenu": "เปิดเมนู",
+    "closeMenu": "ปิดเมนู"
+  },
+  "floatingChat": {
+    "chatPanel": "แผงแชท",
+    "bimIntelligence": "ความฉลาด BIM",
+    "changeDockPosition": "เปลี่ยนตำแหน่งเชื่อมต่อ",
+    "minimize": "ย่อ",
+    "maximize": "ขยาย",
+    "closeChat": "ปิดแชท"
+  },
+  "propertiesPanel": {
+    "properties": "คุณสมบัติ",
+    "closeProperties": "ปิดคุณสมบัติ",
+    "selectElementToView": "เลือกองค์ประกอบเพื่อดูคุณสมบัติ",
+    "loadingProperties": "กำลังโหลดคุณสมบัติ...",
+    "searchProperties": "ค้นหาคุณสมบัติ...",
+    "expandAll": "ขยายทั้งหมด",
+    "collapseAll": "ยุบทั้งหมด",
+    "noPropertiesMatch": "ไม่มีคุณสมบัติที่ตรงกับ \"{{query}}\"",
+    "multiSelectionInfo": "เลือก {{count}} องค์ประกอบ กำลังแสดงคุณสมบัติขององค์ประกอบแรก",
+    "copyValue": "คัดลอกค่า"
+  },
+  "nav": {
+    "features": "คุณสมบัติ",
+    "howItWorks": "วิธีการทำงาน",
+    "pricing": "ราคา",
+    "calculator": "เครื่องคำนวณ",
+    "signIn": "เข้าสู่ระบบ",
+    "signUp": "สมัครสมาชิก",
+    "dashboard": "แดชบอร์ด",
+    "projects": "โครงการ",
+    "analysis": "การวิเคราะห์",
+    "reports": "รายงาน",
+    "settings": "ตั้งค่า",
+    "logout": "ออกจากระบบ"
+  },
+  "landing": {
+    "hero": {
+      "title": "คำนวณ Carbon Footprint ของโครงการ",
+      "titleHighlight": "ภายในไม่กี่นาที ไม่ใช่หลายเดือน!",
+      "subtitle": "ไม่ต้องจ้างที่ปรึกษา ไม่ต้องใช้ซอฟต์แวร์ราคาแพง แค่อัปโหลดแบบ BIM แล้วรับผลวิเคราะห์คาร์บอนทันทีพร้อมค่า Emission Factor ของวัสดุไทยเลย",
+      "description": "วิเคราะห์อาคารด้วย AI เพื่อสถาปัตยกรรมยั่งยืน ปรับปรุงประสิทธิภาพพลังงาน และจัดการอาคารอัจฉริยะ",
+      "cta": "เริ่มวิเคราะห์ฟรี ไม่ต้องสมัคร",
+      "ctaSecondary": "ดูตัวอย่าง",
+      "badge": "🇹🇭 วิเคราะห์คาร์บอนด้วย AI สำหรับก่อสร้างไทย",
+      "inputPlaceholder": "ถามเรื่องวิเคราะห์คาร์บอน เปรียบเทียบวัสดุ หรืออัปโหลดไฟล์ IFC ได้เลยนะ...",
+      "trustBadges": {
+        "tgoData": "ข้อมูลจาก อบก.",
+        "treesAligned": "รองรับ TREES",
+        "bilingualSupport": "ไทย & English"
+      },
+      "uploadModel": "อัปโหลดโมเดล IFC/BIM",
+      "supportedFormats": "รองรับ IFC, PDF, DWG"
+    },
+    "suggestions": {
+      "embodiedCarbon": "คำนวณค่าคาร์บอนที่ฝังอยู่ในอาคารของฉัน",
+      "compareMaterials": "เปรียบเทียบ Carbon Footprint ของวัสดุ",
+      "analyzeIfc": "วิเคราะห์ความยั่งยืนของโมเดล IFC",
+      "generateReport": "สร้างรายงานตามมาตรฐาน อบก."
+    },
+    "stats": {
+      "thaiMaterials": "วัสดุไทย",
+      "avgAnalysisTime": "เวลาวิเคราะห์เฉลี่ย",
+      "avgCarbonSavings": "ประหยัดคาร์บอนเฉลี่ย",
+      "projectsAnalyzed": "โครงการที่วิเคราะห์แล้ว",
+      "learnMore": "เรียนรู้เพิ่มเติม"
+    },
+    "valueProps": {
+      "minutesNotMonths": {
+        "title": "ใช้เวลาเป็นนาที ไม่ใช่เป็นเดือน",
+        "description": "ได้ค่าประมาณคาร์บอนที่แม่นยำทันที ไม่ต้องรอที่ปรึกษาหรือตั้งค่าซอฟต์แวร์ซับซ้อน",
+        "highlight": "วิเคราะห์ใน 15 นาที"
+      },
+      "thaiMaterials": {
+        "title": "วัสดุไทยกว่า 104 รายการ",
+        "description": "ค่า Emission Factor จาก อบก., MTEC และ SCG EPD แม่นยำกว่าฐานข้อมูลต่างประเทศ",
+        "highlight": "ข้อมูลเฉพาะประเทศไทย"
+      },
+      "aiOptimization": {
+        "title": "การปรับปรุงด้วย AI",
+        "description": "รับคำแนะนำทันทีสำหรับวัสดุทดแทนคาร์บอนต่ำพร้อมการประหยัดที่คาดการณ์ไว้",
+        "highlight": "ลดได้สูงสุด 35%"
+      },
+      "tgoReady": {
+        "title": "พร้อมสำหรับ TREES และ อบก.",
+        "description": "สร้างรายงานตามมาตรฐานสำหรับการรับรองอาคารเขียวและการรายงานคาร์บอน",
+        "highlight": "รายงานพร้อมส่งออก"
+      }
+    },
+    "whyChooseUs": {
+      "badge": "ทำไมต้องเลือกเรา",
+      "title": "สร้างมาเพื่อ",
+      "titleHighlight": "การก่อสร้างไทย",
+      "subtitle": "เครื่องมือวิเคราะห์คาร์บอนเพียงตัวเดียวที่มีค่า Emission Factor เฉพาะประเทศไทย รองรับ อบก. และราคาสำหรับ SMB"
+    },
+    "comparisonSection": {
+      "badge": "เปรียบเทียบ",
+      "title": "ฟีเจอร์ระดับองค์กร,",
+      "titleHighlight": "ราคา SMB",
+      "subtitle": "ได้ความสามารถเดียวกันกับที่ปรึกษาราคาแพงในราคาที่ถูกกว่ามาก",
+      "featureColumn": "ฟีเจอร์",
+      "usColumn": "BIM Carbon",
+      "othersColumn": "รายอื่น",
+      "rows": {
+        "setupTime": { "feature": "เวลาตั้งค่า", "us": "5 นาที", "others": "2-4 สัปดาห์" },
+        "monthlyCost": { "feature": "ค่าใช้จ่ายรายเดือน", "us": "เริ่มต้น ฿0", "others": "฿50,000+" },
+        "thaiMaterials": { "feature": "วัสดุไทย", "us": "104+ รายการ", "others": "จำกัด" },
+        "aiRecommendations": { "feature": "คำแนะนำจาก AI", "us": "รวมอยู่แล้ว", "others": "เสียค่าใช้จ่ายเพิ่ม" },
+        "learningCurve": { "feature": "ความยากในการเรียนรู้", "us": "ไม่มี", "others": "ต้องฝึกอบรม" }
+      }
+    },
+    "features": {
+      "title": "ทำไมต้องเลือก BIM Carbon?",
+      "subtitle": "ออกแบบมาเพื่ออุตสาหกรรมก่อสร้างไทยโดยเฉพาะ พร้อมวัสดุและมาตรฐานในประเทศ",
+      "thaiDatabase": {
+        "title": "ฐานข้อมูลวัสดุไทย",
+        "description": "วัสดุกว่า 104 รายการพร้อมค่า Emission Factor จาก อบก./MTEC"
+      },
+      "aiAnalysis": {
+        "title": "วิเคราะห์ด้วย AI",
+        "description": "อัปโหลดแปลนพื้นหรือแบบ BIM เพื่อคำนวณคาร์บอนอัตโนมัติ"
+      },
+      "tgoCompliance": {
+        "title": "รองรับมาตรฐาน อบก.",
+        "description": "สร้างรายงาน CFO/CFP พร้อมยื่นขอการรับรองอย่างเป็นทางการ"
+      },
+      "treesReady": {
+        "title": "รองรับ TREES",
+        "description": "คำนวณคะแนน TREES และจัดทำเอกสารอัตโนมัติ"
+      },
+      "optimization": {
+        "title": "คำแนะนำจาก AI",
+        "description": "แนะนำวัสดุทดแทนที่ปล่อยคาร์บอนต่ำพร้อมประหยัดต้นทุน"
+      },
+      "affordable": {
+        "title": "ราคาสำหรับ SMB",
+        "description": "เริ่มต้นฟรี อัปเกรดเมื่อพร้อม - ไม่มีราคาระดับองค์กร"
+      },
+      "floorPlan": {
+        "title": "แปลนพื้นสู่ 3D",
+        "description": "อัปโหลดแปลนพื้นใดก็ได้ และดู AI แปลงเป็นโมเดล 3D แบบโต้ตอบได้ในไม่กี่วินาที"
+      },
+      "sustainability": {
+        "title": "วิเคราะห์ความยั่งยืน",
+        "description": "คำนวณคาร์บอนฟุตพริ้นท์ ประสิทธิภาพวัสดุ และผลกระทบต่อสิ่งแวดล้อมอย่างแม่นยำ"
+      },
+      "energy": {
+        "title": "จำลองพลังงาน",
+        "description": "รันการจำลองพลังงานขั้นสูงเพื่อปรับปรุงระบบ HVAC ไฟฟ้า และประสิทธิภาพอาคารโดยรวม"
+      }
+    },
+    "howItWorks": {
+      "badge": "วิธีการทำงาน",
+      "title": "จากอัปโหลดสู่ข้อมูลเชิงลึกใน",
+      "titleHighlight": "3 ขั้นตอน",
+      "subtitle": "ไม่ต้องฝึกอบรม เริ่มวิเคราะห์ได้ในไม่กี่นาที",
+      "step1": {
+        "number": "01",
+        "title": "อัปโหลดแบบของคุณ",
+        "description": "อัปโหลดไฟล์ IFC, PDF แปลนพื้น หรือใช้เครื่องคำนวณด่วน รองรับทุกรูปแบบ BIM หลัก"
+      },
+      "step2": {
+        "number": "02",
+        "title": "AI วิเคราะห์คาร์บอน",
+        "description": "AI คำนวณค่าคาร์บอนที่ฝังอยู่โดยใช้ค่า Emission Factor ของไทย และระบุโอกาสในการปรับปรุง"
+      },
+      "step3": {
+        "number": "03",
+        "title": "รับรายงานและคำแนะนำ",
+        "description": "รับรายงานตามมาตรฐาน อบก. เอกสาร TREES และทางเลือกคาร์บอนต่ำที่นำไปใช้ได้จริง"
+      }
+    },
+    "testimonials": {
+      "badge": "รีวิวจากผู้ใช้",
+      "title": "ได้รับความไว้วางใจจาก",
+      "titleHighlight": "มืออาชีพไทย",
+      "items": {
+        "testimonial1": {
+          "quote": "ประหยัดเวลาทำรายงานคาร์บอนได้มาก เมื่อก่อนต้องจ้างที่ปรึกษา ตอนนี้ทำเองได้ใน 15 นาที",
+          "author": "คุณสมชาย",
+          "role": "Project Manager",
+          "company": "ABC Construction"
+        },
+        "testimonial2": {
+          "quote": "ฐานข้อมูลวัสดุไทยตรงตามที่เราต้องการ เครื่องมือต่างประเทศให้ค่าประมาณที่ไม่แม่นยำเสมอ",
+          "author": "Sarah Chen",
+          "role": "Sustainability Lead",
+          "company": "Green Build Co."
+        },
+        "testimonial3": {
+          "quote": "ช่วยให้เราชนะโครงการ Green Building ได้ 3 โครงการในปีนี้",
+          "author": "คุณวิภา",
+          "role": "Owner",
+          "company": "VB Contractors"
+        }
+      }
+    },
+    "ctaSection": {
+      "title": "เริ่มวิเคราะห์คาร์บอนฟรี",
+      "subtitle": "เข้าร่วมกับผู้เชี่ยวชาญด้านการก่อสร้างไทยกว่า 500 คนที่ใช้ BIM Carbon แล้ว ไม่ต้องใช้บัตรเครดิต",
+      "cta": "เริ่มวิเคราะห์ฟรี",
+      "ctaSecondary": "ดูราคา"
+    },
+    "comparison": {
+      "title": "เปรียบเทียบกับทางเลือกอื่น",
+      "subtitle": "ดูความแตกต่างด้วยตัวคุณเอง",
+      "headers": {
+        "feature": "คุณสมบัติ",
+        "us": "BIM Carbon",
+        "consultants": "ที่ปรึกษา",
+        "enterprise": "ซอฟต์แวร์องค์กร"
+      },
+      "rows": {
+        "price": "ราคา",
+        "setup": "เวลาเริ่มต้น",
+        "thaiData": "วัสดุไทย",
+        "tgoReports": "รายงาน อบก.",
+        "aiOptimization": "AI ช่วยปรับปรุง"
+      },
+      "values": {
+        "priceUs": "฿0-9,900/เดือน",
+        "priceConsultants": "฿50K-200K",
+        "priceEnterprise": "฿50K+/เดือน",
+        "setupUs": "ทันที",
+        "setupConsultants": "2-4 สัปดาห์",
+        "setupEnterprise": "1-3 เดือน",
+        "yes": "ใช่",
+        "no": "ไม่มี",
+        "limited": "จำกัด"
+      }
+    },
+    "testimonials": {
+      "title": "ได้รับความไว้วางใจจากผู้รับเหมาไทย",
+      "subtitle": "เข้าร่วมกับผู้เชี่ยวชาญด้านการก่อสร้างหลายร้อยคนที่ใช้ BIM Carbon"
+    },
+    "cta": {
+      "title": "พร้อมลด Carbon Footprint ของคุณแล้วหรือยัง?",
+      "subtitle": "เริ่มวิเคราะห์โครงการของคุณวันนี้เลย ไม่ต้องใช้บัตรเครดิต",
+      "button": "เริ่มวิเคราะห์ฟรีเลย!",
+      "demo": "ดูตัวอย่าง"
+    }
+  },
+  "pricing": {
+    "title": "ราคาที่เรียบง่ายและโปร่งใส",
+    "subtitle": "เริ่มต้นฟรี อัปเกรดเมื่อธุรกิจเติบโต ไม่มีค่าใช้จ่ายแอบแฝง",
+    "monthly": "รายเดือน",
+    "yearly": "รายปี",
+    "yearlyDiscount": "ประหยัด 17%",
+    "perMonth": "/เดือน",
+    "perYear": "/ปี",
+    "popular": "ยอดนิยม",
+    "getStarted": "เริ่มต้นใช้งาน",
+    "contactSales": "ติดต่อฝ่ายขาย",
+    "currentPlan": "แผนปัจจุบัน",
+    "tiers": {
+      "free": {
+        "name": "ฟรี",
+        "description": "เหมาะสำหรับทดลองใช้ BIM Carbon",
+        "price": "0",
+        "features": [
+          "3 โครงการต่อเดือน",
+          "วิเคราะห์คาร์บอนพื้นฐาน",
+          "ฐานข้อมูลวัสดุไทย",
+          "ส่งออก PDF",
+          "สนับสนุนทางอีเมล"
+        ]
+      },
+      "pro": {
+        "name": "โปร",
+        "description": "สำหรับผู้รับเหมาและสถาปนิกมืออาชีพ",
+        "price": "1,990",
+        "features": [
+          "โครงการไม่จำกัด",
+          "วิเคราะห์ด้วย AI ขั้นสูง",
+          "ฐานข้อมูลไทยเต็มรูปแบบ (104+ วัสดุ)",
+          "รายงาน CFO/CFP ตามมาตรฐาน อบก.",
+          "เอกสารรับรอง TREES",
+          "คำแนะนำการปรับปรุงจาก AI",
+          "สนับสนุนด่วน",
+          "API access (100 calls/เดือน)"
+        ]
+      },
+      "enterprise": {
+        "name": "องค์กร",
+        "description": "สำหรับบริษัทขนาดใหญ่และผู้พัฒนาอสังหาริมทรัพย์",
+        "price": "9,900",
+        "features": [
+          "ทุกอย่างในแผนโปร",
+          "สมาชิกทีมไม่จำกัด",
+          "รายงานแบบ White-label",
+          "แบรนด์ดิ้งของคุณ",
+          "API access ไม่จำกัด",
+          "ผู้จัดการบัญชีเฉพาะ",
+          "การรับประกัน SLA",
+          "การเชื่อมต่อแบบกำหนดเอง"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "เปรียบเทียบกับวิธีดั้งเดิม",
+      "consultants": {
+        "title": "ที่ปรึกษาคาร์บอน",
+        "price": "฿50,000 - 200,000",
+        "time": "2-4 สัปดาห์ต่อโครงการ"
+      },
+      "enterprise": {
+        "title": "ซอฟต์แวร์องค์กร",
+        "price": "฿50,000+/เดือน",
+        "time": "1-3 เดือนในการเริ่มต้น"
+      }
+    },
+    "faq": {
+      "title": "คำถามที่พบบ่อย",
+      "items": [
+        {
+          "question": "แผนฟรีรวมอะไรบ้าง?",
+          "answer": "แผนฟรีรวมการวิเคราะห์ 3 โครงการต่อเดือน คำนวณคาร์บอนพื้นฐานโดยใช้ฐานข้อมูลวัสดุไทย และส่งออก PDF เหมาะสำหรับทดลองใช้แพลตฟอร์ม"
+        },
+        {
+          "question": "สามารถอัปเกรดหรือดาวน์เกรดได้ตลอดเวลาไหม?",
+          "answer": "ได้! คุณสามารถอัปเกรดหรือดาวน์เกรดแผนได้ตลอดเวลา การเปลี่ยนแปลงจะมีผลทันที และเราจะคำนวณค่าใช้จ่ายตามสัดส่วน"
+        },
+        {
+          "question": "ข้อมูลวัสดุไทยถูกต้องไหม?",
+          "answer": "ใช่ ฐานข้อมูลของเรามีวัสดุกว่า 104 รายการพร้อมค่า Emission Factor จาก อบก., MTEC, SCG EPD และ CPAC EPD - ทั้งหมดเฉพาะสำหรับประเทศไทย"
+        },
+        {
+          "question": "รองรับการรับรองจาก อบก. ไหม?",
+          "answer": "แผนโปรและองค์กรรวมการสร้างรายงาน CFO และ CFP ตามมาตรฐาน อบก. พร้อมยื่นขอการรับรองอย่างเป็นทางการ"
+        },
+        {
+          "question": "รองรับไฟล์รูปแบบใดบ้าง?",
+          "answer": "เรารองรับ IFC (BIM), DWG, DXF, PDF แปลนพื้น และไฟล์ Excel BOQ"
+        },
+        {
+          "question": "มีสัญญาหรือข้อผูกมัดไหม?",
+          "answer": "ไม่มีสัญญา จ่ายรายเดือนและยกเลิกได้ตลอดเวลา แผนรายปีประหยัด 17%"
+        }
+      ]
+    }
+  },
+  "calculator": {
+    "title": "เครื่องคำนวณคาร์บอน",
+    "subtitle": "ประมาณการคาร์บอนฟุตพริ้นท์ของโครงการ",
+    "steps": {
+      "building": "ประเภทอาคาร",
+      "materials": "วัสดุ",
+      "results": "ผลลัพธ์"
+    },
+    "building": {
+      "type": "ประเภทอาคาร",
+      "selectTitle": "เลือกประเภทอาคาร",
+      "selectSubtitle": "เลือกประเภทอาคารเพื่อได้ค่าประมาณคาร์บอนที่แม่นยำ",
+      "types": {
+        "residential_house": "บ้านพักอาศัย",
+        "residential_condo": "คอนโดมิเนียม",
+        "office": "อาคารสำนักงาน",
+        "retail": "ห้างสรรพสินค้า",
+        "industrial": "โรงงาน/คลังสินค้า",
+        "hotel": "โรงแรม",
+        "hospital": "โรงพยาบาล",
+        "school": "โรงเรียน"
+      },
+      "dimensionsTitle": "ขนาดอาคาร",
+      "area": "พื้นที่ต่อชั้น (ตร.ม.)",
+      "areaPlaceholder": "เช่น 200",
+      "areaUnit": "ตร.ม.",
+      "floors": "จำนวนชั้น",
+      "totalArea": "พื้นที่รวม",
+      "estimatedImpact": "ผลกระทบที่คาดการณ์",
+      "estimatedEmissions": "การปล่อยก๊าซที่ประมาณการ",
+      "basedOnBenchmark": "อิงจากเกณฑ์มาตรฐาน {benchmark} kgCO₂e/ตร.ม.",
+      "customizeMaterials": "ปรับแต่งวัสดุด้านล่างเพื่อผลลัพธ์ที่แม่นยำ"
+    },
+    "materials": {
+      "title": "เลือกวัสดุ",
+      "search": "ค้นหาวัสดุ...",
+      "categories": {
+        "concrete": "คอนกรีต",
+        "steel": "เหล็ก",
+        "masonry": "ก่ออิฐ",
+        "timber": "ไม้",
+        "glass": "กระจก",
+        "insulation": "ฉนวน",
+        "finishes": "วัสดุตกแต่ง",
+        "mep": "งานระบบ",
+        "roofing": "หลังคา",
+        "waterproofing": "กันน้ำ"
+      },
+      "quantity": "ปริมาณ",
+      "emissionFactor": "ค่า Emission Factor"
+    },
+    "results": {
+      "title": "ผลการวิเคราะห์คาร์บอน",
+      "analysisComplete": "วิเคราะห์เสร็จสิ้น",
+      "footprintResults": "ผลลัพธ์ Carbon Footprint",
+      "totalEmissions": "การปล่อยก๊าซเรือนกระจกทั้งหมด",
+      "carbonIntensity": "ความเข้มข้นคาร์บอน",
+      "perSquareMeter": "ต่อ ตร.ม.",
+      "vsBenchmark": "เทียบกับเกณฑ์มาตรฐาน",
+      "optimizationPotential": "ศักยภาพการปรับปรุง",
+      "usingLowCarbon": "ใช้วัสดุทดแทนคาร์บอนต่ำ",
+      "breakdown": "แยกตามหมวดหมู่",
+      "recommendations": "คำแนะนำจาก AI",
+      "downloadReport": "ดาวน์โหลดรายงาน",
+      "startNew": "เริ่มวิเคราะห์ใหม่",
+      "startOver": "เริ่มต้นใหม่",
+      "exportReport": "ส่งออกรายงาน",
+      "applyOptimizations": "ใช้การปรับปรุง",
+      "tonnes": "ตัน CO₂e"
+    },
+    "actions": {
+      "back": "← กลับ",
+      "calculate": "คำนวณคาร์บอน",
+      "reset": "รีเซ็ต",
+      "download": "ดาวน์โหลดรายงาน"
+    },
+    "page": {
+      "headerSubtitle": "ฐานข้อมูลการปล่อยก๊าซจากวัสดุก่อสร้างไทย",
+      "backToHome": "← กลับหน้าหลัก",
+      "badge": "ขับเคลื่อนด้วยข้อมูล อบก. และ MTEC",
+      "heroTitle": "คำนวณ",
+      "heroHighlight": "Carbon Footprint อาคารของคุณ",
+      "heroDescription": "ประมาณการ Embodied Carbon อย่างแม่นยำด้วยค่า Emission Factor เฉพาะประเทศไทย เปรียบเทียบวัสดุและค้นพบทางเลือกคาร์บอนต่ำได้ทันที",
+      "dataSources": "แหล่งข้อมูล",
+      "dataSourcesList": {
+        "tgo": "องค์การบริหารจัดการก๊าซเรือนกระจก (อบก.)",
+        "mtec": "ศูนย์เทคโนโลยีโลหะและวัสดุแห่งชาติ (MTEC)",
+        "scg": "เอกสาร EPD จาก SCG",
+        "tgbi": "สถาบันอาคารเขียวไทย"
+      },
+      "methodology": "วิธีการคำนวณ",
+      "methodologyList": {
+        "en15978": "การประเมินวัฏจักรชีวิต EN 15978",
+        "cradleToGate": "Cradle-to-gate (A1-A3)",
+        "trees": "สอดคล้องกับมาตรฐาน TREES"
+      },
+      "needMore": "ต้องการมากกว่านี้?",
+      "needMoreDescription": "ระบบ BIM แบบครบวงจรพร้อมการวิเคราะห์ไฟล์ IFC/Revit สำหรับรายงานคาร์บอนระดับมืออาชีพ",
+      "tryFullPlatform": "ทดลองใช้แพลตฟอร์มเต็มรูปแบบ →"
+    },
+    "materialBrowser": {
+      "title": "ฐานข้อมูลวัสดุ",
+      "materialsCount": "{filtered} จาก {total} วัสดุ",
+      "searchPlaceholder": "ค้นหาวัสดุ...",
+      "filters": "ตัวกรอง",
+      "allCategories": "ทุกหมวดหมู่",
+      "sortBy": "เรียงตาม",
+      "sortName": "ชื่อ",
+      "sortEmission": "การปล่อย",
+      "sortCategory": "หมวดหมู่",
+      "emissionFactor": "ค่า Emission Factor",
+      "source": "แหล่งที่มา",
+      "dataQuality": "คุณภาพข้อมูล",
+      "lowCarbonAlt": "ทางเลือกคาร์บอนต่ำ",
+      "selectMaterial": "เลือก",
+      "addMaterial": "เพิ่มวัสดุ",
+      "viewDetails": "ดูรายละเอียด",
+      "noMaterialsFound": "ไม่พบวัสดุ",
+      "tryAdjusting": "ลองปรับคำค้นหาหรือตัวกรอง",
+      "dataSources": "แหล่งข้อมูล",
+      "lastUpdated": "อัปเดตล่าสุด",
+      "local": "ภายในประเทศ",
+      "density": "ความหนาแน่น",
+      "addToCalculator": "เพิ่มไปยังเครื่องคำนวณ",
+      "quality": {
+        "excellent": "ดีเยี่ยม",
+        "good": "ดี",
+        "fair": "พอใช้",
+        "poor": "ต่ำ",
+        "estimated": "ประมาณการ"
+      }
+    }
+  },
+  "certification": {
+    "dashboard": {
+      "title": "แดชบอร์ดใบรับรอง",
+      "subtitle": "แดชบอร์ดใบรับรองความยั่งยืน",
+      "generateReport": "สร้างรายงาน",
+      "exportPdf": "ส่งออก PDF"
+    },
+    "summary": {
+      "totalCarbon": "คาร์บอนฟุตพริ้นท์รวม",
+      "carbonReduction": "ลดคาร์บอน",
+      "certificationStatus": "สถานะใบรับรอง",
+      "vsBaseline": "เทียบกับเกณฑ์",
+      "eligibleGreenLoans": "มีสิทธิ์กู้สินเชื่อสีเขียว",
+      "notCertified": "ยังไม่ได้รับรอง",
+      "reviewRecommendations": "ดูคำแนะนำด้านล่าง"
+    },
+    "tabs": {
+      "hotspots": "จุดปล่อยคาร์บอนสูง",
+      "recommendations": "คำแนะนำ",
+      "materials": "แยกตามวัสดุ"
+    },
+    "hotspots": {
+      "title": "แหล่งปล่อยคาร์บอนสูงสุด",
+      "description": "มุ่งเน้นรายการเหล่านี้เพื่อลดคาร์บอนสูงสุด",
+      "ofTotal": "ของทั้งหมด",
+      "noData": "ไม่มีข้อมูลวิเคราะห์คาร์บอน",
+      "uploadBoq": "อัปโหลดข้อมูล BOQ เพื่อดูจุดปล่อยคาร์บอน"
+    },
+    "recommendations": {
+      "title": "คำแนะนำในการปรับปรุง",
+      "description": "การดำเนินการเพื่อเพิ่มสิทธิ์ในใบรับรอง",
+      "noData": "ไม่มีคำแนะนำ",
+      "completeAssessment": "ทำการประเมินใบรับรองเพื่อรับคำแนะนำ"
+    },
+    "materials": {
+      "title": "แยกตามหมวดหมู่วัสดุ",
+      "description": "การปล่อยคาร์บอนตามประเภทวัสดุ",
+      "noData": "ไม่มีข้อมูลแยกวัสดุ",
+      "uploadBoq": "อัปโหลดข้อมูล BOQ เพื่อดูการวิเคราะห์วัสดุ"
+    },
+    "card": {
+      "progressTo": "ความคืบหน้าถึง",
+      "carbonReduction": "การลดคาร์บอน",
+      "baselineCarbon": "คาร์บอนพื้นฐาน",
+      "totalPoints": "คะแนนรวม",
+      "mrCredits": "เครดิต MR",
+      "carbonCredits": "คาร์บอนเครดิต",
+      "estimatedValue": "มูลค่าประมาณการ"
+    },
+    "types": {
+      "edge": "ใบรับรอง Edge",
+      "trees": "TREES-NC",
+      "tver": "คาร์บอนเครดิต T-VER"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "ยินดีต้อนรับกลับครับ!",
+      "subtitle": "เข้าสู่ระบบบัญชี BIM Agent ของคุณ",
+      "email": "อีเมล",
+      "emailPlaceholder": "you@example.com",
+      "password": "รหัสผ่าน",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "ลืมรหัสผ่าน?",
+      "submit": "เข้าสู่ระบบ",
+      "submitting": "กำลังเข้าสู่ระบบ...",
+      "noAccount": "ยังไม่มีบัญชีเหรอ?",
+      "signUpLink": "สมัครสมาชิกเลย",
+      "or": "หรือ",
+      "orContinueWithEmail": "หรือดำเนินการด้วยอีเมล"
+    },
+    "signup": {
+      "title": "สร้างบัญชีใหม่",
+      "subtitle": "เริ่มต้นการวิเคราะห์ BIM ด้วย AI อย่างมืออาชีพ",
+      "name": "ชื่อ (ไม่บังคับ)",
+      "namePlaceholder": "สมชาย ใจดี",
+      "email": "อีเมล",
+      "emailPlaceholder": "you@example.com",
+      "password": "รหัสผ่าน",
+      "passwordPlaceholder": "••••••••",
+      "confirmPassword": "ยืนยันรหัสผ่าน",
+      "confirmPasswordPlaceholder": "••••••••",
+      "passwordHint": "อย่างน้อย 8 ตัวอักษร มีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข",
+      "submit": "สร้างบัญชี",
+      "submitting": "กำลังสร้างบัญชี...",
+      "hasAccount": "มีบัญชีอยู่แล้วเหรอ?",
+      "signInLink": "เข้าสู่ระบบเลย",
+      "or": "หรือ",
+      "orContinueWithEmail": "หรือดำเนินการด้วยอีเมล",
+      "terms": "การสมัครสมาชิก หมายความว่าคุณยอมรับ",
+      "termsLink": "ข้อกำหนดการใช้งาน",
+      "privacy": "และ",
+      "privacyLink": "นโยบายความเป็นส่วนตัว",
+      "errors": {
+        "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
+        "passwordTooShort": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
+        "passwordWeak": "รหัสผ่านต้องมีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข",
+        "signupFailed": "การสมัครสมาชิกล้มเหลว",
+        "oauthFailed": "การสมัครสมาชิกด้วย OAuth ล้มเหลว"
+      },
+      "anonymousWarning": {
+        "title": "สร้างบัญชีเพื่อดำเนินการต่อ",
+        "description": "เพื่อบันทึกงานและใช้งาน BIM Agent ต่อ กรุณาสร้างบัญชี ข้อมูลเซสชันที่ไม่ระบุตัวตนก่อนหน้านี้จะไม่ถูกบันทึกและผลการวิเคราะห์ทั้งหมดจะสูญหาย"
+      }
+    },
+    "oauth": {
+      "continueWith": "หรือดำเนินการต่อด้วย",
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "guest": {
+      "continueAsGuest": "ดำเนินการต่อในฐานะผู้เยี่ยมชม",
+      "warningTitle": "คำเตือน: ข้อมูลจะไม่ถูกบันทึก",
+      "warningDescription": "ในฐานะผู้เยี่ยมชม งานของคุณจะไม่ถูกบันทึก โมเดล BIM ผลการวิเคราะห์ และประวัติแชททั้งหมดจะสูญหายเมื่อคุณปิดเบราว์เซอร์หรือเซสชันหมดอายุ",
+      "cancel": "ยกเลิก",
+      "understand": "ฉันเข้าใจแล้ว ดำเนินการต่อ"
+    },
+    "anonymous": {
+      "warningTitle": "ต้องเข้าสู่ระบบ",
+      "warningDescription": "เพื่อใช้งาน BIM Agent ต่อ กรุณาเข้าสู่ระบบหรือสร้างบัญชี ข้อมูลเซสชันที่ไม่ระบุตัวตนก่อนหน้านี้จะไม่ถูกบันทึกและผลการวิเคราะห์ทั้งหมดจะสูญหาย"
+    },
+    "verification": {
+      "title": "เช็คอีเมลของคุณด้วยนะ",
+      "description": "เราส่งลิงก์ยืนยันไปที่",
+      "backToLogin": "กลับไปหน้าเข้าสู่ระบบ"
+    }
+  },
+  "dashboard": {
+    "title": "แดชบอร์ด",
+    "welcome": "ยินดีต้อนรับกลับครับ!",
+    "welcomeSubtitle": "นี่คือภาพรวมโครงการ BIM ของคุณ",
+    "overview": "ภาพรวม",
+    "projects": "โครงการ",
+    "analysis": "การวิเคราะห์",
+    "settings": "ตั้งค่า",
+    "recentProjects": "โครงการล่าสุด",
+    "quickActions": "การดำเนินการด่วน",
+    "newProject": "โครงการใหม่",
+    "newProjectDescription": "สร้างโครงการ BIM ใหม่",
+    "runAnalysis": "วิเคราะห์",
+    "runAnalysisDescription": "วิเคราะห์โมเดล BIM ของคุณ",
+    "settingsDescription": "กำหนดค่าบัญชีของคุณ",
+    "uploadFloorPlan": "อัปโหลดแปลนพื้น",
+    "viewAll": "ดูทั้งหมด",
+    "noProjects": "ยังไม่มีโครงการนะ",
+    "noProjectsDescription": "เริ่มต้นด้วยการสร้างโครงการแรกกันเลย",
+    "createFirst": "สร้างโครงการแรกกันเลย!",
+    "createProject": "สร้างโครงการ",
+    "stats": {
+      "totalProjects": "โครงการทั้งหมด",
+      "activeProjects": "โครงการที่กำลังดำเนินการ",
+      "analysesRun": "การวิเคราะห์ที่ทำ",
+      "bimModels": "โมเดล BIM",
+      "carbonSaved": "คาร์บอนที่ประหยัดได้",
+      "energySaved": "พลังงานที่ประหยัดได้",
+      "carbonReduced": "คาร์บอนที่ลดได้"
+    }
+  },
+  "projects": {
+    "title": "โครงการ",
+    "subtitle": "จัดการโครงการและโมเดล BIM ของคุณ",
+    "empty": "ยังไม่มีโครงการ",
+    "emptyDescription": "เริ่มต้นโดยการสร้างโครงการแรกของคุณ",
+    "emptyFilterDescription": "ลองปรับการค้นหาหรือตัวกรอง",
+    "noMatchingProjects": "ไม่พบโครงการที่ตรงกัน",
+    "create": "สร้างโครงการ",
+    "back": "กลับ",
+    "searchPlaceholder": "ค้นหาโครงการ...",
+    "deleteConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบ",
+    "updated": "อัปเดต",
+    "status": {
+      "all": "ทั้งหมด",
+      "active": "กำลังดำเนินการ",
+      "draft": "แบบร่าง",
+      "completed": "เสร็จสิ้น",
+      "archived": "จัดเก็บแล้ว"
+    },
+    "new": {
+      "title": "สร้างโครงการใหม่",
+      "subtitle": "ตั้งค่าโครงการ BIM ใหม่พร้อมการวิเคราะห์ด้วย AI",
+      "detailsTitle": "รายละเอียดโครงการ",
+      "detailsDescription": "กรอกข้อมูลพื้นฐานเกี่ยวกับโครงการของคุณ",
+      "nameLabel": "ชื่อโครงการ",
+      "namePlaceholder": "เช่น อาคารสำนักงานใจกลางเมือง",
+      "nameRequired": "กรุณาระบุชื่อโครงการ",
+      "descriptionLabel": "คำอธิบาย",
+      "descriptionPlaceholder": "คำอธิบายสั้นๆ เกี่ยวกับโครงการของคุณ",
+      "typeLabel": "ประเภทอาคาร",
+      "typePlaceholder": "เลือกประเภท...",
+      "locationLabel": "ที่ตั้ง",
+      "locationPlaceholder": "เช่น กรุงเทพฯ ประเทศไทย",
+      "areaLabel": "พื้นที่รวม (ตร.ม.)",
+      "areaPlaceholder": "เช่น 5000",
+      "areaInvalid": "ต้องเป็นตัวเลขที่ถูกต้อง",
+      "floorsLabel": "จำนวนชั้น",
+      "floorsPlaceholder": "เช่น 10",
+      "floorsInvalid": "ต้องเป็นจำนวนเต็มบวก",
+      "cancel": "ยกเลิก",
+      "submit": "สร้างโครงการ",
+      "submitting": "กำลังสร้าง...",
+      "submitFailed": "ไม่สามารถสร้างโครงการได้"
+    },
+    "types": {
+      "office": "สำนักงาน",
+      "residential": "ที่อยู่อาศัย",
+      "commercial": "พาณิชย์",
+      "industrial": "อุตสาหกรรม",
+      "healthcare": "สถานพยาบาล",
+      "educational": "สถานศึกษา",
+      "mixed": "ผสมผสาน",
+      "other": "อื่นๆ"
+    },
+    "detail": {
+      "overview": "ภาพรวม",
+      "models": "โมเดล 3D",
+      "analysis": "การวิเคราะห์",
+      "documents": "เอกสาร",
+      "settings": "ตั้งค่า"
+    }
+  },
+  "analysis": {
+    "title": "การวิเคราะห์",
+    "subtitle": "วิเคราะห์ด้วย AI บนโมเดล BIM ของคุณ",
+    "selectProject": "เลือกโครงการ",
+    "selectProjectDescription": "เลือกโครงการที่จะวิเคราะห์",
+    "selectProjectPlaceholder": "เลือกโครงการ...",
+    "noProjectsAvailable": "ไม่มีโครงการที่ใช้งานได้",
+    "analysisType": "ประเภทการวิเคราะห์",
+    "analysisTypeDescription": "เลือกประเภทการวิเคราะห์ที่ต้องการ",
+    "recentAnalyses": "การวิเคราะห์ล่าสุด",
+    "recentAnalysesDescription": "ดูผลการวิเคราะห์ก่อนหน้า",
+    "noAnalysesYet": "ยังไม่มีการวิเคราะห์",
+    "noAnalysesHint": "ทำการวิเคราะห์ครั้งแรกเพื่อดูผลลัพธ์ที่นี่",
+    "runningAnalysis": "กำลังวิเคราะห์...",
+    "run": "เริ่มวิเคราะห์",
+    "analysisFailed": "การวิเคราะห์ล้มเหลว กรุณาลองอีกครั้ง",
+    "types": {
+      "spatial": {
+        "name": "การวิเคราะห์พื้นที่",
+        "description": "วิเคราะห์การใช้ประโยชน์พื้นที่ ความสัมพันธ์ของห้อง และประสิทธิภาพผังพื้น"
+      },
+      "sustainability": {
+        "name": "การวิเคราะห์ความยั่งยืน",
+        "description": "ประเมินผลกระทบต่อสิ่งแวดล้อม การเลือกวัสดุ และมาตรวัดอาคารสีเขียว"
+      },
+      "energy": {
+        "name": "การวิเคราะห์พลังงาน",
+        "description": "คำนวณการใช้พลังงาน ประสิทธิภาพ HVAC และประสิทธิภาพทางความร้อน"
+      },
+      "circulation": {
+        "name": "การวิเคราะห์การจราจร",
+        "description": "วิเคราะห์การไหลของผู้คน เส้นทางอพยพ และการปฏิบัติตามมาตรฐานการเข้าถึง"
+      },
+      "mep": {
+        "name": "การวิเคราะห์ MEP",
+        "description": "ตรวจสอบการประสานงานระบบเครื่องกล ไฟฟ้า และสุขาภิบาล"
+      },
+      "carbon": "วิเคราะห์คาร์บอน"
+    },
+    "results": "ผลลัพธ์",
+    "export": "ส่งออกรายงาน"
+  },
+  "reports": {
+    "title": "รายงาน",
+    "generate": "สร้างรายงาน",
+    "types": {
+      "cfo": "รายงาน CFO",
+      "cfp": "รายงาน CFP",
+      "trees": "ประเมิน TREES",
+      "comprehensive": "รายงานแบบครบถ้วน"
+    },
+    "download": "ดาวน์โหลด",
+    "share": "แชร์"
+  },
+  "chat": {
+    "title": "CarbonBIM Agent",
+    "subtitle": "AI วิเคราะห์คาร์บอนสำหรับโครงการก่อสร้างไทย",
+    "placeholder": "ถามเกี่ยวกับการคำนวณคาร์บอน วัสดุ หรือการวิเคราะห์ BIM...",
+    "send": "ส่ง",
+    "thinking": "กำลังคิด...",
+    "newChat": "แชทใหม่",
+    "dismiss": "ปิด",
+    "enterToSend": "กด Enter เพื่อส่ง",
+    "shiftEnterNewline": "Shift+Enter สำหรับขึ้นบรรทัดใหม่",
+    "analysisComplete": "การวิเคราะห์เสร็จสมบูรณ์",
+    "suggestions": {
+      "title": "ลองถามดู:",
+      "spatial": "วิเคราะห์ประสิทธิภาพพื้นที่",
+      "energy": "คำนวณการใช้พลังงาน",
+      "sustainability": "ตรวจสอบคะแนนความยั่งยืน",
+      "carbon": "คำนวณ Carbon Footprint"
+    },
+    "prompts": {
+      "embodiedCarbon": {
+        "title": "คำนวณค่าคาร์บอนที่ฝังอยู่",
+        "prompt": "คำนวณค่าคาร์บอนที่ฝังอยู่สำหรับอาคารสำนักงาน 10 ชั้น พื้นที่ 5,000 ตร.ม."
+      },
+      "sustainability": {
+        "title": "วิเคราะห์ความยั่งยืน",
+        "prompt": "กลยุทธ์ที่ดีที่สุดในการลดการปล่อยคาร์บอนในการก่อสร้างคอนกรีตคืออะไร?"
+      },
+      "materialComparison": {
+        "title": "เปรียบเทียบวัสดุ",
+        "prompt": "เปรียบเทียบ Carbon Footprint ของเหล็กกับคอนกรีตสำหรับองค์ประกอบโครงสร้าง"
+      },
+      "bimAnalysis": {
+        "title": "วิเคราะห์โมเดล BIM",
+        "prompt": "วิธีอัปโหลดและวิเคราะห์โมเดล IFC สำหรับการคำนวณคาร์บอน?"
+      }
+    },
+    "panel": {
+      "quickActions": "Quick Actions",
+      "placeholderSignedIn": "ถามเกี่ยวกับอาคารของคุณ...",
+      "placeholderSignedOut": "เข้าสู่ระบบเพื่อเริ่มสนทนา...",
+      "enterToSend": "กด Enter เพื่อส่ง",
+      "shortcuts": "ทางลัด",
+      "signInRequired": "ต้องเข้าสู่ระบบ",
+      "signInMessage": "กรุณาเข้าสู่ระบบเพื่อเข้าถึง BIM Agent แชทและวิเคราะห์ข้อมูลอาคารของคุณ",
+      "createAccount": "สร้างบัญชี",
+      "signIn": "เข้าสู่ระบบ",
+      "signInToSend": "กรุณาเข้าสู่ระบบเพื่อส่งข้อความ"
+    }
+  },
+  "settings": {
+    "title": "ตั้งค่า",
+    "subtitle": "จัดการบัญชีและการตั้งค่าแอปพลิเคชันของคุณ",
+    "profile": "โปรไฟล์",
+    "profileDescription": "จัดการข้อมูลส่วนตัวของคุณ",
+    "name": "ชื่อ",
+    "namePlaceholder": "ชื่อของคุณ",
+    "email": "อีเมล",
+    "emailDisabledHint": "ไม่สามารถเปลี่ยนอีเมลได้",
+    "saveProfile": "บันทึกโปรไฟล์",
+    "saving": "กำลังบันทึก...",
+    "profileUpdated": "อัปเดตโปรไฟล์สำเร็จแล้ว",
+    "profileUpdateFailed": "ไม่สามารถอัปเดตโปรไฟล์ได้",
+    "preferences": "การตั้งค่าส่วนตัว",
+    "preferencesSaved": "บันทึกการตั้งค่าสำเร็จแล้ว",
+    "preferencesSaveFailed": "ไม่สามารถบันทึกการตั้งค่าได้",
+    "savePreferences": "บันทึกการตั้งค่า",
+    "language": "ภาษา",
+    "theme": "ธีม",
+    "notifications": "การแจ้งเตือน",
+    "notificationsDescription": "กำหนดค่าการรับการอัปเดต",
+    "emailNotifications": "การแจ้งเตือนทางอีเมล",
+    "emailNotificationsDescription": "รับการอัปเดตทางอีเมล",
+    "analysisAlerts": "แจ้งเตือนการวิเคราะห์",
+    "analysisAlertsDescription": "รับการแจ้งเตือนเมื่อการวิเคราะห์เสร็จสิ้น",
+    "application": "แอปพลิเคชัน",
+    "applicationDescription": "ปรับแต่งประสบการณ์การใช้งานของคุณ",
+    "darkMode": "โหมดมืด",
+    "darkModeDescription": "ใช้ธีมมืดทั่วทั้งแอป",
+    "autoSave": "บันทึกอัตโนมัติ",
+    "autoSaveDescription": "บันทึกการเปลี่ยนแปลงโดยอัตโนมัติ",
+    "dangerZone": "เขตอันตราย",
+    "dangerZoneDescription": "การดำเนินการที่ไม่สามารถยกเลิกได้",
+    "deleteAccount": "ลบบัญชี",
+    "deleteAccountDescription": "ลบบัญชีและข้อมูลทั้งหมดของคุณอย่างถาวร",
+    "deleteAccountConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี? การดำเนินการนี้ไม่สามารถยกเลิกได้",
+    "deleteAccountNotImplemented": "การลบบัญชียังไม่พร้อมใช้งาน",
+    "billing": "การเรียกเก็บเงิน",
+    "api": "คีย์ API"
+  },
+  "errors": {
+    "notFound": {
+      "title": "หาไม่เจอครับ",
+      "description": "หน้านี้อาจถูกย้ายหรือลบไปแล้วนะ",
+      "action": "กลับหน้าหลัก"
+    },
+    "serverError": {
+      "title": "อุ๊ปส์! มีบางอย่างผิดพลาด",
+      "description": "ไม่เป็นไรครับ ลองใหม่อีกครั้งนะ",
+      "action": "ลองอีกครั้งนะ"
+    },
+    "unauthorized": {
+      "title": "ต้องเข้าสู่ระบบก่อนนะ",
+      "description": "เข้าสู่ระบบก่อนเพื่อใช้งานหน้านี้ครับ",
+      "action": "ไปหน้าเข้าสู่ระบบ"
+    }
+  },
+  "footer": {
+    "product": "ผลิตภัณฑ์",
+    "features": "คุณสมบัติ",
+    "pricing": "ราคา",
+    "calculator": "เครื่องคำนวณ",
+    "api": "API",
+    "company": "บริษัท",
+    "about": "เกี่ยวกับเรา",
+    "blog": "บล็อก",
+    "careers": "ร่วมงาน",
+    "contact": "ติดต่อ",
+    "resources": "แหล่งข้อมูล",
+    "documentation": "เอกสาร",
+    "guides": "คู่มือ",
+    "support": "สนับสนุน",
+    "status": "สถานะ",
+    "legal": "กฎหมาย",
+    "privacy": "นโยบายความเป็นส่วนตัว",
+    "terms": "ข้อกำหนดการใช้งาน",
+    "copyright": "© 2568 BIM Carbon สงวนลิขสิทธิ์"
+  },
+  "about": {
+    "nav": {
+      "home": "หน้าแรก",
+      "calculator": "เครื่องคำนวณ",
+      "pricing": "ราคา",
+      "signIn": "เข้าสู่ระบบ",
+      "caseStudies": "กรณีศึกษา"
+    },
+    "hero": {
+      "badge": "วิเคราะห์ BIM ด้วย AI",
+      "title": "สร้างอาคารยั่งยืน",
+      "titleHighlight": "ง่ายขึ้น",
+      "subtitle": "CarbonBIM ช่วยให้ผู้เชี่ยวชาญด้านการก่อสร้างไทยใช้เครื่องมือ AI ในการวิเคราะห์ ลด และรายงานคาร์บอนในอาคาร ตามมาตรฐาน อบก. และได้รับใบรับรอง TREES"
+    },
+    "stats": {
+      "projectsAnalyzed": "โครงการที่วิเคราะห์",
+      "avgCarbonReduction": "ลดคาร์บอนเฉลี่ย",
+      "companies": "บริษัท",
+      "avgAnalysisTime": "เวลาวิเคราะห์เฉลี่ย"
+    },
+    "mission": {
+      "badge": "พันธกิจของเรา",
+      "title": "ลดคาร์บอนในการก่อสร้างไทย",
+      "description": "เราเชื่อว่าการก่อสร้างที่ยั่งยืนควรเข้าถึงได้สำหรับทุกผู้สร้างในประเทศไทย แพลตฟอร์มของเราผสมผสาน AI ล้ำสมัยกับความเชี่ยวชาญท้องถิ่น เพื่อให้การวิเคราะห์คาร์บอนรวดเร็ว แม่นยำ และนำไปใช้ได้จริง"
+    },
+    "features": {
+      "badge": "ความสามารถ",
+      "title": "ฟีเจอร์ทรงพลัง",
+      "subtitle": "ทุกสิ่งที่คุณต้องการเพื่อวิเคราะห์และลด Embodied Carbon ในโครงการก่อสร้าง",
+      "aiPowered": "วิเคราะห์ด้วย AI",
+      "aiPoweredDesc": "ระบบ AI หลายตัวแทนวิเคราะห์โมเดล BIM ของคุณโดยอัตโนมัติเพื่อหา Carbon Hotspots และโอกาสในการปรับปรุง",
+      "carbonAnalysis": "คำนวณ Carbon Footprint",
+      "carbonAnalysisDesc": "คำนวณ Embodied Carbon โดยใช้ค่าการปล่อยก๊าซ อบก. และฐานข้อมูลวัสดุท้องถิ่น",
+      "clashDetection": "ตรวจจับความขัดแย้ง",
+      "clashDetectionDesc": "ตรวจจับปัญหาการประสานงานระหว่างองค์ประกอบโครงสร้าง MEP และสถาปัตยกรรมโดยอัตโนมัติ",
+      "codeCompliance": "ตรวจสอบข้อกำหนด",
+      "codeComplianceDesc": "ตรวจสอบว่าการออกแบบของคุณเป็นไปตามมาตรฐานอาคารไทยและข้อกำหนด TREES",
+      "visualization3d": "แสดงผล 3 มิติ",
+      "visualization3dDesc": "ดูและโต้ตอบกับโมเดล IFC ของคุณโดยตรงในเบราว์เซอร์ด้วย WebGL viewer",
+      "thaiLocalized": "รองรับภาษาไทย",
+      "thaiLocalizedDesc": "รองรับภาษาไทยเต็มรูปแบบพร้อมค่าการปล่อยก๊าซท้องถิ่นและแนวปฏิบัติการก่อสร้าง"
+    },
+    "technology": {
+      "badge": "เทคโนโลยี",
+      "title": "สร้างด้วยเทคโนโลยีทันสมัย",
+      "subtitle": "สถาปัตยกรรมระดับองค์กรออกแบบมาเพื่อความสามารถในการขยายและความน่าเชื่อถือ",
+      "nextjs": "Next.js",
+      "nextjsDesc": "React framework สำหรับเว็บแอปพลิเคชันระดับ production",
+      "langraph": "LangGraph",
+      "langraphDesc": "การประสานงาน AI หลายตัวแทนสำหรับงานวิเคราะห์ซับซ้อน",
+      "ifcjs": "IFC.js",
+      "ifcjsDesc": "ชุดเครื่องมือ BIM แบบ open-source สำหรับประมวลผลโมเดล 3 มิติ",
+      "fastapi": "FastAPI",
+      "fastapiDesc": "Python backend ประสิทธิภาพสูงสำหรับการคำนวณ AI"
+    },
+    "trust": {
+      "tgoCertified": "ข้อมูลตามมาตรฐาน อบก.",
+      "treesCompliant": "รองรับ TREES",
+      "thaiEnglish": "ไทย และ อังกฤษ",
+      "fastAnalysis": "วิเคราะห์รวดเร็ว"
+    },
+    "cta": {
+      "startFree": "เริ่มทดลองใช้ฟรี",
+      "viewCaseStudies": "ดูกรณีศึกษา",
+      "viewPricing": "ดูราคา",
+      "title": "พร้อมสร้างอย่างยั่งยืนหรือยัง?",
+      "description": "เข้าร่วมกับผู้เชี่ยวชาญด้านการก่อสร้างไทยหลายร้อยรายที่ใช้ CarbonBIM เพื่อลดผลกระทบต่อสิ่งแวดล้อมและได้รับใบรับรองสีเขียว"
+    },
+    "footer": {
+      "copyright": "© 2568 CarbonBIM สร้างเพื่อการก่อสร้างไทย"
+    }
+  },
+  "caseStudies": {
+    "title": "กรณีศึกษา",
+    "subtitle": "ผลลัพธ์จริงจากผู้นำการก่อสร้างไทย",
+    "description": "ดูว่าผู้รับเหมา สถาปนิก และนักพัฒนาอสังหาฯ ทั่วประเทศไทยใช้ BIM Carbon ชนะโครงการ ลดต้นทุน และบรรลุเป้าหมายความยั่งยืนได้อย่างไร",
+    "readMore": "อ่านกรณีศึกษา",
+    "readTime": "นาทีในการอ่าน",
+    "allCaseStudies": "กรณีศึกษาทั้งหมด",
+    "keyTakeaways": "ประเด็นสำคัญ",
+    "challenge": "ความท้าทาย",
+    "solution": "โซลูชัน",
+    "implementation": "การดำเนินการ",
+    "outcomes": "ผลลัพธ์",
+    "timeline": "ระยะเวลา",
+    "painPoints": "ปัญหาหลัก",
+    "shareStory": "แชร์",
+    "downloadPdf": "ดาวน์โหลด PDF",
+    "readyToStart": "พร้อมที่จะบรรลุผลลัพธ์เช่นเดียวกันหรือยัง?",
+    "categories": {
+      "smbContractor": "ผู้รับเหมา SMB",
+      "architect": "บริษัทสถาปัตยกรรม",
+      "developer": "ผู้พัฒนาอสังหาริมทรัพย์"
+    },
+    "stats": {
+      "carbonReduction": "ลดคาร์บอนเฉลี่ย",
+      "certifications": "ใบรับรอง TREES",
+      "projectsAnalyzed": "โครงการที่วิเคราะห์แล้ว",
+      "greenFinancing": "สินเชื่อสีเขียวที่เปิดใช้งาน"
+    },
+    "hero": {
+      "badge": "เรื่องราวความสำเร็จ",
+      "title": "ผลลัพธ์จริงจาก",
+      "titleHighlight": "ผู้นำการก่อสร้างไทย",
+      "verifiedResults": "ผลลัพธ์ที่ยืนยันแล้ว",
+      "realCompanies": "บริษัทจริง",
+      "thaiSuccessStories": "เรื่องราวความสำเร็จของไทย"
+    },
+    "featured": {
+      "title": "กรณีศึกษาเด่น",
+      "subtitle": "สำรวจว่าบริษัทประเภทต่างๆ ใช้ BIM Carbon เพื่อบรรลุเป้าหมายความยั่งยืนและธุรกิจได้อย่างไร"
+    },
+    "cta": {
+      "title": "พร้อมเขียนเรื่องราวความสำเร็จของคุณหรือยัง?",
+      "description": "ร่วมกับผู้เชี่ยวชาญก่อสร้างไทยหลายร้อยคนที่บรรลุเป้าหมายความยั่งยืนด้วย BIM Carbon",
+      "startFreeAnalysis": "เริ่มวิเคราะห์ฟรี",
+      "viewPricing": "ดูราคา",
+      "readMoreCaseStudies": "อ่านกรณีศึกษาเพิ่มเติม"
+    },
+    "detail": {
+      "allCaseStudies": "กรณีศึกษาทั้งหมด",
+      "signIn": "เข้าสู่ระบบ",
+      "share": "แชร์",
+      "downloadPdf": "ดาวน์โหลด PDF",
+      "keyPainPoints": "ปัญหาหลัก",
+      "keyTakeaways": "ประเด็นสำคัญ",
+      "timeline": "ระยะเวลา",
+      "readyTitle": "พร้อมจะบรรลุผลลัพธ์แบบเดียวกันหรือยัง?",
+      "readyDescription": "ร่วมกับ {company} และผู้เชี่ยวชาญก่อสร้างไทยอีกหลายร้อยคนที่ใช้ BIM Carbon",
+      "startFreeAnalysis": "เริ่มวิเคราะห์ฟรี"
+    },
+    "nav": {
+      "calculator": "เครื่องคำนวณ",
+      "pricing": "ราคา",
+      "signIn": "เข้าสู่ระบบ",
+      "home": "หน้าหลัก",
+      "contact": "ติดต่อ"
+    },
+    "footer": {
+      "copyright": "© 2568 BIM Carbon สร้างขึ้นเพื่อการก่อสร้างไทย"
+    },
+    "studies": {
+      "abcConstruction": {
+        "title": "ABC Construction ชนะ 3 โครงการ Green Building ได้อย่างไร",
+        "subtitle": "ผู้รับเหมาไทยรายเล็กใช้ BIM Carbon เพื่อสร้างความแตกต่างจากคู่แข่งและชนะโครงการมูลค่า 45 ล้านบาท",
+        "company": "บริษัท ABC Construction จำกัด",
+        "companyType": "ผู้รับเหมา SMB • 25 พนักงาน • กรุงเทพฯ",
+        "quote": "เมื่อก่อนต้องจ้างที่ปรึกษาทำรายงานคาร์บอน ตอนนี้ทำเองได้ใน 15 นาที ลูกค้าประทับใจมาก",
+        "quotee": "คุณสมชาย วงศ์ประเสริฐ",
+        "quoteeRole": "กรรมการผู้จัดการ, ABC Construction",
+        "results": {
+          "contracts": { "metric": "สัญญา Green ที่ชนะ", "value": "ใน 6 เดือนแรก" },
+          "projectValue": { "metric": "มูลค่าโครงการ", "value": "มูลค่าสัญญารวม" },
+          "fasterReports": { "metric": "รายงานเร็วขึ้น", "value": "เทียบกับวิธีดั้งเดิม" }
+        }
+      },
+      "studioVerde": {
+        "title": "การออกแบบที่ลดคาร์บอนได้ 30%",
+        "subtitle": "Studio Verde ใช้คำแนะนำ AI ออกแบบอาคารสำนักงาน 50,000 ตร.ม. ใหม่และได้รับ TREES-NC Gold",
+        "company": "Studio Verde Architects",
+        "companyType": "บริษัทสถาปัตยกรรม • 12 สถาปนิก • เชียงใหม่",
+        "quote": "คำแนะนำจาก AI แสดงทางเลือกที่เราไม่เคยนึกถึง เราได้ TREES Gold ตั้งแต่ครั้งแรกที่ยื่น",
+        "quotee": "คุณนารี สุวรรณพงษ์",
+        "quoteeRole": "สถาปนิกหลัก, Studio Verde",
+        "results": {
+          "carbonReduction": { "metric": "ลดคาร์บอน", "value": "เทียบกับการออกแบบเดิม" },
+          "certification": { "metric": "ใบรับรอง", "value": "สำเร็จครั้งแรก" },
+          "savings": { "metric": "ประหยัดวัสดุ", "value": "จากการปรับปรุง" }
+        }
+      },
+      "greenHeights": {
+        "title": "เข้าถึงสินเชื่อสีเขียวด้วยรายงานอัตโนมัติ",
+        "subtitle": "Green Heights Development ได้รับ Green Bond 500 ล้านบาทด้วยเอกสารคาร์บอนที่เป็นไปตาม อบก. ใน 5 โครงการ",
+        "company": "Green Heights Development",
+        "companyType": "ผู้พัฒนาอสังหาฯ • 5 โครงการที่ดำเนินอยู่ • กรุงเทพฯ",
+        "quote": "ธนาคารต้องการเอกสารคาร์บอนสำหรับสินเชื่อสีเขียว BIM Carbon ให้รายงานพร้อมสำหรับนักลงทุนในไม่กี่วัน ไม่ใช่หลายเดือน",
+        "quotee": "คุณประเสริฐ เจริญวงศ์",
+        "quoteeRole": "CFO, Green Heights Development",
+        "results": {
+          "financing": { "metric": "สินเชื่อสีเขียว", "value": "ออก Bond สำเร็จ" },
+          "interest": { "metric": "ดอกเบี้ยต่ำกว่า", "value": "เทียบกับสินเชื่อปกติ" },
+          "projects": { "metric": "โครงการที่รับรอง", "value": "ทั้งหมดมีรายงาน อบก." }
+        }
+      }
+    }
+  },
+  "boqAnalyzer": {
+    "backToCalculator": "กลับไปหน้าเครื่องคำนวณ",
+    "badge": "วิเคราะห์ด้วย AI",
+    "title": "ตัววิเคราะห์ BOQ",
+    "description": "อัปโหลด Bill of Quantities หรือแบบ 2D และให้ AI สกัดปริมาณวัสดุเพื่อคำนวณ Carbon Footprint ทันที",
+    "features": {
+      "multipleFormats": {
+        "title": "รองรับหลายรูปแบบ",
+        "description": "รองรับเอกสาร PDF แบบสแกน และไฟล์รูปภาพขนาดไม่เกิน 50MB"
+      },
+      "instantExtraction": {
+        "title": "สกัดข้อมูลทันที",
+        "description": "AI สกัดปริมาณ วัสดุ และหน่วยภายในวินาที ไม่ใช่ชั่วโมง"
+      },
+      "thaiMaterials": {
+        "title": "วัสดุไทย",
+        "description": "จับคู่อัตโนมัติกับฐานข้อมูลวัสดุก่อสร้างไทยกว่า 100 รายการ"
+      }
+    },
+    "howItWorks": {
+      "title": "วิธีการทำงาน",
+      "steps": {
+        "upload": {
+          "title": "อัปโหลด",
+          "description": "ลากไฟล์ PDF หรือรูปภาพมาวาง"
+        },
+        "extract": {
+          "title": "สกัดข้อมูล",
+          "description": "AI อ่านปริมาณและวัสดุ"
+        },
+        "map": {
+          "title": "จับคู่",
+          "description": "เทียบกับค่า Emission Factor ไทย"
+        },
+        "calculate": {
+          "title": "คำนวณ",
+          "description": "ได้ผลลัพธ์คาร์บอนทันที"
+        }
+      }
+    }
+  },
+  "solutions": {
+    "common": {
+      "startFreeTrial": "ทดลองใช้ฟรี",
+      "viewCaseStudy": "ดูกรณีศึกษา",
+      "viewPlans": "ดูแผน",
+      "viewEnterprisePlans": "ดูแผนองค์กร",
+      "readyToStart": "พร้อมที่จะเริ่มต้นหรือยัง?",
+      "botGreenFinanceReady": "พร้อมสินเชื่อสีเขียว ธปท.",
+      "esgCompliant": "ตรงตาม ESG",
+      "treesReady": "พร้อม TREES",
+      "localData": "ข้อมูลท้องถิ่น",
+      "thaiData": "ข้อมูลไทย",
+      "backToHome": "กลับหน้าหลัก",
+      "getStarted": "เริ่มต้นใช้งาน",
+      "tagline": "แพลตฟอร์มคำนวณคาร์บอนชั้นนำของไทยสำหรับการก่อสร้าง",
+      "footerSolutions": "โซลูชัน",
+      "footerResources": "แหล่งข้อมูล",
+      "footerContact": "ติดต่อ",
+      "forContractors": "สำหรับผู้รับเหมา",
+      "forArchitects": "สำหรับสถาปนิก",
+      "forDevelopers": "สำหรับผู้พัฒนา",
+      "forConsultants": "สำหรับที่ปรึกษา",
+      "caseStudies": "กรณีศึกษา",
+      "pricing": "ราคา",
+      "freeCalculator": "เครื่องคำนวณฟรี",
+      "location": "กรุงเทพมหานคร ประเทศไทย",
+      "copyright": "© 2025 CarbonBIM สงวนลิขสิทธิ์"
+    },
+    "developers": {
+      "badge": "สำหรับผู้พัฒนาอสังหาริมทรัพย์",
+      "title": "ปลดล็อก",
+      "titleHighlight": "สินเชื่อสีเขียว",
+      "subtitle": "ติดตามคาร์บอนทั่วทั้งพอร์ตโฟลิโอ เข้าถึงสินเชื่อดอกเบี้ยต่ำ ปฏิบัติตาม ESG ด้วยข้อมูลคาร์บอนที่ตรวจสอบได้",
+      "cta": "พร้อมเข้าถึงสินเชื่อสีเขียวหรือยัง?",
+      "ctaDescription": "ร่วมกับผู้พัฒนาชั้นนำในไทยที่ใช้ CarbonBIM เพื่อ ESG และสินเชื่อสีเขียว",
+      "portfolioScore": "คะแนนคาร์บอนพอร์ตโฟลิโอ",
+      "projectsTracked": "โครงการที่ติดตาม",
+      "belowBenchmark": "ต่ำกว่าเกณฑ์อุตสาหกรรม",
+      "greenFinanceEligible": "มีสิทธิ์สินเชื่อสีเขียว",
+      "whyTitle": "ทำไมผู้พัฒนาเลือก CarbonBIM",
+      "whySubtitle": "เปลี่ยนความยั่งยืนเป็นความได้เปรียบทางการแข่งขัน",
+      "enterpriseFeatures": "ฟีเจอร์องค์กร",
+      "benefits": {
+        "greenFinancing": {
+          "title": "สินเชื่อสีเขียว",
+          "description": "เข้าถึงอัตราดอกเบี้ยพิเศษจากโครงการ Green Finance ของ ธปท. ด้วยข้อมูลคาร์บอนที่ตรวจสอบได้"
+        },
+        "esgReporting": {
+          "title": "รายงาน ESG",
+          "description": "สร้างรายงาน ESG พร้อมข้อมูล Carbon Footprint ที่ตรวจสอบได้สำหรับนักลงทุน"
+        },
+        "portfolioTracking": {
+          "title": "ติดตามพอร์ตโฟลิโอ",
+          "description": "ติดตามประสิทธิภาพคาร์บอนในทุกโครงการพัฒนาบนแดชบอร์ดเดียว"
+        },
+        "carbonTargets": {
+          "title": "เป้าหมายคาร์บอน",
+          "description": "ตั้งและติดตามเป้าหมายลดคาร์บอนที่สอดคล้องกับ NDC ของไทย"
+        }
+      },
+      "features": {
+        "portfolioDashboard": {
+          "title": "แดชบอร์ดพอร์ตโฟลิโอ",
+          "description": "ดูตัวชี้วัดคาร์บอนในทุกโครงการ เปรียบเทียบประสิทธิภาพและระบุจุดที่ต้องปรับปรุง"
+        },
+        "investorReports": {
+          "title": "รายงานสำหรับนักลงทุน",
+          "description": "รายงานระดับมืออาชีพสำหรับการนำเสนอนักลงทุนและรายงานความยั่งยืนประจำปี"
+        },
+        "carbonBenchmarks": {
+          "title": "เกณฑ์เปรียบเทียบคาร์บอน",
+          "description": "เปรียบเทียบโครงการของคุณกับเกณฑ์อุตสาหกรรมและมาตรฐาน TREES"
+        },
+        "dataVerification": {
+          "title": "การตรวจสอบข้อมูล",
+          "description": "ค่า Emission Factor จาก อบก. รับรองว่าข้อมูลคาร์บอนของคุณน่าเชื่อถือและตรวจสอบได้"
+        }
+      },
+      "stats": {
+        "greenBonds": "พันธบัตรสีเขียวในไทย",
+        "lowerInterest": "ดอกเบี้ยต่ำกว่า",
+        "materialsTracked": "วัสดุที่ติดตาม",
+        "tgoCompliant": "ตามมาตรฐาน อบก."
+      },
+      "greenFinanceSection": {
+        "title": "โครงการ Green Finance ของ ธปท.",
+        "description": "ธนาคารแห่งประเทศไทยเสนออัตราดอกเบี้ยพิเศษสำหรับอาคารสีเขียว CarbonBIM ให้ข้อมูลคาร์บอนที่ตรวจสอบได้ตามที่กำหนด",
+        "lowerInterest": "ดอกเบี้ยต่ำกว่า",
+        "availableFunding": "เงินทุนที่มี",
+        "compliantReports": "รายงานตามมาตรฐาน"
+      }
+    },
+    "contractors": {
+      "badge": "สำหรับผู้รับเหมาก่อสร้าง",
+      "title": "ชนะ",
+      "titleHighlight": "งานประมูลสีเขียว",
+      "subtitle": "คำนวณ Carbon Footprint ของโครงการในไม่กี่นาที สร้างรายงานตาม อบก. ที่ช่วยให้คุณชนะงานประมูลอาคารสีเขียว",
+      "cta": "พร้อมที่จะชนะงานประมูลสีเขียวมากขึ้นหรือยัง?",
+      "ctaDescription": "ร่วมกับผู้รับเหมาไทยหลายร้อยรายที่ใช้ CarbonBIM แล้ว",
+      "tryCalculator": "ลองใช้เครื่องคำนวณ",
+      "viewCaseStudies": "ดูกรณีศึกษา",
+      "noCreditCard": "ไม่ต้องใช้บัตรเครดิต",
+      "freeAnalyses": "วิเคราะห์ฟรี 5 ครั้ง",
+      "reportTitle": "รายงานวิเคราะห์คาร์บอน",
+      "readyInMinutes": "พร้อมในไม่กี่นาที",
+      "whyTitle": "ทำไมผู้รับเหมาเลือก CarbonBIM",
+      "whySubtitle": "สร้างมาเพื่ออุตสาหกรรมก่อสร้างไทยโดยเฉพาะ",
+      "featuresTitle": "ฟีเจอร์ทรงพลังสำหรับผู้รับเหมา",
+      "benefits": {
+        "winContracts": {
+          "title": "ชนะงานประมูลมากขึ้น",
+          "description": "โดดเด่นในการประมูลด้วยรายงานวิเคราะห์คาร์บอนระดับมืออาชีพที่แสดงความรับผิดชอบต่อสิ่งแวดล้อม"
+        },
+        "tgoCompliance": {
+          "title": "ตามมาตรฐาน อบก.",
+          "description": "สร้างรายงาน CFO และ CFP ที่ตรงตามมาตรฐานองค์การบริหารจัดการก๊าซเรือนกระจก"
+        },
+        "saveTime": {
+          "title": "ประหยัดเวลา 90%",
+          "description": "คำนวณ Carbon Footprint ในไม่กี่นาที ไม่ใช่หลายสัปดาห์ ไม่ต้องจ้างที่ปรึกษา"
+        },
+        "treesReady": {
+          "title": "พร้อม TREES",
+          "description": "เปรียบเทียบกับมาตรฐานรับรอง TREES สำหรับอาคารสีเขียว"
+        }
+      },
+      "features": {
+        "instantAnalysis": {
+          "title": "วิเคราะห์คาร์บอนทันที",
+          "description": "อัปโหลดโมเดล IFC หรือใช้เครื่องคำนวณ รับรายละเอียดคาร์บอนแยกตามหมวดวัสดุ"
+        },
+        "professionalReports": {
+          "title": "รายงานระดับมืออาชีพ",
+          "description": "ส่งออก PDF และ Excel พร้อมนำเสนอลูกค้าและยื่นขออนุญาต"
+        },
+        "thaiMaterials": {
+          "title": "ฐานข้อมูลวัสดุไทย",
+          "description": "วัสดุกว่า 105 รายการพร้อมค่า Emission Factor จาก อบก. ข้อมูลแม่นยำสำหรับตลาดไทย"
+        },
+        "lowCarbonRecs": {
+          "title": "คำแนะนำวัสดุคาร์บอนต่ำ",
+          "description": "AI แนะนำวัสดุทดแทนที่ลดคาร์บอนได้สูงสุด 30%"
+        }
+      },
+      "stats": {
+        "thaiContractors": "ผู้รับเหมาไทย",
+        "timeSaved": "ประหยัดเวลา",
+        "thaiMaterials": "วัสดุไทย",
+        "carbonReduction": "ลดคาร์บอน"
+      },
+      "testimonial": {
+        "quote": "CarbonBIM ช่วยให้เราชนะงานประมูลอาคารสีเขียวมูลค่า 50 ล้านบาท รายงานคาร์บอนเป็นกุญแจสำคัญในข้อเสนอของเรา",
+        "name": "สมชาย ก.",
+        "role": "ผู้จัดการโครงการ, ABC Construction"
+      }
+    },
+    "architects": {
+      "badge": "สำหรับบริษัทสถาปัตยกรรม",
+      "title": "ออกแบบ",
+      "titleHighlight": "อาคารยั่งยืน",
+      "titleEnd": "",
+      "subtitle": "วิเคราะห์ผลกระทบคาร์บอนตั้งแต่ขั้นตอนการออกแบบ ตัดสินใจเลือกวัสดุอย่างมีข้อมูล สร้างสถาปัตยกรรมที่สวยงามและยั่งยืนตั้งแต่ร่างแบบแรก",
+      "startFreeTrial": "เริ่มทดลองใช้ฟรี",
+      "tryCalculator": "ลองเครื่องคำนวณ",
+      "trustRevit": "ใช้งานกับ Revit & ArchiCAD",
+      "trustIfc": "รองรับ IFC 2x3/4",
+      "mockup": {
+        "title": "เปรียบเทียบการออกแบบ",
+        "subtitle": "วิเคราะห์ผลกระทบคาร์บอน",
+        "optionA": "ตัวเลือก A: คอนกรีต",
+        "optionAValue": "450 kgCO2e/m²",
+        "optionB": "ตัวเลือก B: ไม้ผสม",
+        "optionBValue": "280 kgCO2e/m²",
+        "recommended": "✓ แนะนำ - ลด 38%"
+      },
+      "cta": "พร้อมออกแบบอย่างยั่งยืนหรือยัง?",
+      "ctaDescription": "ร่วมกับสถาปนิกชั้นนำของไทยที่สร้างอาคารยั่งยืนด้วย CarbonBIM",
+      "whyTitle": "ทำไมสถาปนิกเลือก CarbonBIM",
+      "whySubtitle": "ทำให้ความยั่งยืนเป็นข้อได้เปรียบด้านการออกแบบ",
+      "featuresTitle": "เครื่องมือทรงพลังสำหรับสถาปนิก",
+      "benefits": {
+        "designAnalysis": {
+          "title": "วิเคราะห์ขั้นตอนออกแบบ",
+          "description": "ประเมินผลกระทบคาร์บอนก่อนเริ่มก่อสร้าง เปรียบเทียบทางเลือกการออกแบบทันที"
+        },
+        "materialComparison": {
+          "title": "เปรียบเทียบวัสดุ",
+          "description": "ดูผลกระทบคาร์บอนของวัสดุต่างๆ เทียบกันแบบเคียงข้าง"
+        },
+        "optimization": {
+          "title": "ข้อเสนอแนะเพิ่มประสิทธิภาพ",
+          "description": "คำแนะนำจาก AI เพื่อลดคาร์บอนได้สูงสุด 30% โดยไม่กระทบการออกแบบ"
+        },
+        "certifications": {
+          "title": "ใบรับรองอาคารเขียว",
+          "description": "สร้างรายงานสำหรับยื่นขอรับรอง TREES, LEED และ WELL"
+        }
+      },
+      "features": {
+        "ifcIntegration": {
+          "title": "เชื่อมต่อโมเดล IFC",
+          "description": "นำเข้าจาก Revit, ArchiCAD หรือซอฟต์แวร์ที่รองรับ IFC ได้โดยตรง"
+        },
+        "visualDashboard": {
+          "title": "แดชบอร์ดคาร์บอนเชิงภาพ",
+          "description": "การแสดงภาพที่สวยงามเพื่อสื่อสารผลกระทบคาร์บอนกับลูกค้า"
+        },
+        "lowCarbonAlts": {
+          "title": "วัสดุทางเลือกคาร์บอนต่ำ",
+          "description": "ค้นพบตัวเลือกวัสดุยั่งยืนที่รักษาความตั้งใจในการออกแบบของคุณ"
+        },
+        "aiAssistant": {
+          "title": "ผู้ช่วยออกแบบ AI",
+          "description": "ถามคำถามเกี่ยวกับการปรับปรุงคาร์บอนด้วยภาษาธรรมชาติ"
+        }
+      }
+    },
+    "consultants": {
+      "badge": "สำหรับที่ปรึกษาด้านความยั่งยืน",
+      "title": "ขยาย",
+      "titleHighlight": "ธุรกิจที่ปรึกษา",
+      "subtitle": "ทำการประเมินคาร์บอนให้เสร็จในไม่กี่นาที ไม่ใช่หลายวัน ให้บริการลูกค้าได้มากขึ้นด้วยรายงาน White-label ระดับมืออาชีพที่ขับเคลื่อนด้วยข้อมูลรับรองจาก อบก.",
+      "startFreeTrial": "เริ่มทดลองใช้ฟรี",
+      "viewProPlans": "ดูแพ็กเกจ Pro",
+      "trustWhiteLabel": "รายงาน White-label",
+      "trustApi": "เข้าถึง API",
+      "mockup": {
+        "title": "แดชบอร์ดลูกค้า",
+        "subtitle": "จัดการโครงการทั้งหมดของคุณ",
+        "projects": "โครงการ"
+      },
+      "stats": {
+        "timeSaved": "ประหยัดเวลา",
+        "moreClients": "ลูกค้าเพิ่ม",
+        "thaiMaterials": "วัสดุไทย",
+        "reportTemplates": "เทมเพลตรายงาน"
+      },
+      "whyTitle": "ทำไมที่ปรึกษาเลือก CarbonBIM",
+      "whySubtitle": "เครื่องมือที่สร้างมาสำหรับผู้เชี่ยวชาญด้านความยั่งยืน",
+      "featuresTitle": "ฟีเจอร์ระดับมืออาชีพ",
+      "benefits": {
+        "fasterAnalysis": {
+          "title": "วิเคราะห์เร็วขึ้น 10 เท่า",
+          "description": "ทำการประเมินคาร์บอนให้เสร็จในไม่กี่นาทีแทนที่จะเป็นหลายวัน ให้บริการลูกค้าได้มากขึ้นโดยไม่ต้องเพิ่มพนักงาน"
+        },
+        "whiteLabel": {
+          "title": "รายงาน White-Label",
+          "description": "รายงาน PDF และ Excel ระดับมืออาชีพพร้อมแบรนด์ของคุณ พร้อมส่งมอบให้ลูกค้า"
+        },
+        "clientManagement": {
+          "title": "จัดการลูกค้า",
+          "description": "จัดระเบียบโครงการตามลูกค้า ติดตามการประเมินหลายรายการในพอร์ตโฟลิโอของคุณ"
+        },
+        "tgoCertified": {
+          "title": "ข้อมูลรับรองจาก อบก.",
+          "description": "ค่า Emission Factor จากองค์การบริหารจัดการก๊าซเรือนกระจกสำหรับรายงานที่น่าเชื่อถือ"
+        }
+      },
+      "features": {
+        "instantCalcs": {
+          "title": "คำนวณทันที",
+          "description": "อัปโหลดโมเดล IFC หรือใช้เครื่องคำนวณ รับรายละเอียดคาร์บอนแยกตามหมวดหมู่"
+        },
+        "reportFormats": {
+          "title": "รูปแบบรายงานหลากหลาย",
+          "description": "เทมเพลต CFO, CFP และ TREES ส่งออกเป็น PDF, Excel หรือเชื่อมต่อผ่าน API"
+        },
+        "optimization": {
+          "title": "คำแนะนำการปรับปรุง",
+          "description": "คำแนะนำจาก AI ช่วยลูกค้าลดคาร์บอนได้สูงสุด 30%"
+        },
+        "apiAccess": {
+          "title": "เข้าถึง API",
+          "description": "เชื่อมต่อ CarbonBIM กับเครื่องมือและเวิร์กโฟลว์ที่มีอยู่ด้วย REST API ของเรา"
+        }
+      },
+      "workflow": {
+        "title": "เวิร์กโฟลว์ง่ายๆ",
+        "subtitle": "จากคำขอลูกค้าถึงรายงานที่ส่งมอบ",
+        "step1": {
+          "title": "อัปโหลดโมเดล",
+          "description": "ไฟล์ IFC หรือใช้เครื่องคำนวณ"
+        },
+        "step2": {
+          "title": "สร้างการวิเคราะห์",
+          "description": "รายละเอียดคาร์บอนทันที"
+        },
+        "step3": {
+          "title": "ส่งมอบรายงาน",
+          "description": "White-label PDF/Excel"
+        }
+      },
+      "cta": "พร้อมขยายธุรกิจที่ปรึกษาของคุณหรือยัง?",
+      "ctaDescription": "ร่วมกับที่ปรึกษาทั่วประเทศไทยที่ให้บริการลูกค้าได้มากขึ้นด้วย CarbonBIM"
+    }
+  }
+}

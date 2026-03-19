@@ -1,17 +1,10 @@
 """Clash detection tool — geometric AABB clash detection between building elements."""
-import tempfile
-import os
+import asyncio
 from typing import Optional
 
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.utils.logger import logger
-from .base import BIMToolBase
-
-try:
-    import ifcopenshell
-    HAS_IFC = True
-except ImportError:
-    HAS_IFC = False
+from .base import BIMToolBase, HAS_IFC
 
 # Default half-extents (m) per element type for AABB estimation
 DEFAULT_HALF_EXTENTS = {
@@ -125,7 +118,7 @@ class ClashDetectionTool(BIMToolBase):
                 return self.success_response(self._mock_clash_result())
 
             content = await self.load_ifc_content(file_path)
-            ifc_model = self._open_ifc_from_bytes(content)
+            ifc_model = await self.open_ifc_model(content)
 
             # Build list of (element_info, center, half_extents)
             candidates = []
@@ -145,31 +138,33 @@ class ClashDetectionTool(BIMToolBase):
                         'half': half,
                     })
 
-            clashes = []
-            severity_summary = {'critical': 0, 'major': 0, 'minor': 0}
-            clash_id = 0
+            # Run the O(n²) AABB loop in a thread so it doesn't block the event loop
+            def _run_clash_detection():
+                clashes = []
+                severity_summary = {'critical': 0, 'major': 0, 'minor': 0}
+                clash_id = 0
 
-            for i in range(len(candidates)):
-                for j in range(i + 1, len(candidates)):
-                    a, b = candidates[i], candidates[j]
-                    # Skip same-type pairs (same discipline unlikely to clash with itself in simple check)
-                    if a['info']['type'] == b['info']['type']:
-                        continue
-                    if _aabb_overlap(a['center'], a['half'], b['center'], b['half']):
-                        ovol = _overlap_volume(a['center'], a['half'], b['center'], b['half'])
-                        if ovol < tolerance:
-                            continue
-                        sev = _severity(ovol)
-                        severity_summary[sev] += 1
-                        clash_id += 1
-                        clashes.append({
-                            'id': f'clash_{clash_id}',
-                            'element1': a['info'],
-                            'element2': b['info'],
-                            'type': 'hard',
-                            'severity': sev,
-                            'overlap_volume_m3': round(ovol, 4),
-                        })
+                for i in range(len(candidates)):
+                    for j in range(i + 1, len(candidates)):
+                        a, b = candidates[i], candidates[j]
+                        if _aabb_overlap(a['center'], a['half'], b['center'], b['half']):
+                            ovol = _overlap_volume(a['center'], a['half'], b['center'], b['half'])
+                            if ovol < tolerance:
+                                continue
+                            sev = _severity(ovol)
+                            severity_summary[sev] += 1
+                            clash_id += 1
+                            clashes.append({
+                                'id': f'clash_{clash_id}',
+                                'element1': a['info'],
+                                'element2': b['info'],
+                                'type': 'hard',
+                                'severity': sev,
+                                'overlap_volume_m3': round(ovol, 4),
+                            })
+                return clashes, severity_summary
+
+            clashes, severity_summary = await asyncio.to_thread(_run_clash_detection)
 
             return self.success_response({
                 'clash_count': len(clashes),
@@ -180,18 +175,6 @@ class ClashDetectionTool(BIMToolBase):
         except Exception as e:
             logger.error(f"detect_clashes error: {e}")
             return self.fail_response(f"Clash detection failed: {e}")
-
-    # ------------------------------------------------------------------
-
-    def _open_ifc_from_bytes(self, content: bytes):
-        with tempfile.NamedTemporaryFile(suffix=".ifc", delete=False) as tmp:
-            tmp.write(content)
-            tmp_path = tmp.name
-        try:
-            model = ifcopenshell.open(tmp_path)
-        finally:
-            os.unlink(tmp_path)
-        return model
 
     def _mock_clash_result(self) -> dict:
         return {

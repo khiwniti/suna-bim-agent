@@ -1,17 +1,9 @@
 """Code compliance tool — Thai building code (มยผ.) and accessibility checks."""
-import tempfile
-import os
 from typing import Optional
 
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.utils.logger import logger
-from .base import BIMToolBase
-
-try:
-    import ifcopenshell
-    HAS_IFC = True
-except ImportError:
-    HAS_IFC = False
+from .base import BIMToolBase, HAS_IFC
 
 THAI_BUILDING_CODES = {
     'fire_egress': {
@@ -22,7 +14,7 @@ THAI_BUILDING_CODES = {
     'structural': {
         'code': 'มยผ. 1311-50',
         'name': 'มาตรฐานโครงสร้าง',
-        'description': 'Thai Structural Design Standard',
+        'description': 'Thai Structural Design Standard — checks for presence of structural load-bearing elements',
     },
     'accessibility': {
         'code': 'กฎกระทรวง 2548',
@@ -108,11 +100,6 @@ class CodeComplianceTool(BIMToolBase):
                         "items": {"type": "string"},
                         "description": "**OPTIONAL** List of standards to check: 'fire_egress', 'structural', 'accessibility'. Defaults to all.",
                     },
-                    "locale": {
-                        "type": "string",
-                        "description": "**OPTIONAL** Locale for report language: 'th' (Thai) or 'en' (English). Default 'th'.",
-                        "default": "th",
-                    },
                 },
                 "required": ["file_path"],
                 "additionalProperties": False,
@@ -123,7 +110,6 @@ class CodeComplianceTool(BIMToolBase):
         self,
         file_path: str,
         standards: Optional[list] = None,
-        locale: str = "th",
     ) -> ToolResult:
         try:
             if standards is None:
@@ -133,7 +119,7 @@ class CodeComplianceTool(BIMToolBase):
                 return self.success_response(self._mock_compliance_result(standards))
 
             content = await self.load_ifc_content(file_path)
-            ifc_model = self._open_ifc_from_bytes(content)
+            ifc_model = await self.open_ifc_model(content)
 
             findings = []
             element_highlights = []
@@ -200,6 +186,41 @@ class CodeComplianceTool(BIMToolBase):
                         pass_count += 1
                         element_highlights.append({'express_id': eid, 'color': '#22c55e'})
 
+            # --- Structural: presence of load-bearing elements (มยผ. 1311-50) ---
+            if 'structural' in standards:
+                columns = list(ifc_model.by_type('IfcColumn'))
+                beams = list(ifc_model.by_type('IfcBeam'))
+                walls = list(ifc_model.by_type('IfcWall'))
+                slabs = list(ifc_model.by_type('IfcSlab'))
+
+                if not columns and not walls:
+                    fail_count += 1
+                    findings.append({
+                        'standard': THAI_BUILDING_CODES['structural']['code'],
+                        'element_id': None,
+                        'element_name': None,
+                        'check': 'Structural elements present',
+                        'required': 'At least one IfcColumn or IfcWall must exist',
+                        'actual': 'None found',
+                        'status': 'FAIL',
+                    })
+                else:
+                    pass_count += 1
+
+                if not beams and not slabs:
+                    fail_count += 1
+                    findings.append({
+                        'standard': THAI_BUILDING_CODES['structural']['code'],
+                        'element_id': None,
+                        'element_name': None,
+                        'check': 'Horizontal structural elements present',
+                        'required': 'At least one IfcBeam or IfcSlab must exist',
+                        'actual': 'None found',
+                        'status': 'FAIL',
+                    })
+                else:
+                    pass_count += 1
+
             overall = 'PASS' if fail_count == 0 else 'FAIL'
             standards_info = {k: THAI_BUILDING_CODES[k] for k in standards if k in THAI_BUILDING_CODES}
 
@@ -214,18 +235,6 @@ class CodeComplianceTool(BIMToolBase):
         except Exception as e:
             logger.error(f"check_compliance error: {e}")
             return self.fail_response(f"Compliance check failed: {e}")
-
-    # ------------------------------------------------------------------
-
-    def _open_ifc_from_bytes(self, content: bytes):
-        with tempfile.NamedTemporaryFile(suffix=".ifc", delete=False) as tmp:
-            tmp.write(content)
-            tmp_path = tmp.name
-        try:
-            model = ifcopenshell.open(tmp_path)
-        finally:
-            os.unlink(tmp_path)
-        return model
 
     def _mock_compliance_result(self, standards: list) -> dict:
         return {
