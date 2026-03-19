@@ -151,6 +151,10 @@ jobs:
               echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
             fi
 
+            # Free port 80 from any non-Docker process (e.g. nginx, apache)
+            sudo systemctl stop nginx apache2 caddy 2>/dev/null || true
+            sudo fuser -k 80/tcp 2>/dev/null || true
+
             # Use production compose with Traefik
             if [ -f "docker-compose.prod.yaml" ]; then
               docker compose -f docker-compose.prod.yaml pull
