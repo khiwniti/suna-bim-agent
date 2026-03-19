@@ -101,54 +101,7 @@ jobs:
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
     steps:
-      - name: Deploy via SSH to Azure VM
-        uses: appleboy/ssh-action@v1
-        env:
-          BACKEND_IMAGE:  ${{ needs.build.outputs.backend_image }}
-          FRONTEND_IMAGE: ${{ needs.build.outputs.frontend_image }}
-          IMAGE_TAG:      ${{ needs.build.outputs.image_tag }}
-          RESOURCE_GROUP: carbon-bim-rg
-          ACR_USERNAME:   ${{ secrets.ACR_USERNAME }}
-          ACR_PASSWORD:   ${{ secrets.ACR_PASSWORD }}
-          ACR_SERVER:     ${{ secrets.ACR_NAME }}.azurecr.io
-        with:
-          host:            ${{ secrets.AZURE_VM_HOST }}
-          username:        ${{ secrets.AZURE_VM_USERNAME }}
-          key:             ${{ secrets.AZURE_VM_SSH_KEY }}
-          port:            22
-          timeout:         120s
-          command_timeout: 15m
-          envs: BACKEND_IMAGE,FRONTEND_IMAGE,IMAGE_TAG,RESOURCE_GROUP,ACR_USERNAME,ACR_PASSWORD,ACR_SERVER
-          script: |
-            set -e
 
-            # Install az CLI if missing
-            if ! command -v az &>/dev/null; then
-              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-            fi
-
-            # Login using the VM's System-Assigned Managed Identity (no credentials needed)
-            az login --identity --output none
-            az extension add --name containerapp --upgrade --only-show-errors 2>/dev/null || true
-
-            # Log in to ACR
-            echo "${ACR_PASSWORD}" | docker login "${ACR_SERVER}" -u "${ACR_USERNAME}" --password-stdin 2>/dev/null || true
-
-            echo "🔄 Updating backend → ${BACKEND_IMAGE}"
-            az containerapp update \
-              --name carbon-bim-backend \
-              --resource-group "${RESOURCE_GROUP}" \
-              --image "${BACKEND_IMAGE}" \
-              --output none
-
-            echo "🔄 Updating frontend → ${FRONTEND_IMAGE}"
-            az containerapp update \
-              --name carbon-bim-frontend \
-              --resource-group "${RESOURCE_GROUP}" \
-              --image "${FRONTEND_IMAGE}" \
-              --output none
-
-            echo "✅ ACA update complete (tag: ${IMAGE_TAG})"
 
       - name: Health check
         run: |
