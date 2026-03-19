@@ -5,7 +5,7 @@ const path = require('path');
 const PROTOCOL_SCHEME = 'carbon-bim';
 
 // Get URL from environment variable or default to production
-const APP_URL = process.env.APP_URL || 'https://kortix.com/';
+const APP_URL = process.env.APP_URL || 'http://20.55.21.69:30/';
 
 // Simple dev check without ES module dependency
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -54,7 +54,7 @@ function handleDeepLink(url) {
     return;
   }
   
-  // Convert kortix://auth/callback?code=xxx to https://kortix.com/auth/callback?code=xxx
+  // Convert carbon-bim://auth/callback?code=xxx to http://20.55.21.69:30/auth/callback?code=xxx
   const deepLinkPath = url.replace(`${PROTOCOL_SCHEME}://`, '');
   const webUrl = normalizedUrl.endsWith('/') 
     ? normalizedUrl + deepLinkPath 

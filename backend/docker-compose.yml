@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/kortix-ai/suna/suna-backend:latest
+    image: ghcr.io/khiwniti/suna-bim-agent/backend:latest
     platform: linux/amd64
     build:
       context: .

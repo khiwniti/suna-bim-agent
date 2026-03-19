@@ -153,7 +153,7 @@ export default function SunaPage() {
                 <ArrowRight className="ml-2 size-4" />
               </Link>
               <a
-                href="https://github.com/khiwniti/carbon-bim-agent"
+                href="https://github.com/khiwniti/suna-bim-agent"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-12 items-center justify-center w-full sm:w-auto px-8 text-center rounded-full border border-border bg-background hover:bg-accent/50 transition-all font-medium"
@@ -201,7 +201,7 @@ export default function SunaPage() {
                   Where to find us?
                 </h2>
                 <p className="text-base md:text-lg text-muted-foreground font-medium">
-                  Our GitHub repository remains at github.com/kortix-ai/suna
+                  Our GitHub repository is at github.com/khiwniti/suna-bim-agent
                 </p>
               </div>
             </div>
