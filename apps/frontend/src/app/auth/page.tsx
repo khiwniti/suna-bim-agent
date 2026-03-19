@@ -23,6 +23,15 @@ import { ExampleShowcase } from '@/components/auth/example-showcase';
 import { trackSendAuthLink } from '@/lib/analytics/gtm';
 import { backendApi } from '@/lib/api-client';
 
+async function sendOtpCode(email: string): Promise<{ success: boolean; error?: { message: string } }> {
+  const res = await fetch('/api/auth/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return res.json();
+}
+
 // Lazy load heavy components
 const GoogleSignIn = lazy(() => import('@/components/GoogleSignIn'));
 // const GitHubSignIn = lazy(() => import('@/components/GithubSignIn'));
@@ -108,8 +117,8 @@ function LoginContent() {
       setAutoSendingCode(true);
 
       try {
-        // Call backend API to send OTP-only email
-        const response = await backendApi.post('/auth/send-otp', { email: expiredEmail });
+        // Call Next.js API route to send OTP-only email
+        const response = await sendOtpCode(expiredEmail);
 
         if (response.success) {
           setNewCodeSent(true);
@@ -282,7 +291,7 @@ function LoginContent() {
     }
 
     try {
-      const response = await backendApi.post('/auth/send-otp', { email });
+      const response = await sendOtpCode(email);
 
       if (response.success) {
         setRegistrationEmail(email);
@@ -443,7 +452,7 @@ function LoginContent() {
 
                     setAutoSendingCode(true);
                     try {
-                      const response = await backendApi.post('/auth/send-otp', { email });
+                      const response = await sendOtpCode(email);
                       if (response.success) {
                         setOtpCode('');
                         toast.success('New code sent!');
