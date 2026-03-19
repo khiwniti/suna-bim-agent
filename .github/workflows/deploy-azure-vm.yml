@@ -3,9 +3,9 @@ name: Deploy to Azure VM
 on:
   push:
     branches:
-      - main        # Auto-deploy on push to main
-      - staging     # Auto-deploy on push to staging
-  workflow_dispatch:  # Allow manual trigger
+      - main
+      - staging
+  workflow_dispatch:
     inputs:
       environment:
         description: 'Environment to deploy to'
@@ -21,72 +21,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ===========================================================================
-  # BUILD: Build frontend and prepare for deployment
-  # ===========================================================================
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.set-env.outputs.environment }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set environment
-        id: set-env
-        env:
-          INPUT_ENV: ${{ inputs.environment }}
-          REF_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
-            echo "environment=$INPUT_ENV" >> $GITHUB_OUTPUT
-          else
-            case "$REF_NAME" in
-              main)
-                echo "environment=production" >> $GITHUB_OUTPUT
-                ;;
-              staging)
-                echo "environment=staging" >> $GITHUB_OUTPUT
-                ;;
-              *)
-                echo "environment=development" >> $GITHUB_OUTPUT
-                ;;
-            esac
-          fi
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Verify repository
-        run: |
-          echo "✅ Repository checked out successfully"
-          echo "Current branch: ${{ github.ref_name }}"
-          echo "Commit SHA: ${{ github.sha }}"
-
-  # ===========================================================================
-  # DEPLOY: Deploy to Azure VM via SSH
-  # ===========================================================================
   deploy:
     name: Deploy to Azure VM
-    needs: build
     runs-on: ubuntu-latest
-    environment: ${{ needs.build.outputs.environment }}
     steps:
-      - name: Deploy to Azure VM
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         env:
-          DEPLOY_ENV: ${{ needs.build.outputs.environment }}
-          VM_USER: ${{ secrets.AZURE_VM_USERNAME }}
           BRANCH: ${{ github.ref_name }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -99,110 +40,61 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           timeout: 300s
-          envs: DEPLOY_ENV,VM_USER,BRANCH,DATABASE_URL,SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,SUPABASE_ANON_KEY,ENCRYPTION_KEY
+          envs: BRANCH,DATABASE_URL,SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,SUPABASE_ANON_KEY,ENCRYPTION_KEY
           script: |
             set -e
-            echo "🚀 Deploying to Azure VM ($DEPLOY_ENV)..."
+            echo "🚀 Deploying to Azure VM..."
 
-            # Navigate to project directory
-            cd /home/$VM_USER/suna-bim-agent
+            cd ~/suna-bim-agent
 
-            # Pull latest changes
             echo "📥 Pulling latest code..."
             git fetch origin "$BRANCH"
             git reset --hard "origin/$BRANCH"
 
-            # Update backend .env with secrets from GitHub
-            echo "🔐 Updating backend environment variables..."
+            echo "🔐 Updating environment variables..."
             cd backend
-
-            # Create/update .env file with production secrets
-            cat > .env << EOF
-# Encryption key for MCP credentials
-ENCRYPTION_KEY="${ENCRYPTION_KEY}"
-
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
-SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}"
-SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
-SUPABASE_URL="${SUPABASE_URL}"
-
-# Database Connection - Using Supabase Connection Pooler (port 6543) for reliable connectivity
-# Direct PostgreSQL (port 5432) has IPv6 issues in some environments
-DATABASE_URL="${DATABASE_URL}"
-EOF
-
+            echo "ENCRYPTION_KEY=${ENCRYPTION_KEY}" > .env
+            echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}" >> .env
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}" >> .env
+            echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
+            echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
+            echo "DATABASE_URL=${DATABASE_URL}" >> .env
             cd ..
 
-            # Install dependencies and build
             echo "📦 Installing dependencies..."
             pnpm install --frozen-lockfile
 
             echo "🔨 Building frontend..."
             cd apps/frontend
-
-            # Export frontend environment variables for docker-compose build
             export NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
             export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
-            export NEXT_PUBLIC_BACKEND_URL="http://localhost:8000/v1"
+            export NEXT_PUBLIC_BACKEND_URL="https://carbon-bim.ensimu.space/api"
             export NEXT_PUBLIC_URL="https://carbon-bim.ensimu.space"
             export NEXT_PUBLIC_ENV_MODE="production"
-
             pnpm build
+            cd ../..
 
-            # Restart services
             echo "🔄 Restarting services..."
-            cd /home/$VM_USER/suna-bim-agent
-
-            # If using Docker Compose
-            if [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
-              docker compose pull
-              docker compose up -d --force-recreate --remove-orphans
+            if [ -f "docker-compose.yml" ]; then
+              docker compose down || true
+              docker compose up -d --build
               docker image prune -af --filter "until=24h" || true
-            fi
-
-            # If using PM2 for Node.js processes
-            if command -v pm2 &> /dev/null; then
-              pm2 restart all || pm2 start ecosystem.config.js || true
             fi
 
             echo "✅ Deployment complete!"
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1
-        env:
-          VM_USER: ${{ secrets.AZURE_VM_USERNAME }}
         with:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USERNAME }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           timeout: 60s
-          envs: VM_USER
           script: |
             echo "🔍 Verifying deployment..."
-
-            # Check if services are running
-            if [ -f "/home/$VM_USER/suna-bim-agent/docker-compose.yml" ]; then
-              cd /home/$VM_USER/suna-bim-agent
-              docker compose ps
-            fi
-
-            # Health check
-            echo "🏥 Running health check..."
-            curl -sf http://localhost:3000 > /dev/null && echo "✅ Frontend is healthy" || echo "⚠️ Frontend health check failed"
-            curl -sf http://localhost:8000/v1/health > /dev/null && echo "✅ Backend is healthy" || echo "⚠️ Backend health check failed"
-
-      - name: Deployment summary
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-          VM_HOST: ${{ secrets.AZURE_VM_HOST }}
-        run: |
-          if [ "$JOB_STATUS" == "success" ]; then
-            echo "✅ Deployment to Azure VM succeeded!"
-            echo "🌐 URL: http://$VM_HOST/"
-          else
-            echo "❌ Deployment to Azure VM failed!"
-          fi
+            cd ~/suna-bim-agent
+            docker compose ps || true
+            curl -sf http://localhost:3000 > /dev/null && echo "✅ Frontend OK" || echo "⚠️ Frontend check failed"
+            curl -sf http://localhost:8000/v1/health > /dev/null && echo "✅ Backend OK" || echo "⚠️ Backend check failed"
