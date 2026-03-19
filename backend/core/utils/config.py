@@ -58,7 +58,7 @@ class Configuration:
     AGENT_TOOL_EXECUTION_STRATEGY: str = "parallel"  # "parallel" or "sequential"
 
     # Model selection
-    # Options: "bedrock", "anthropic", "minimax", "grok", "openai"
+    # Options: "bedrock", "anthropic", "minimax", "grok", "openai", "github"
     MAIN_LLM: str = "bedrock"
     # Optional: Override the default model for the selected provider
     # If not set, uses the default model for the provider:
@@ -66,6 +66,7 @@ class Configuration:
     #   - grok: openrouter/x-ai/grok-4.1-fast
     #   - openai: openrouter/openai/gpt-4o-mini
     #   - minimax: openrouter/minimax/minimax-m2.1
+    #   - github: github/gpt-4o (via GitHub Models / Azure AI inference)
     MAIN_LLM_MODEL: Optional[str] = None
     # ============================================
 
@@ -333,6 +334,7 @@ class Configuration:
     # LLM API keys
     ANTHROPIC_API_KEY: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
+    GH_MODELS_TOKEN: Optional[str] = None  # GitHub Models API token (Azure AI inference)
 
     ENABLE_MEMORY: bool = False
     ENABLE_KNOWLEDGE_BASE: bool = True

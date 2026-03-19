@@ -88,6 +88,13 @@ class PricingPresets:
         cached_read_cost_per_million_tokens=0.014,
     )
 
+    # GitHub Models pricing (via Azure AI inference - free tier with rate limits)
+    GITHUB_GPT4O = ModelPricing(
+        input_cost_per_million_tokens=0.0,  # Free tier
+        output_cost_per_million_tokens=0.0,
+        cached_read_cost_per_million_tokens=0.0,
+    )
+
 
 FREE_MODEL_ID = "carbon-bim/minimax"
 PREMIUM_MODEL_ID = "carbon-bim/power"
@@ -199,9 +206,29 @@ class ModelFactory:
             "openai": "openrouter/openai/gpt-4o-mini",
             "minimax": "openrouter/minimax/minimax-m2.1",
             "kimi": "openrouter/moonshotai/kimi-k2.5",
+            "github": "github/gpt-4o",
         }
 
-        if main_llm == "kimi":
+        if main_llm == "github":
+            return Model(
+                id="carbon-bim/basic",
+                name="Carbon BIM Basic",
+                litellm_model_id=custom_model or default_models["github"],
+                provider=ModelProvider.GITHUB,
+                aliases=["carbon-bim-basic", "Carbon BIM Basic"],
+                context_window=128_000,
+                capabilities=[
+                    ModelCapability.CHAT,
+                    ModelCapability.FUNCTION_CALLING,
+                    ModelCapability.VISION,
+                ],
+                pricing=PricingPresets.GITHUB_GPT4O,
+                tier_availability=["free", "paid"],
+                priority=102,
+                recommended=True,
+                enabled=True,
+            )
+        elif main_llm == "kimi":
             return Model(
                 id="carbon-bim/basic",
                 name="Carbon BIM Basic",

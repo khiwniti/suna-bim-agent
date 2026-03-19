@@ -3,18 +3,7 @@ main = "worker.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Container configuration
-[containers]
-class_name = "BackendContainer"
-image = "registry.cloudflare.com/5adf62efd6cf179a8939c211b155e229/carbon-bim-backend:latest"
-
-[[durable_objects.bindings]]
-name = "BACKEND"
-class_name = "BackendContainer"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["BackendContainer"]
-
 [vars]
-PORT = "8000"
+# Backend VM address (Dokploy)
+BACKEND_HOST = "20.55.21.69"
+BACKEND_PORT = "40"

@@ -14,6 +14,7 @@ class ModelProvider(Enum):
     XAI = "xai"
     MOONSHOTAI = "moonshotai"
     MINIMAX = "minimax"
+    GITHUB = "github"  # GitHub Models (Azure AI inference)
 
 class ModelCapability(Enum):
     CHAT = "chat"
