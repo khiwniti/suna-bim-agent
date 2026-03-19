@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install ifcopenshell and BIM analysis libraries
-RUN uv pip install ifcopenshell numpy networkx
+RUN uv pip install --system ifcopenshell numpy networkx
 
 # Install Python dependencies
 COPY pyproject.toml uv.lock ./
