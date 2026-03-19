@@ -146,7 +146,7 @@ EOF
             export NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
             export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
             export NEXT_PUBLIC_BACKEND_URL="http://localhost:8000/v1"
-            export NEXT_PUBLIC_URL="https://your-production-domain.com"  # TODO: Update with actual production domain
+            export NEXT_PUBLIC_URL="https://carbon-bim.ensimu.space"
             export NEXT_PUBLIC_ENV_MODE="production"
 
             pnpm build
