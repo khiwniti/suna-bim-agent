@@ -1,0 +1,118 @@
+# ============================================================================
+# CARBON-BIM PRODUCTION DOCKER COMPOSE
+# ============================================================================
+# Production deployment with Traefik reverse proxy for HTTPS
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yaml up -d
+#
+# Custom Domain: carbon-bim.ensimu.space (via Cloudflare DNS)
+# ============================================================================
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Redirect HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # Use Cloudflare for SSL (Flexible mode - Cloudflare handles SSL)
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - web
+
+  redis:
+    image: redis:7-alpine
+    container_name: carbon-bim-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+      - ./backend/services/docker/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - internal
+
+  backend:
+    image: ghcr.io/suna-ai/suna-backend:latest
+    container_name: carbon-bim-backend
+    platform: linux/amd64
+    restart: unless-stopped
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/.env:/app/.env:ro
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_SSL=False
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    depends_on:
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`carbon-bim.ensimu.space`) && PathPrefix(`/api`, `/v1`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      # Strip /api prefix if needed
+      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.middlewares=strip-api@docker"
+    networks:
+      - web
+      - internal
+
+  frontend:
+    container_name: carbon-bim-frontend
+    restart: unless-stopped
+    init: true
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://carbon-bim.ensimu.space/api}
+        NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-https://carbon-bim.ensimu.space}
+        NEXT_PUBLIC_ENV_MODE: ${NEXT_PUBLIC_ENV_MODE:-production}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`carbon-bim.ensimu.space`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      # Frontend has lower priority than backend API routes
+      - "traefik.http.routers.frontend.priority=1"
+    networks:
+      - web
+
+volumes:
+  redis_data:
+
+networks:
+  web:
+    external: false
+  internal:
+    external: false

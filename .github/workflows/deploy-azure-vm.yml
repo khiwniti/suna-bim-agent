@@ -76,7 +76,19 @@ jobs:
             cd ../..
 
             echo "🔄 Restarting services..."
-            if [ -f "docker-compose.yml" ]; then
+            # Export env vars for docker-compose build
+            export NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
+            export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+            export NEXT_PUBLIC_BACKEND_URL="https://carbon-bim.ensimu.space/api"
+            export NEXT_PUBLIC_URL="https://carbon-bim.ensimu.space"
+            export NEXT_PUBLIC_ENV_MODE="production"
+
+            # Use production compose with Traefik
+            if [ -f "docker-compose.prod.yaml" ]; then
+              docker compose -f docker-compose.prod.yaml down || true
+              docker compose -f docker-compose.prod.yaml up -d --build
+              docker image prune -af --filter "until=24h" || true
+            elif [ -f "docker-compose.yaml" ] || [ -f "docker-compose.yml" ]; then
               docker compose down || true
               docker compose up -d --build
               docker image prune -af --filter "until=24h" || true
@@ -95,6 +107,6 @@ jobs:
           script: |
             echo "🔍 Verifying deployment..."
             cd ~/suna-bim-agent
-            docker compose ps || true
+            docker compose -f docker-compose.prod.yaml ps || docker compose ps || true
             curl -sf http://localhost:3000 > /dev/null && echo "✅ Frontend OK" || echo "⚠️ Frontend check failed"
             curl -sf http://localhost:8000/v1/health > /dev/null && echo "✅ Backend OK" || echo "⚠️ Backend check failed"
