@@ -102,6 +102,29 @@ jobs:
 
     steps:
 
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install containerapp extension
+        run: az extension add --name containerapp --upgrade --only-show-errors 2>/dev/null || true
+
+      - name: Deploy backend
+        run: |
+          az containerapp update \
+            --name carbon-bim-backend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ needs.build.outputs.backend_image }} \
+            --output none
+
+      - name: Deploy frontend
+        run: |
+          az containerapp update \
+            --name carbon-bim-frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ needs.build.outputs.frontend_image }} \
+            --output none
 
       - name: Health check
         run: |
