@@ -1,0 +1,1565 @@
+@import "tailwindcss";
+
+:root {
+  /* Enhanced Color System - Vibrant Emerald/Teal with Accent Colors */
+  --background: #fafcfb;
+  --foreground: #0c1811;
+
+  /* Primary - Vivid Emerald */
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --primary-hover: #059669;
+  --primary-glow: rgba(16, 185, 129, 0.35);
+
+  /* Secondary - Soft Mint */
+  --secondary: #ecfdf5;
+  --secondary-foreground: #065f46;
+
+  /* Accent - Electric Cyan for highlights */
+  --accent: #06b6d4;
+  --accent-foreground: #ffffff;
+  --accent-muted: #d1fae5;
+  --accent-muted-foreground: #065f46;
+
+  /* Neutral tones */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  /* Status colors */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #000000;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+
+  /* Surface colors */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #10b981;
+  --card: #ffffff;
+  --card-foreground: #0c1811;
+  --popover: #ffffff;
+  --popover-foreground: #0c1811;
+
+  /* Gradient colors */
+  --gradient-start: #10b981;
+  --gradient-mid: #06b6d4;
+  --gradient-end: #8b5cf6;
+
+  /* Glass effect */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+
+  /* Spacing & Radius */
+  --radius: 0.875rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  --font-size-5xl: 3.5rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+  --shadow-glow: 0 0 40px var(--primary-glow);
+  --shadow-glow-sm: 0 0 20px var(--primary-glow);
+
+  /* Touch targets */
+  --touch-target: 2.75rem;
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-base: 250ms;
+  --transition-slow: 400ms;
+  --transition-slower: 600ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* ============================================
+     FLOATING CHAT PANEL VARIABLES
+     ============================================ */
+  --chat-panel-width: 340px;
+  --chat-panel-height: 420px;
+  --chat-panel-max-height: 70vh;
+  --chat-panel-min-width: 280px;
+  --chat-panel-max-width: 480px;
+  --chat-fab-size: 48px;
+  --chat-border-radius: 1rem;
+
+  /* Chat-specific glass effects */
+  --glass-chat: rgba(255, 255, 255, 0.88);
+  --glass-chat-border: rgba(255, 255, 255, 0.4);
+
+  /* Chat shadows */
+  --shadow-chat: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                 0 0 0 1px var(--glass-chat-border);
+  --shadow-fab: 0 8px 30px rgba(16, 185, 129, 0.4);
+  --shadow-fab-hover: 0 12px 40px rgba(16, 185, 129, 0.5);
+
+  /* Chat animation timing */
+  --chat-transition: 400ms;
+  --chat-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Message bubble styling */
+  --message-user-bg: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  --message-assistant-bg: var(--glass-chat);
+  --message-system-bg: var(--muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #030a08;
+    --foreground: #f0fdf4;
+
+    /* Primary - Vivid Emerald (brighter in dark mode) */
+    --primary: #34d399;
+    --primary-foreground: #022c22;
+    --primary-hover: #6ee7b7;
+    --primary-glow: rgba(52, 211, 153, 0.3);
+
+    /* Secondary */
+    --secondary: #064e3b;
+    --secondary-foreground: #d1fae5;
+
+    /* Accent */
+    --accent: #22d3ee;
+    --accent-foreground: #042f2e;
+    --accent-muted: #134e4a;
+    --accent-muted-foreground: #5eead4;
+
+    /* Neutral tones */
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+
+    /* Surface colors */
+    --border: #1e3a36;
+    --input: #1e3a36;
+    --ring: #34d399;
+    --card: #0d1f1a;
+    --card-foreground: #f0fdf4;
+    --popover: #0d1f1a;
+    --popover-foreground: #f0fdf4;
+
+    /* Gradient colors */
+    --gradient-start: #34d399;
+    --gradient-mid: #22d3ee;
+    --gradient-end: #a78bfa;
+
+    /* Glass effect */
+    --glass-bg: rgba(13, 31, 26, 0.8);
+    --glass-border: rgba(52, 211, 153, 0.15);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.6);
+    --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.7);
+
+    /* Dark mode chat-specific */
+    --glass-chat: rgba(13, 31, 26, 0.92);
+    --glass-chat-border: rgba(52, 211, 153, 0.2);
+    --shadow-chat: 0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                   0 0 0 1px var(--glass-chat-border);
+    --shadow-fab: 0 8px 30px rgba(52, 211, 153, 0.3);
+    --shadow-fab-hover: 0 12px 40px rgba(52, 211, 153, 0.4);
+    --message-user-bg: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    --message-assistant-bg: var(--glass-chat);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   SCROLLBAR STYLING - Premium minimal
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--muted-foreground) 0%, var(--muted) 100%);
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: background var(--transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ============================================
+   FOCUS STATES - Accessible & Beautiful
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   KEYFRAME ANIMATIONS - Smooth & Premium
+   ============================================ */
+
+/* Basic fades */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Slide animations */
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Scale animations */
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scaleOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Floating & Pulse */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.98); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--primary-glow), 0 0 40px transparent;
+  }
+  50% {
+    box-shadow: 0 0 30px var(--primary-glow), 0 0 60px var(--primary-glow);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+
+/* Shimmer & Loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes shimmerGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Gradient animations */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes rainbowBorder {
+  0% { border-color: var(--gradient-start); }
+  33% { border-color: var(--gradient-mid); }
+  66% { border-color: var(--gradient-end); }
+  100% { border-color: var(--gradient-start); }
+}
+
+/* Ripple effect */
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* Typing indicator */
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* Subtle shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ============================================
+   FLOATING CHAT ANIMATIONS
+   ============================================ */
+
+/* FAB pulse for new messages */
+@keyframes fabPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-fab);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-fab-hover);
+  }
+}
+
+/* Chat panel morph animation */
+@keyframes chatPanelIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes chatPanelOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+    filter: blur(4px);
+  }
+}
+
+/* Message slide in animations */
+@keyframes messageSlideInUser {
+  0% {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes messageSlideInAssistant {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Badge bounce */
+@keyframes badgeBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ============================================
+   ANIMATION UTILITY CLASSES
+   ============================================ */
+.animate-fade-in {
+  animation: fadeIn var(--transition-base) var(--ease-out-expo);
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--transition-base) var(--ease-out-expo);
+}
+
+.animate-slide-up {
+  animation: slideUp var(--transition-slow) var(--ease-out-expo);
+}
+
+.animate-slide-down {
+  animation: slideDown var(--transition-slow) var(--ease-out-expo);
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--transition-slow) var(--ease-out-expo);
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--transition-slow) var(--ease-out-expo);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--transition-base) var(--ease-out-back);
+}
+
+.animate-pop-in {
+  animation: popIn var(--transition-slow) var(--ease-spring);
+}
+
+.animate-bounce-in {
+  animation: bounceIn var(--transition-slower) var(--ease-spring);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s linear infinite;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+.animate-gradient {
+  animation: gradientShift 4s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-flow {
+  animation: gradientFlow 8s ease infinite;
+  background-size: 400% 400%;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 8s linear infinite;
+}
+
+.animate-typing-dot {
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* ============================================
+   FLOATING CHAT UTILITY CLASSES
+   ============================================ */
+.animate-fab-pulse {
+  animation: fabPulse 2s ease-in-out infinite;
+}
+
+.animate-chat-panel-in {
+  animation: chatPanelIn var(--chat-transition) var(--chat-ease);
+}
+
+.animate-chat-panel-out {
+  animation: chatPanelOut 200ms var(--ease-out-expo);
+}
+
+.animate-message-user {
+  animation: messageSlideInUser var(--transition-base) var(--ease-out-expo);
+}
+
+.animate-message-assistant {
+  animation: messageSlideInAssistant var(--transition-base) var(--ease-out-expo);
+}
+
+.animate-badge-bounce {
+  animation: badgeBounce 0.3s var(--ease-spring);
+}
+
+/* Chat panel glass effect */
+.glass-chat {
+  background: var(--glass-chat);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid var(--glass-chat-border);
+  box-shadow: var(--shadow-chat);
+}
+
+/* FAB styling */
+.chat-fab {
+  width: var(--chat-fab-size);
+  height: var(--chat-fab-size);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  box-shadow: var(--shadow-fab);
+  transition: all var(--transition-base) var(--ease-out-expo);
+}
+
+.chat-fab:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-fab-hover);
+}
+
+.chat-fab:active {
+  transform: scale(0.95);
+}
+
+/* Chat panel container */
+.chat-panel {
+  width: var(--chat-panel-width);
+  max-width: calc(100vw - 2rem);
+  max-height: var(--chat-panel-max-height);
+  border-radius: var(--chat-border-radius);
+}
+
+/* Chat container (portal-based full-width panel) */
+.chat-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-chat);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-top: 1px solid var(--glass-chat-border);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Chat resize handle */
+.chat-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  z-index: 10;
+}
+
+.chat-resize-handle::before {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: var(--muted-foreground);
+  border-radius: 2px;
+  opacity: 0.4;
+  transition: opacity var(--transition-fast), width var(--transition-fast);
+}
+
+.chat-resize-handle:hover::before,
+.chat-resize-handle:active::before {
+  opacity: 0.8;
+  width: 60px;
+}
+
+/* Message bubble base styles */
+.message-bubble {
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+}
+
+.message-bubble-user {
+  background: var(--message-user-bg);
+  color: var(--primary-foreground);
+  border-bottom-right-radius: 0.25rem;
+  margin-left: auto;
+}
+
+.message-bubble-assistant {
+  background: var(--message-assistant-bg);
+  border: 1px solid var(--glass-chat-border);
+  border-bottom-left-radius: 0.25rem;
+}
+
+/* Chat scrollbar */
+.chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 3px;
+  opacity: 0.5;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Staggered children animations */
+.stagger-children > * {
+  animation: slideUp var(--transition-slow) var(--ease-out-expo) backwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+
+/* ============================================
+   GRADIENT UTILITIES
+   ============================================ */
+.gradient-text {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+}
+
+.gradient-bg-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.gradient-bg-subtle {
+  background: linear-gradient(180deg, var(--background) 0%, var(--secondary) 100%);
+}
+
+.gradient-border {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ============================================
+   GLASS MORPHISM EFFECTS
+   ============================================ */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-subtle {
+    background: rgba(13, 31, 26, 0.6);
+  }
+
+  .glass-strong {
+    background: rgba(13, 31, 26, 0.9);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+  }
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+.glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-sm {
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.glow-hover {
+  transition: box-shadow var(--transition-base) var(--ease-out-expo);
+}
+
+.glow-hover:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* ============================================
+   CARD STYLES - Enhanced
+   ============================================ */
+.card-hover {
+  transition: all var(--transition-base) var(--ease-out-expo);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-interactive {
+  transition: all var(--transition-base) var(--ease-out-expo);
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.card-interactive:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* ============================================
+   BUTTON ENHANCEMENTS
+   ============================================ */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  z-index: -1;
+  filter: blur(8px);
+}
+
+.btn-glow:hover::before {
+  opacity: 0.6;
+}
+
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  transition: left var(--transition-slow);
+}
+
+.btn-shine:hover::after {
+  left: 100%;
+}
+
+/* Ripple effect on click */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+}
+
+.btn-ripple:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+/* ============================================
+   INPUT ENHANCEMENTS
+   ============================================ */
+.input-glow {
+  transition: all var(--transition-base) var(--ease-out-expo);
+}
+
+.input-glow:focus {
+  box-shadow: 0 0 0 3px var(--primary-glow), var(--shadow-sm);
+  border-color: var(--primary);
+}
+
+/* ============================================
+   3D VIEWPORT STYLING
+   ============================================ */
+.viewport-canvas canvas {
+  touch-action: none;
+}
+
+.viewport-overlay {
+  pointer-events: none;
+}
+
+.viewport-controls {
+  pointer-events: auto;
+}
+
+/* ============================================
+   CHAT MESSAGE ANIMATIONS
+   ============================================ */
+.chat-message {
+  animation: slideUp var(--transition-base) var(--ease-out-expo);
+}
+
+.chat-message-user {
+  animation: slideInRight var(--transition-base) var(--ease-out-expo);
+}
+
+.chat-message-assistant {
+  animation: slideInLeft var(--transition-base) var(--ease-out-expo);
+}
+
+/* ============================================
+   AGENT RESPONSE CARD STYLES
+   ============================================ */
+
+/* Clean response card - no background, subtle styling */
+.agent-response-card {
+  position: relative;
+}
+
+/* Subtle gradient accent line */
+.agent-accent-line {
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--primary) 0%,
+    color-mix(in srgb, var(--primary) 30%, transparent) 50%,
+    transparent 100%
+  );
+  border-radius: 9999px;
+}
+
+/* Tool call chip animation */
+@keyframes toolChipAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.tool-chip {
+  animation: toolChipAppear 0.3s var(--ease-out-expo) backwards;
+}
+
+.tool-chip:nth-child(1) { animation-delay: 0ms; }
+.tool-chip:nth-child(2) { animation-delay: 50ms; }
+.tool-chip:nth-child(3) { animation-delay: 100ms; }
+.tool-chip:nth-child(4) { animation-delay: 150ms; }
+.tool-chip:nth-child(5) { animation-delay: 200ms; }
+
+/* Thinking section pulse effect */
+@keyframes thinkingPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.thinking-pulse {
+  animation: thinkingPulse 2s ease-in-out infinite;
+}
+
+/* Agent badge glow */
+.agent-badge {
+  position: relative;
+}
+
+.agent-badge::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: currentColor;
+  opacity: 0.1;
+  border-radius: inherit;
+  filter: blur(4px);
+}
+
+/* Viewport command highlight */
+@keyframes viewportPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--primary-glow);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px var(--primary-glow);
+  }
+}
+
+.viewport-cmd {
+  animation: viewportPulse 2s ease-in-out infinite;
+}
+
+/* Reasoning expand animation */
+@keyframes reasoningExpand {
+  0% {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    max-height: 500px;
+    transform: translateY(0);
+  }
+}
+
+.reasoning-content {
+  animation: reasoningExpand 0.3s var(--ease-out-expo);
+}
+
+/* Status indicator animations */
+.status-running {
+  animation: spin 1s linear infinite;
+}
+
+.status-success {
+  animation: popIn 0.3s var(--ease-spring);
+}
+
+.status-error {
+  animation: shake 0.3s ease-in-out;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ============================================
+   BIM MARKDOWN STYLING
+   ============================================ */
+.bim-markdown {
+  /* Base typography */
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.bim-markdown > *:first-child {
+  margin-top: 0 !important;
+}
+
+.bim-markdown > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Tables in BIM markdown */
+.bim-markdown table {
+  font-size: 0.8125rem;
+}
+
+.bim-markdown th {
+  background: linear-gradient(to bottom, var(--muted), transparent);
+}
+
+/* Code styling */
+.bim-markdown pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.bim-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* List styling with custom markers */
+.bim-markdown ul > li::marker {
+  color: transparent;
+}
+
+/* Blockquote callouts */
+.bim-markdown blockquote {
+  position: relative;
+}
+
+.bim-markdown blockquote::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 2px;
+}
+
+/* Success callout */
+.bim-markdown blockquote:has(strong:first-child):where(:not(:has(⚠️))) {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: var(--success);
+}
+
+/* Warning callout */
+.bim-markdown blockquote:where(:has(⚠️)) {
+  background: rgba(245, 158, 11, 0.1);
+  border-left-color: var(--warning);
+}
+
+/* Info/tip callout */
+.bim-markdown blockquote:where(:has(💡)) {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: var(--info);
+}
+
+/* Smooth transitions for interactive elements */
+.bim-markdown a,
+.bim-markdown th,
+.bim-markdown td,
+.bim-markdown tr {
+  transition: all var(--transition-fast);
+}
+
+/* Highlight numbers and units */
+.bim-markdown td:has(m²),
+.bim-markdown td:has(m³),
+.bim-markdown td:has(kg),
+.bim-markdown td:has(kW),
+.bim-markdown td:has(%) {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* ============================================
+   PANEL RESIZER STYLING
+   ============================================ */
+[data-panel-group-direction="horizontal"] > [data-resize-handle] {
+  width: 4px;
+  background: linear-gradient(180deg, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+[data-panel-group-direction="horizontal"] > [data-resize-handle]::before {
+  content: '';
+  position: absolute;
+  inset: 40% 0;
+  background: var(--muted-foreground);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+[data-panel-group-direction="horizontal"] > [data-resize-handle]:hover {
+  background: linear-gradient(180deg, transparent 0%, var(--primary) 20%, var(--primary) 80%, transparent 100%);
+  width: 6px;
+}
+
+[data-panel-group-direction="horizontal"] > [data-resize-handle]:hover::before {
+  opacity: 0.5;
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle] {
+  height: 4px;
+  background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+  transition: all var(--transition-fast);
+}
+
+[data-panel-group-direction="vertical"] > [data-resize-handle]:hover {
+  background: linear-gradient(90deg, transparent 0%, var(--primary) 20%, var(--primary) 80%, transparent 100%);
+  height: 6px;
+}
+
+/* ============================================
+   SELECTION HIGHLIGHT
+   ============================================ */
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--muted-foreground) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--muted);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+/* ============================================
+   TOOLTIP STYLES
+   ============================================ */
+.tooltip {
+  animation: scaleIn var(--transition-fast) var(--ease-out-back);
+  transform-origin: var(--tooltip-origin, center bottom);
+}
+
+/* ============================================
+   MODAL/DIALOG ANIMATIONS
+   ============================================ */
+.modal-backdrop {
+  animation: fadeIn var(--transition-base) ease-out;
+}
+
+.modal-content {
+  animation: scaleIn var(--transition-base) var(--ease-out-back);
+}
+
+.modal-slide-up {
+  animation: slideUp var(--transition-slow) var(--ease-out-expo);
+}
+
+/* ============================================
+   NOTIFICATION STYLES
+   ============================================ */
+.notification-enter {
+  animation: slideInRight var(--transition-base) var(--ease-out-expo);
+}
+
+.notification-exit {
+  animation: slideInRight var(--transition-base) var(--ease-out-expo) reverse;
+}
+
+/* ============================================
+   DECORATIVE ELEMENTS
+   ============================================ */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  pointer-events: none;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAElBMVEUAAAAAAAAAAAAAAAAAAAAAAADgKxmiAAAABnRSTlMCBggKDA4+rnZqAAAASklEQVQ4y2MQhAKBBgYGExBhCiKEHEBEIIMgkJADE4IMYmCCqAhhEIQCQRARDBWBgKi4uHgHo4CAgIAAg6CgoKAgA4Mgg6CgIDYAAKhAD1fT3mMJAAAAAElFTkSuQmCC");
+}
+
+/* Radial gradient backgrounds */
+.bg-radial-primary {
+  background: radial-gradient(ellipse at center, var(--primary-glow) 0%, transparent 70%);
+}
+
+.bg-radial-top {
+  background: radial-gradient(ellipse at top, var(--primary-glow) 0%, transparent 50%);
+}
+
+/* ============================================
+   ACCESSIBILITY - Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   MOBILE-SPECIFIC STYLES
+   ============================================ */
+
+/* Mobile viewport height fix (accounts for browser chrome) */
+.h-screen-mobile {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.min-h-screen-mobile {
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Safe area padding */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-y {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-all {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Touch-friendly tap targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Prevent text selection on mobile UI elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Touch feedback */
+.touch-feedback {
+  -webkit-tap-highlight-color: rgba(16, 185, 129, 0.1);
+}
+
+.touch-feedback:active {
+  opacity: 0.8;
+}
+
+/* Smooth scrolling for mobile */
+.scroll-smooth-mobile {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar on mobile */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile bottom bar spacing */
+.pb-mobile-nav {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* Responsive text scaling */
+@media (max-width: 640px) {
+  .text-responsive-sm {
+    font-size: clamp(0.875rem, 4vw, 1rem);
+  }
+
+  .text-responsive-base {
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
+  }
+
+  .text-responsive-lg {
+    font-size: clamp(1.125rem, 5vw, 1.25rem);
+  }
+
+  .text-responsive-xl {
+    font-size: clamp(1.25rem, 5.5vw, 1.5rem);
+  }
+
+  .text-responsive-2xl {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+}
+
+/* Mobile-specific button sizing */
+@media (max-width: 640px) {
+  .btn-mobile {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .landscape-hide {
+    display: none;
+  }
+}
+
+/* Mobile card spacing */
+@media (max-width: 640px) {
+  .card-mobile {
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  .gap-mobile {
+    gap: 0.75rem;
+  }
+}
+
+/* ============================================
+   xeokit Annotation Styles
+   ============================================ */
+
+.annotation-marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.annotation-marker:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.annotation-label {
+  background: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  max-width: 200px;
+  pointer-events: auto;
+}
+
+.dark .annotation-label {
+  background: var(--card);
+  color: var(--card-foreground);
+}

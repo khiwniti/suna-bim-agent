@@ -2,7 +2,13 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import os
+import re
 import uuid
+
+
+UUID_RE = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+_UPLOADS_DIR = "/tmp/bim-uploads"
+os.makedirs(_UPLOADS_DIR, exist_ok=True)
 
 
 def _get_max_file_size_mb() -> int:
@@ -12,11 +18,9 @@ def _get_max_file_size_mb() -> int:
         return 500  # safe default
 
 
-def _get_uploads_dir() -> str:
-    """Get BIM uploads directory, creating it if necessary."""
-    uploads_dir = "/tmp/bim-uploads"
-    os.makedirs(uploads_dir, exist_ok=True)
-    return uploads_dir
+def _validate_file_id(file_id: str) -> None:
+    if not UUID_RE.match(file_id):
+        raise HTTPException(status_code=400, detail="Invalid file_id format")
 
 
 router = APIRouter(prefix="/bim", tags=["bim"])
@@ -40,11 +44,13 @@ async def upload_ifc_file(
 
     # Generate file_id and save to persistent directory
     file_id = str(uuid.uuid4())
-    uploads_dir = _get_uploads_dir()
-    file_path = os.path.join(uploads_dir, f"{file_id}.ifc")
+    file_path = os.path.join(_UPLOADS_DIR, f"{file_id}.ifc")
 
-    with open(file_path, 'wb') as f:
-        f.write(content)
+    try:
+        with open(file_path, 'wb') as f:
+            f.write(content)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {e}")
 
     return JSONResponse(
         content={
@@ -60,8 +66,8 @@ async def upload_ifc_file(
 @router.get("/uploads/{file_id}")
 async def get_upload_info(file_id: str):
     """Get information about an uploaded file."""
-    uploads_dir = _get_uploads_dir()
-    file_path = os.path.join(uploads_dir, f"{file_id}.ifc")
+    _validate_file_id(file_id)
+    file_path = os.path.join(_UPLOADS_DIR, f"{file_id}.ifc")
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
@@ -77,20 +83,14 @@ async def get_upload_info(file_id: str):
 
 @router.delete("/uploads/{file_id}")
 async def delete_upload(file_id: str):
-    """Delete an uploaded file."""
-    uploads_dir = _get_uploads_dir()
-    file_path = os.path.join(uploads_dir, f"{file_id}.ifc")
-
-    if os.path.exists(file_path):
+    """Delete a previously uploaded IFC file."""
+    _validate_file_id(file_id)
+    file_path = os.path.join(_UPLOADS_DIR, f"{file_id}.ifc")
+    try:
         os.unlink(file_path)
-        return JSONResponse(
-            content={"deleted": True}
-        )
-    else:
-        return JSONResponse(
-            content={"deleted": False},
-            status_code=404
-        )
+        return {"deleted": True, "file_id": file_id}
+    except FileNotFoundError:
+        return JSONResponse(status_code=404, content={"deleted": False, "file_id": file_id})
 
 
 @router.get("/health")

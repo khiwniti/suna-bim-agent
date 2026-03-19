@@ -1,0 +1,2010 @@
+{
+  "common": {
+    "appName": "BIM Carbon",
+    "tagline": "AI-Powered Sustainable Construction",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "errorDescription": "An error occurred while loading this page.",
+    "errorId": "Error ID",
+    "success": "Success",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "backToDashboard": "Back to Dashboard",
+    "backToProjects": "Back to Projects",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "close": "Close",
+    "or": "or",
+    "login": "Log In",
+    "signup": "Sign Up",
+    "getStarted": "Get Started",
+    "tryFree": "Try Free",
+    "learnMore": "Learn More",
+    "contactUs": "Contact Us",
+    "viewPricing": "View Pricing",
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "download": "Download",
+    "upload": "Upload",
+    "projectNotFound": "Project not found",
+    "failedToLoadProject": "Failed to load project",
+    "goHome": "Go home",
+    "createAccount": "Create Account",
+    "signInRequired": "Sign In Required",
+    "authRequired": "Authentication Required",
+    "signInToAccess": "Please sign in to access this feature.",
+    "browseFiles": "Browse Files",
+    "openInViewer": "Open in Viewer",
+    "processingFailed": "Processing Failed",
+    "tryAgain": "Try Again",
+    "more": "More",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyToClipboard": "Copy to clipboard",
+    "hide": "Hide",
+    "show": "Show",
+    "remove": "Remove",
+    "dismiss": "Dismiss",
+    "all": "All"
+  },
+  "messageActions": {
+    "regenerate": "Regenerate",
+    "goodResponse": "Good response",
+    "badResponse": "Bad response",
+    "share": "Share",
+    "report": "Report",
+    "thanks": "Thanks!"
+  },
+  "stopButton": {
+    "stopGenerating": "Stop generating"
+  },
+  "webSearch": {
+    "searchingTheWeb": "Searching the web...",
+    "resultsFound": "{{count}} results found",
+    "noResultsFound": "No results found",
+    "noResultsForQuery": "No results found for this query."
+  },
+  "reportExport": {
+    "pdfReport": "PDF Report",
+    "pdfDescription": "Professional report with TGO branding",
+    "excelSpreadsheet": "Excel Spreadsheet",
+    "excelDescription": "Data tables and analysis worksheets",
+    "csvData": "CSV Data",
+    "csvDescription": "Raw data for further analysis",
+    "markdown": "Markdown",
+    "markdownDescription": "Text-based report format",
+    "exportReport": "Export Report"
+  },
+  "navigationControls": {
+    "homeView": "Home View",
+    "viewPresets": "View Presets"
+  },
+  "sectionTool": {
+    "clearAllSections": "Clear All Sections",
+    "clickAxisInstruction": "Click an axis button above to create a section plane",
+    "position": "Position: {{value}}m",
+    "axis": {
+      "x": "X (Red)",
+      "y": "Y (Green)",
+      "z": "Z (Blue)"
+    }
+  },
+  "spatialTree": {
+    "isolate": "Isolate",
+    "copyId": "Copy ID",
+    "zoomTo": "Zoom To"
+  },
+  "materialSelector": {
+    "materialsCount": "Materials ({{count}})",
+    "addMaterial": "Add Material",
+    "noMaterialsSelected": "No materials selected",
+    "clickToGetStarted": "Click \"Add Material\" to get started",
+    "searchMaterials": "Search materials...",
+    "noMaterialsFound": "No materials found",
+    "lowCarbon": "Low Carbon",
+    "moreMaterials": "+{{count}} more materials",
+    "quantityNote": "Quantities are per m² of floor area. Total emissions are calculated by multiplying by the total building area ({{area}} m²).",
+    "categories": {
+      "concrete": "Concrete",
+      "steel": "Steel",
+      "masonry": "Masonry",
+      "timber": "Timber",
+      "glass": "Glass",
+      "insulation": "Insulation",
+      "finishes": "Finishes",
+      "mep": "MEP",
+      "roofing": "Roofing",
+      "waterproofing": "Waterproofing"
+    }
+  },
+  "errorBoundaries": {
+    "viewerError": "3D Viewer Error",
+    "viewerErrorDescription": "The BIM viewer encountered an issue. This could be due to WebGL compatibility, model loading, or a rendering error.",
+    "reloadViewer": "Reload Viewer",
+    "goToDashboard": "Go to Dashboard",
+    "technicalDetails": "Technical Details",
+    "copyErrorDetails": "Copy error details",
+    "calculationError": "Calculation Error",
+    "calculationErrorDescription": "An error occurred during carbon analysis. Your input data has been preserved.",
+    "retryAnalysis": "Retry Analysis",
+    "chatConnectionLost": "Chat Connection Lost",
+    "chatConnectionDescription": "Unable to connect to the AI assistant. Please check your connection and try again.",
+    "reconnect": "Reconnect",
+    "featureUnavailable": "{{feature}} is temporarily unavailable"
+  },
+  "errorPage": {
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has been moved."
+    },
+    "globalError": {
+      "title": "Something went wrong!",
+      "description": "An unexpected error occurred. We've been notified and are working to fix it."
+    }
+  },
+  "mobileNav": {
+    "home": "Home",
+    "calculator": "Calculator",
+    "boqAnalyzer": "BOQ Analyzer",
+    "pricing": "Pricing",
+    "solutions": "Solutions",
+    "forContractors": "For Contractors",
+    "forArchitects": "For Architects",
+    "forDevelopers": "For Developers",
+    "forConsultants": "For Consultants",
+    "blog": "Blog",
+    "boq": "BOQ",
+    "account": "Account"
+  },
+  "layout": {
+    "bimAgent": "BIM Agent",
+    "buildingIntelligence": "Building Intelligence Platform",
+    "demoBuilding": "Demo Building",
+    "chat": "Chat",
+    "analytics": "Analytics",
+    "aiChat": "AI Chat",
+    "analyticsDashboard": "Analytics Dashboard",
+    "analyticsDescription": "Sustainability metrics, energy analysis, and building performance data will appear here.",
+    "backToHome": "Back to home",
+    "modelTree": "Model Tree",
+    "properties": "Properties",
+    "issues": "Issues",
+    "settings": "Settings",
+    "uploadFloorPlan": "Upload Floor Plan"
+  },
+  "floorPlanUpload": {
+    "title": "Upload Floor Plan",
+    "subtitle": "Convert your 2D floor plan to an interactive 3D model",
+    "signInRequired": "Sign In Required",
+    "signInMessage": "Please sign in to upload and analyze floor plans.",
+    "dropHere": "Drop your file here",
+    "dragAndDrop": "Drag and drop your floor plan",
+    "clickToBrowse": "or click to browse files (PNG, JPG, WebP - max 20MB)",
+    "uploading": "Uploading floor plan...",
+    "analyzing": "Analyzing floor plan with AI...",
+    "generating": "Generating 3D model...",
+    "ready": "Ready!",
+    "processingComplete": "Processing complete!",
+    "stages": {
+      "upload": "Upload floor plan",
+      "aiAnalysis": "AI analysis & detection",
+      "generate3D": "Generate 3D model",
+      "readyForAnalysis": "Ready for analysis"
+    },
+    "stats": {
+      "elements": "Elements",
+      "floors": "Floors",
+      "area": "Area",
+      "rating": "Rating"
+    }
+  },
+  "analytics": {
+    "title": "Sustainability Analytics",
+    "rating": "Rating",
+    "noData": "No Analytics Data",
+    "noDataDescription": "Start a conversation with the BIM Agent to analyze your building's sustainability metrics, energy efficiency, and carbon footprint.",
+    "tryAsking": "Try asking:",
+    "suggestions": {
+      "carbonFootprint": "Analyze carbon footprint",
+      "energyEfficiency": "Energy efficiency report",
+      "leedCheck": "LEED certification check"
+    },
+    "poweredByAI": "Powered by AI Analysis",
+    "metrics": {
+      "embodiedCarbon": "Embodied Carbon",
+      "energyIntensity": "Energy Intensity",
+      "buildingFloors": "Building Floors",
+      "totalElements": "Total Elements",
+      "avgFloorArea": "avg"
+    },
+    "spatialAnalysis": "Spatial Analysis",
+    "totalVolume": "Total Volume",
+    "netToGross": "Net-to-Gross",
+    "circulation": "Circulation",
+    "avgFloorHeight": "Avg Floor Height",
+    "carbonBreakdown": "Carbon Breakdown by Material",
+    "elementDistribution": "Element Distribution",
+    "egressCompliance": "Egress Compliance",
+    "occupantLoad": "Occupant Load",
+    "exits": "Exits",
+    "requiredExits": "required",
+    "maxTravel": "Max Travel",
+    "status": "Status",
+    "compliant": "Compliant",
+    "issuesFound": "Issues Found",
+    "recommendations": "Improvement Recommendations",
+    "certifications": "Certification Pathways"
+  },
+  "issues": {
+    "title": "Issues",
+    "newIssue": "New Issue",
+    "noModelLoaded": "No Model Loaded",
+    "loadModelToView": "Load a BIM model to view and create issues",
+    "noIssuesFound": "No Issues Found",
+    "createFirstIssue": "Create your first issue to start tracking problems",
+    "noFilteredIssues": "No {{filter}} issues",
+    "filters": {
+      "all": "All",
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "actions": {
+      "startProgress": "Start Progress",
+      "markResolved": "Mark Resolved",
+      "close": "Close"
+    },
+    "createModal": {
+      "title": "Create New Issue",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Brief issue description",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Detailed description...",
+      "typeLabel": "Type",
+      "priorityLabel": "Priority",
+      "types": {
+        "issue": "Issue",
+        "clash": "Clash",
+        "design": "Design",
+        "compliance": "Compliance",
+        "rfi": "RFI"
+      },
+      "createButton": "Create Issue",
+      "titleRequired": "Title is required"
+    },
+    "meta": {
+      "elements": "elements",
+      "comments": "comments",
+      "by": "by"
+    }
+  },
+  "blog": {
+    "backToHome": "Back to Home",
+    "title": "CarbonBIM Blog",
+    "subtitle": "Insights on sustainable construction, carbon calculation, and green building practices.",
+    "backToBlog": "Back to Blog",
+    "share": "Share",
+    "postNotFound": "Post Not Found"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "defaultMessage": "An unexpected error occurred",
+    "tryAgain": "Try Again"
+  },
+  "chat": {
+    "bimAssistant": "BIM Assistant",
+    "askAboutModel": "Ask about your BIM model...",
+    "attachFile": "Attach file",
+    "stopListening": "Stop listening",
+    "startVoice": "Start voice input",
+    "send": "Send",
+    "thinking": "Thinking",
+    "agentThinking": "Agent thinking",
+    "showWorkflow": "Show workflow",
+    "hideWorkflow": "Hide workflow",
+    "noMessages": "No messages yet",
+    "startConversation": "Start a conversation to analyze your BIM model",
+    "bimAgent": "BIM Agent",
+    "aiPoweredBuildingIntelligence": "AI-powered building intelligence",
+    "signInToStart": "Sign in to start",
+    "elementsSelected": "{{count}} selected",
+    "welcomeToBimAgent": "Welcome to BIM Agent",
+    "welcomeDescription": "I can help you analyze building data, calculate sustainability metrics, and generate quotes.",
+    "suggestionFloorArea": "What's the total floor area?",
+    "suggestionCarbon": "Analyze carbon footprint",
+    "suggestionEnergy": "Show energy efficiency opportunities",
+    "agentActivity": "Agent Activity",
+    "agentWorkflow": "Agent Workflow",
+    "bimIntelligenceAssistant": "BIM Intelligence Assistant",
+    "welcomePrompt": "Ask me about your building model, carbon footprint analysis, cost optimization, or material specifications.",
+    "quickSuggestions": {
+      "carbonAnalysis": "Carbon analysis",
+      "costBreakdown": "Cost breakdown",
+      "materialSpecs": "Material specs"
+    }
+  },
+  "viewer": {
+    "spatialStructure": "Spatial Structure",
+    "modelTree": "Model Tree",
+    "properties": "Properties",
+    "noProperties": "No properties to display",
+    "selectElement": "Select an element to view properties",
+    "sectionPlanes": "Section Planes",
+    "solarSimulator": "Solar Simulator",
+    "error": "Error",
+    "searchPlaceholder": "Search elements...",
+    "searchHierarchy": "Search hierarchy...",
+    "searchElements": "Search elements...",
+    "expandAll": "Expand All",
+    "collapseAll": "Collapse All",
+    "noModelLoaded": "No Model Loaded",
+    "loadIfcToSeeTree": "Load an IFC file to see the model tree",
+    "noSpatialHierarchy": "No spatial hierarchy",
+    "loadBimModelToSeeStructure": "Load a BIM model to see its structure",
+    "spatial": "Spatial",
+    "types": "Types",
+    "materials": "Materials",
+    "identity": "Identity",
+    "name": "Name",
+    "type": "Type",
+    "location": "Location",
+    "level": "Level",
+    "dimensions": "Dimensions",
+    "area": "Area",
+    "volume": "Volume",
+    "length": "Length",
+    "width": "Width",
+    "height": "Height",
+    "carbonAnalysis": "Carbon Analysis",
+    "material": "Material",
+    "carbonFactor": "Carbon Factor",
+    "embodiedCarbon": "Embodied Carbon",
+    "addToCarbonReport": "Add to Carbon Report",
+    "date": "Date",
+    "time": "Time",
+    "stop": "Stop",
+    "animateDay": "Animate Day",
+    "azimuth": "Azimuth",
+    "elevation": "Elevation",
+    "sunBelowHorizon": "Sun is below the horizon",
+    "distanceMode": "Distance Mode",
+    "angleMode": "Angle Mode",
+    "areaMode": "Area Mode",
+    "pointMode": "Point Mode",
+    "points": "Points",
+    "measurement": "measurement",
+    "clearAll": "Clear all",
+    "measurementInstructions": "Click on the model to place measurement points",
+    "bimInspector": "BIM Inspector",
+    "selectElementToInspect": "Select an element in the viewport to view its properties",
+    "elementsSelected": "elements selected",
+    "byType": "By Type",
+    "totals": "Totals",
+    "totalVolume": "Total Volume",
+    "totalArea": "Total Area",
+    "clickToInspect": "Click elements in the viewport to inspect",
+    "category": "Category",
+    "ifcCategory": "IFC Category",
+    "predefinedType": "Predefined Type",
+    "source": "Source",
+    "loading": "Loading...",
+    "fetchingFile": "Fetching file from server",
+    "processingIFC": "Processing IFC geometry",
+    "buildingScene": "Building scene graph",
+    "readyToView": "Ready to view",
+    "uploadBIMModel": "Upload BIM Model",
+    "supportedFormats": "IFC or FRAG files supported"
+  },
+  "elementList": {
+    "title": "Element List",
+    "groupedBy": "Grouped by {{groupBy}}",
+    "allElements": "All elements",
+    "totalElements": "Total Elements",
+    "itemsCount": "{{count}} items",
+    "moreElements": "+{{count}} more elements",
+    "showing": "Showing {{shown}} of {{total}} elements",
+    "elementsCount": "{{count}} elements"
+  },
+  "boqAnalyzer": {
+    "title": "AI BOQ Analyzer",
+    "description": "Extract quantities from 2D drawings and BOQ documents",
+    "dropFile": "Drop your file here",
+    "dragDrop": "Drag & drop your BOQ document",
+    "supportedFormats": "Supports PDF, PNG, JPG (max 50MB, 10 pages)",
+    "converting": "Converting document...",
+    "analyzing": "Analyzing with AI...",
+    "analysisComplete": "Analysis Complete",
+    "foundItems": "Found {{items}} items across {{pages}} pages",
+    "totalCarbon": "Total Carbon",
+    "matchedItems": "Matched Items",
+    "categories": "Categories",
+    "categoryBreakdown": "Category Breakdown",
+    "item": "Item",
+    "itemDescription": "Description",
+    "qty": "Qty",
+    "co2e": "CO2e",
+    "analyzeAnother": "Analyze Another",
+    "exportResults": "Export Results"
+  },
+  "bimToolbar": {
+    "view": "View",
+    "resetView": "Reset View",
+    "fitToView": "Fit to View",
+    "showAll": "Show All",
+    "hideGrid": "Hide Grid",
+    "showGrid": "Show Grid",
+    "select": "Select",
+    "orbit": "Orbit",
+    "measure": "Measure",
+    "distance": "Distance",
+    "angle": "Angle",
+    "area": "Area",
+    "sectionPlanes": "Section Planes",
+    "solarSimulation": "Solar Simulation",
+    "inspector": "Inspector",
+    "views": {
+      "isometric": "Isometric",
+      "top": "Top",
+      "front": "Front",
+      "back": "Back",
+      "left": "Left",
+      "right": "Right"
+    }
+  },
+  "generativeUi": {
+    "carbonFootprint": "Carbon Footprint",
+    "buildingAnalysis": "Building Analysis",
+    "breakdown": "Breakdown",
+    "carbonHotspots": "Carbon Hotspots",
+    "recommendations": "Recommendations",
+    "clashDetection": "Clash Detection",
+    "issuesFound": "Issues found",
+    "noClashesDetected": "No clashes detected",
+    "totalClashes": "Total Clashes",
+    "topIssues": "Top Issues",
+    "shown": "shown",
+    "clashesFound": "{{count}} clashes found",
+    "noClashes": "No clashes",
+    "codeCompliance": "Code Compliance",
+    "allRequirementsMet": "All requirements met",
+    "actionRequired": "Action required",
+    "complianceScore": "Compliance Score",
+    "progress": "Progress",
+    "checksPassed": "checks passed",
+    "passed": "Passed",
+    "warnings": "Warnings",
+    "failed": "Failed",
+    "complianceChecks": "Compliance Checks",
+    "compliant": "Compliant ({{score}}%)",
+    "nonCompliant": "Non-compliant ({{score}}%)",
+    "billOfQuantities": "Bill of Quantities",
+    "itemsAcross": "items across",
+    "categories": "categories",
+    "totalEstimatedCost": "Total Estimated Cost",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unitCost": "Unit Cost",
+    "total": "Total",
+    "clickToExpand": "Click categories to expand details",
+    "exportBOQ": "Export BOQ",
+    "openPanel": "Open Panel →"
+  },
+  "workspacePanel": {
+    "noModelLoaded": "No Model Loaded",
+    "uploadModelForCarbon": "Upload a BIM model to analyze carbon emissions",
+    "noCarbonData": "No carbon data available",
+    "startCarbonCalculation": "Start a carbon calculation in the chat to see results here",
+    "totalCarbonFootprint": "Total Carbon Footprint",
+    "materialBreakdown": "Material Breakdown",
+    "categoryBreakdown": "Category Breakdown",
+    "pieChartAriaLabel": "Pie chart showing carbon emissions by material",
+    "barChartAriaLabel": "Bar chart showing carbon emissions by category",
+    "carbon": "Carbon",
+    "exportPDF": "Export PDF",
+    "exportExcel": "Export Excel",
+    "noBoqData": "No BOQ data available",
+    "startBoqAnalysis": "Start a BOQ analysis in the chat to see results here",
+    "totalProjectCost": "Total Project Cost",
+    "itemsCount": "{{count}} items",
+    "item": "Item",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "unitCost": "Unit Cost",
+    "total": "Total",
+    "noDocumentLoaded": "No document loaded",
+    "generatedReport": "Generated Report",
+    "askAiToGenerate": "Ask the AI to generate a report or document to edit it here",
+    "carbonReportTemplate": "Carbon Report Template",
+    "boqSummaryTemplate": "BOQ Summary Template",
+    "preview": "Preview",
+    "edit": "Edit",
+    "exportAsPDF": "Export as PDF",
+    "writeMarkdown": "Write your document in Markdown...",
+    "documentContentEditor": "Document content editor",
+    "lastModified": "Last modified",
+    "noFloorPlanLoaded": "No floor plan loaded",
+    "uploadFloorPlan": "Upload a floor plan image (PDF, PNG, JPG) in the chat to view it here",
+    "floorPlanControls": "Floor plan controls",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "rotate90": "Rotate 90 degrees",
+    "resetView": "Reset view",
+    "resetViewTitle": "Reset zoom, rotation, and pan",
+    "floorPlanViewerAriaLabel": "Floor plan viewer - drag to pan, scroll to zoom",
+    "annotations": "Annotations",
+    "noClashData": "No clash data available",
+    "runClashDetection": "Run clash detection in the chat to see results here",
+    "clashAnalysis": "Clash Analysis",
+    "clashReport": "Clash Report",
+    "clashesFound": "clashes found",
+    "all": "All",
+    "critical": "Critical",
+    "major": "Major",
+    "minor": "Minor",
+    "resolved": "Resolved",
+    "clashesResolved": "clashes resolved",
+    "remaining": "remaining",
+    "distance": "Distance"
+  },
+  "agentState": {
+    "agentState": "Agent State",
+    "idle": "Idle",
+    "noEventsYet": "No events yet",
+    "active": "Active",
+    "input": "Input",
+    "output": "Output",
+    "task": "Task",
+    "thinking": "Thinking"
+  },
+  "workflow": {
+    "workflow": "Workflow"
+  },
+  "toolVisualizer": {
+    "description": "Description",
+    "qty": "Qty",
+    "amount": "Amount",
+    "moreItems": "+{{count}} more items",
+    "analyzing": "Analyzing...",
+    "analysisFailed": "Analysis failed",
+    "noVisualization": "No visualization available for this tool.",
+    "noOutput": "No output",
+    "noErrors": "No errors"
+  },
+  "streaming": {
+    "pauseStreaming": "Pause streaming",
+    "resumeStreaming": "Resume streaming",
+    "stopStreaming": "Stop streaming",
+    "phases": {
+      "idle": "Idle",
+      "thinking": "Thinking",
+      "reasoning": "Reasoning",
+      "toolCalling": "Calling Tool",
+      "toolExecuting": "Executing",
+      "synthesizing": "Synthesizing",
+      "responding": "Responding",
+      "error": "Error"
+    },
+    "metrics": {
+      "tokensPerSecond": "tok/s",
+      "tokens": "tokens",
+      "secondsRemaining": "~{{seconds}}s remaining"
+    },
+    "aiStatus": "AI is {{phase}}"
+  },
+  "mobileNav": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "floatingChat": {
+    "chatPanel": "Chat panel",
+    "bimIntelligence": "BIM Intelligence",
+    "changeDockPosition": "Change dock position",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "closeChat": "Close chat"
+  },
+  "propertiesPanel": {
+    "properties": "Properties",
+    "closeProperties": "Close properties",
+    "selectElementToView": "Select an element to view properties",
+    "loadingProperties": "Loading properties...",
+    "searchProperties": "Search properties...",
+    "expandAll": "Expand All",
+    "collapseAll": "Collapse All",
+    "noPropertiesMatch": "No properties match \"{{query}}\"",
+    "multiSelectionInfo": "{{count}} elements selected. Showing properties of first element.",
+    "copyValue": "Copy value"
+  },
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "calculator": "Calculator",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "analysis": "Analysis",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "landing": {
+    "hero": {
+      "title": "Calculate Your Project's Carbon Footprint",
+      "titleHighlight": "in Minutes, Not Months",
+      "subtitle": "No consultants. No enterprise software. Just upload your BIM model and get instant carbon analysis with Thai-specific emission factors.",
+      "description": "AI-powered building analysis for sustainable architecture, energy optimization, and smart facility management.",
+      "cta": "Start Free Analysis",
+      "ctaSecondary": "Watch Demo",
+      "badge": "AI-Powered Carbon Analysis for Thai Construction",
+      "inputPlaceholder": "Ask about carbon analysis, material comparisons, or upload your IFC file...",
+      "trustBadges": {
+        "tgoData": "TGO Data",
+        "treesAligned": "TREES Aligned",
+        "bilingualSupport": "Thai & English"
+      },
+      "uploadModel": "Upload IFC/BIM model",
+      "supportedFormats": "IFC, PDF, DWG supported"
+    },
+    "suggestions": {
+      "embodiedCarbon": "Calculate embodied carbon for my building",
+      "compareMaterials": "Compare material carbon footprints",
+      "analyzeIfc": "Analyze IFC model sustainability",
+      "generateReport": "Generate TGO-compliant report"
+    },
+    "stats": {
+      "thaiMaterials": "Thai Materials",
+      "avgAnalysisTime": "Avg Analysis Time",
+      "avgCarbonSavings": "Avg Carbon Savings",
+      "projectsAnalyzed": "Projects Analyzed",
+      "learnMore": "Learn More"
+    },
+    "valueProps": {
+      "minutesNotMonths": {
+        "title": "Minutes, Not Months",
+        "description": "Get accurate carbon estimates instantly. No waiting for consultants or complex software setup.",
+        "highlight": "15-minute analysis"
+      },
+      "thaiMaterials": {
+        "title": "104+ Thai Materials",
+        "description": "Local emission factors from TGO, MTEC, and SCG EPDs. More accurate than international databases.",
+        "highlight": "Thailand-specific data"
+      },
+      "aiOptimization": {
+        "title": "AI Optimization",
+        "description": "Get instant recommendations for low-carbon alternatives with projected savings.",
+        "highlight": "Up to 35% reduction"
+      },
+      "tgoReady": {
+        "title": "TREES & TGO Ready",
+        "description": "Generate compliance reports for Thai green building certifications and carbon reporting.",
+        "highlight": "Export-ready reports"
+      }
+    },
+    "whyChooseUs": {
+      "badge": "Why Choose Us",
+      "title": "Built for",
+      "titleHighlight": "Thai Construction",
+      "subtitle": "The only carbon analysis tool with Thailand-specific emission factors, TGO compliance, and pricing for SMB contractors."
+    },
+    "comparisonSection": {
+      "badge": "Comparison",
+      "title": "Enterprise Features,",
+      "titleHighlight": "SMB Pricing",
+      "subtitle": "Get the same capabilities as expensive consultants at a fraction of the cost.",
+      "featureColumn": "Feature",
+      "usColumn": "BIM Carbon",
+      "othersColumn": "Others",
+      "rows": {
+        "setupTime": { "feature": "Setup Time", "us": "5 minutes", "others": "2-4 weeks" },
+        "monthlyCost": { "feature": "Monthly Cost", "us": "From ฿0", "others": "฿50,000+" },
+        "thaiMaterials": { "feature": "Thai Materials", "us": "104+ items", "others": "Limited" },
+        "aiRecommendations": { "feature": "AI Recommendations", "us": "Included", "others": "Extra cost" },
+        "learningCurve": { "feature": "Learning Curve", "us": "None", "others": "Training required" }
+      }
+    },
+    "features": {
+      "title": "Why Choose BIM Carbon?",
+      "subtitle": "Built specifically for Thai construction industry with local materials and compliance",
+      "thaiDatabase": {
+        "title": "Thai Material Database",
+        "description": "104+ materials with TGO/MTEC emission factors specific to Thailand"
+      },
+      "aiAnalysis": {
+        "title": "AI-Powered Analysis",
+        "description": "Upload floor plans or BIM models for automatic carbon calculation"
+      },
+      "tgoCompliance": {
+        "title": "TGO Compliance",
+        "description": "Generate CFO/CFP reports ready for official certification"
+      },
+      "treesReady": {
+        "title": "TREES Certification",
+        "description": "Automatic TREES credit calculation and documentation"
+      },
+      "optimization": {
+        "title": "AI Recommendations",
+        "description": "Smart suggestions for low-carbon alternatives with cost savings"
+      },
+      "affordable": {
+        "title": "SMB Pricing",
+        "description": "Start free, upgrade when you need - no enterprise pricing"
+      },
+      "floorPlan": {
+        "title": "Floor Plan to 3D",
+        "description": "Upload any floor plan and watch AI transform it into an interactive 3D model in seconds."
+      },
+      "sustainability": {
+        "title": "Sustainability Analysis",
+        "description": "Calculate carbon footprint, material efficiency, and environmental impact with precision."
+      },
+      "energy": {
+        "title": "Energy Simulation",
+        "description": "Run advanced energy simulations to optimize HVAC, lighting, and overall building performance."
+      }
+    },
+    "howItWorks": {
+      "badge": "How it works",
+      "title": "From Upload to Insights in",
+      "titleHighlight": "3 Steps",
+      "subtitle": "No training required. Start analyzing in minutes.",
+      "step1": {
+        "number": "01",
+        "title": "Upload Your Model",
+        "description": "Upload IFC, PDF floor plans, or use our quick calculator. We support all major BIM formats."
+      },
+      "step2": {
+        "number": "02",
+        "title": "AI Analyzes Carbon",
+        "description": "Our AI calculates embodied carbon using Thai emission factors and identifies optimization opportunities."
+      },
+      "step3": {
+        "number": "03",
+        "title": "Get Reports & Recommendations",
+        "description": "Receive TGO-compliant reports, TREES documentation, and actionable low-carbon alternatives."
+      }
+    },
+    "testimonials": {
+      "badge": "Testimonials",
+      "title": "Trusted by",
+      "titleHighlight": "Thai Professionals",
+      "items": {
+        "testimonial1": {
+          "quote": "ประหยัดเวลาทำรายงานคาร์บอนได้มาก เมื่อก่อนต้องจ้างที่ปรึกษา ตอนนี้ทำเองได้ใน 15 นาที",
+          "author": "คุณสมชาย",
+          "role": "Project Manager",
+          "company": "ABC Construction"
+        },
+        "testimonial2": {
+          "quote": "Thai material database is exactly what we needed. International tools always gave us inaccurate estimates.",
+          "author": "Sarah Chen",
+          "role": "Sustainability Lead",
+          "company": "Green Build Co."
+        },
+        "testimonial3": {
+          "quote": "ช่วยให้เราชนะโครงการ Green Building ได้ 3 โครงการในปีนี้",
+          "author": "คุณวิภา",
+          "role": "Owner",
+          "company": "VB Contractors"
+        }
+      }
+    },
+    "ctaSection": {
+      "title": "Start Your Free Carbon Analysis",
+      "subtitle": "Join 500+ Thai construction professionals already using BIM Carbon. No credit card required.",
+      "cta": "Start Free Analysis",
+      "ctaSecondary": "View Pricing"
+    },
+    "comparison": {
+      "title": "How We Compare",
+      "subtitle": "See the difference for yourself",
+      "headers": {
+        "feature": "Feature",
+        "us": "BIM Carbon",
+        "consultants": "Consultants",
+        "enterprise": "Enterprise Software"
+      },
+      "rows": {
+        "price": "Price",
+        "setup": "Setup Time",
+        "thaiData": "Thai Materials",
+        "tgoReports": "TGO Reports",
+        "aiOptimization": "AI Optimization"
+      },
+      "values": {
+        "priceUs": "฿0-9,900/mo",
+        "priceConsultants": "฿50K-200K",
+        "priceEnterprise": "฿50K+/mo",
+        "setupUs": "Instant",
+        "setupConsultants": "2-4 weeks",
+        "setupEnterprise": "1-3 months",
+        "yes": "Yes",
+        "no": "No",
+        "limited": "Limited"
+      }
+    },
+    "testimonials": {
+      "title": "Trusted by Thai Contractors",
+      "subtitle": "Join hundreds of construction professionals using BIM Carbon"
+    },
+    "cta": {
+      "title": "Ready to Reduce Your Carbon Footprint?",
+      "subtitle": "Start analyzing your projects today - no credit card required",
+      "button": "Start Free Analysis",
+      "demo": "Watch demo"
+    }
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Start free, upgrade when you grow. No hidden fees.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlyDiscount": "Save 17%",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "popular": "Most Popular",
+    "getStarted": "Get Started",
+    "contactSales": "Contact Sales",
+    "currentPlan": "Current Plan",
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "description": "Perfect for trying out BIM Carbon",
+        "price": "0",
+        "features": [
+          "3 projects per month",
+          "Basic carbon analysis",
+          "Thai material database",
+          "PDF export",
+          "Email support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For professional contractors and architects",
+        "price": "1,990",
+        "features": [
+          "Unlimited projects",
+          "Advanced AI analysis",
+          "Full Thai database (104+ materials)",
+          "TGO CFO/CFP reports",
+          "TREES certification docs",
+          "AI optimization recommendations",
+          "Priority support",
+          "API access (100 calls/month)"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large firms and developers",
+        "price": "9,900",
+        "features": [
+          "Everything in Pro",
+          "Unlimited team members",
+          "White-label reports",
+          "Custom branding",
+          "Unlimited API access",
+          "Dedicated account manager",
+          "SLA guarantee",
+          "Custom integrations"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Compare vs Traditional Methods",
+      "consultants": {
+        "title": "Carbon Consultants",
+        "price": "฿50,000 - 200,000",
+        "time": "2-4 weeks per project"
+      },
+      "enterprise": {
+        "title": "Enterprise Software",
+        "price": "฿50,000+/month",
+        "time": "1-3 months setup"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "What's included in the free plan?",
+          "answer": "The free plan includes 3 project analyses per month, basic carbon calculations using our Thai material database, and PDF export. It's perfect for trying out the platform."
+        },
+        {
+          "question": "Can I upgrade or downgrade anytime?",
+          "answer": "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate your billing accordingly."
+        },
+        {
+          "question": "Is the Thai material data accurate?",
+          "answer": "Yes, our database includes 104+ materials with emission factors from TGO, MTEC, SCG EPD, and CPAC EPD - all specific to Thailand."
+        },
+        {
+          "question": "Do you support TGO certification?",
+          "answer": "Pro and Enterprise plans include TGO-compliant CFO and CFP report generation ready for official certification submission."
+        },
+        {
+          "question": "What file formats do you accept?",
+          "answer": "We support IFC (BIM), DWG, DXF, PDF floor plans, and Excel BOQ files."
+        },
+        {
+          "question": "Is there a contract or commitment?",
+          "answer": "No contracts required. Pay monthly and cancel anytime. Yearly plans offer 17% discount."
+        }
+      ]
+    }
+  },
+  "calculator": {
+    "title": "Carbon Calculator",
+    "subtitle": "Estimate your project's carbon footprint",
+    "steps": {
+      "building": "Building Type",
+      "materials": "Materials",
+      "results": "Results"
+    },
+    "building": {
+      "type": "Building Type",
+      "selectTitle": "Select Building Type",
+      "selectSubtitle": "Choose your building type to get accurate carbon estimates",
+      "types": {
+        "residential_house": "Residential House",
+        "residential_condo": "Condominium",
+        "office": "Office Building",
+        "retail": "Retail/Commercial",
+        "industrial": "Industrial/Warehouse",
+        "hotel": "Hotel",
+        "hospital": "Hospital/Healthcare",
+        "school": "School/Educational"
+      },
+      "dimensionsTitle": "Building Dimensions",
+      "area": "Floor Area (m²)",
+      "areaPlaceholder": "e.g., 200",
+      "areaUnit": "m²",
+      "floors": "Number of Floors",
+      "totalArea": "Total Area",
+      "estimatedImpact": "Estimated Impact",
+      "estimatedEmissions": "Estimated Emissions",
+      "basedOnBenchmark": "Based on {benchmark} kgCO₂e/m² benchmark",
+      "customizeMaterials": "Customize materials below for accurate results"
+    },
+    "materials": {
+      "title": "Select Materials",
+      "search": "Search materials...",
+      "categories": {
+        "concrete": "Concrete",
+        "steel": "Steel",
+        "masonry": "Masonry",
+        "timber": "Timber",
+        "glass": "Glass",
+        "insulation": "Insulation",
+        "finishes": "Finishes",
+        "mep": "MEP",
+        "roofing": "Roofing",
+        "waterproofing": "Waterproofing"
+      },
+      "quantity": "Quantity",
+      "emissionFactor": "Emission Factor"
+    },
+    "results": {
+      "title": "Carbon Analysis Results",
+      "analysisComplete": "Analysis Complete",
+      "footprintResults": "Carbon Footprint Results",
+      "totalEmissions": "Total Emissions",
+      "carbonIntensity": "Carbon Intensity",
+      "perSquareMeter": "per m²",
+      "vsBenchmark": "vs benchmark",
+      "optimizationPotential": "Optimization Potential",
+      "usingLowCarbon": "Using low-carbon alternatives",
+      "breakdown": "Breakdown by Category",
+      "recommendations": "AI Recommendations",
+      "downloadReport": "Download Report",
+      "startNew": "Start New Analysis",
+      "startOver": "Start Over",
+      "exportReport": "Export Report",
+      "applyOptimizations": "Apply Optimizations",
+      "tonnes": "tonnes CO₂e"
+    },
+    "actions": {
+      "back": "← Back",
+      "calculate": "Calculate Carbon",
+      "reset": "Reset",
+      "download": "Download Report"
+    },
+    "page": {
+      "headerSubtitle": "Thai Material Emission Database",
+      "backToHome": "← Back to Home",
+      "badge": "Powered by TGO & MTEC Data",
+      "heroTitle": "Calculate Your Building's",
+      "heroHighlight": "Carbon Footprint",
+      "heroDescription": "Get accurate embodied carbon estimates using Thailand-specific emission factors. Compare materials and discover low-carbon alternatives instantly.",
+      "dataSources": "Data Sources",
+      "dataSourcesList": {
+        "tgo": "TGO Thailand",
+        "mtec": "MTEC / NSTDA",
+        "scg": "SCG Environmental Product Declarations",
+        "tgbi": "Thai Green Building Institute"
+      },
+      "methodology": "Methodology",
+      "methodologyList": {
+        "en15978": "EN 15978 Life Cycle Assessment",
+        "cradleToGate": "Cradle-to-gate (A1-A3)",
+        "trees": "TREES Certification aligned"
+      },
+      "needMore": "Need More?",
+      "needMoreDescription": "Full BIM integration with IFC/Revit file analysis for professional carbon reports.",
+      "tryFullPlatform": "Try Full Platform →"
+    },
+    "materialBrowser": {
+      "title": "Material Database",
+      "materialsCount": "{filtered} of {total} materials",
+      "searchPlaceholder": "Search materials...",
+      "filters": "Filters",
+      "allCategories": "All Categories",
+      "sortBy": "Sort by",
+      "sortName": "Name",
+      "sortEmission": "Emission",
+      "sortCategory": "Category",
+      "emissionFactor": "Emission Factor",
+      "source": "Source",
+      "dataQuality": "Data Quality",
+      "lowCarbonAlt": "Low-Carbon Alternative",
+      "selectMaterial": "Select",
+      "addMaterial": "Add Material",
+      "viewDetails": "View Details",
+      "noMaterialsFound": "No materials found",
+      "tryAdjusting": "Try adjusting your search or filters",
+      "dataSources": "Data Sources",
+      "lastUpdated": "Last Updated",
+      "local": "Local",
+      "density": "Density",
+      "addToCalculator": "Add to Calculator",
+      "quality": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor",
+        "estimated": "Estimated"
+      }
+    }
+  },
+  "certification": {
+    "dashboard": {
+      "title": "Certification Dashboard",
+      "subtitle": "Sustainability Certification Dashboard",
+      "generateReport": "Generate Report",
+      "exportPdf": "Export PDF"
+    },
+    "summary": {
+      "totalCarbon": "Total Embodied Carbon",
+      "carbonReduction": "Carbon Reduction",
+      "certificationStatus": "Certification Status",
+      "vsBaseline": "vs. baseline",
+      "eligibleGreenLoans": "Eligible for green loans",
+      "notCertified": "Not certified yet",
+      "reviewRecommendations": "Review recommendations below"
+    },
+    "tabs": {
+      "hotspots": "Carbon Hotspots",
+      "recommendations": "Recommendations",
+      "materials": "Material Breakdown"
+    },
+    "hotspots": {
+      "title": "Top Carbon Contributors",
+      "description": "Focus on these items for maximum carbon reduction impact",
+      "ofTotal": "of total",
+      "noData": "No carbon analysis available",
+      "uploadBoq": "Upload BOQ data to see carbon hotspots"
+    },
+    "recommendations": {
+      "title": "Improvement Recommendations",
+      "description": "Actions to improve certification eligibility",
+      "noData": "No recommendations available",
+      "completeAssessment": "Complete certification assessment to get recommendations"
+    },
+    "materials": {
+      "title": "Material Category Breakdown",
+      "description": "Carbon emissions by material type",
+      "noData": "No material breakdown available",
+      "uploadBoq": "Upload BOQ data to see material analysis"
+    },
+    "card": {
+      "progressTo": "Progress to",
+      "carbonReduction": "Carbon Reduction",
+      "baselineCarbon": "Baseline Carbon",
+      "totalPoints": "Total Points",
+      "mrCredits": "MR Credits",
+      "carbonCredits": "Carbon Credits",
+      "estimatedValue": "Estimated Value"
+    },
+    "types": {
+      "edge": "Edge Certificate",
+      "trees": "TREES-NC",
+      "tver": "T-VER Carbon Credit"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your BIM Agent account",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "or": "or",
+      "orContinueWithEmail": "or continue with email"
+    },
+    "signup": {
+      "title": "Create an account",
+      "subtitle": "Start building with AI-powered BIM analysis",
+      "name": "Name (optional)",
+      "namePlaceholder": "John Doe",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "••••••••",
+      "passwordHint": "At least 8 characters with uppercase, lowercase, and a number",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "or": "or",
+      "orContinueWithEmail": "or continue with email",
+      "terms": "By signing up, you agree to our",
+      "termsLink": "Terms of Service",
+      "privacy": "and",
+      "privacyLink": "Privacy Policy",
+      "errors": {
+        "passwordMismatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "passwordWeak": "Password must contain uppercase, lowercase, and a number",
+        "signupFailed": "Signup failed",
+        "oauthFailed": "OAuth signup failed"
+      },
+      "anonymousWarning": {
+        "title": "Create Account to Continue",
+        "description": "To save your work and continue using BIM Agent, please create an account. Any previous anonymous session data will not be saved and all analysis results will be lost."
+      }
+    },
+    "oauth": {
+      "continueWith": "or continue with",
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "guest": {
+      "continueAsGuest": "Continue as Guest",
+      "warningTitle": "Warning: Data Will Not Be Saved",
+      "warningDescription": "As a guest, your work will not be saved. All BIM models, analysis results, and chat history will be lost when you close the browser or session expires.",
+      "cancel": "Cancel",
+      "understand": "I Understand, Continue"
+    },
+    "anonymous": {
+      "warningTitle": "Sign in Required",
+      "warningDescription": "To continue using BIM Agent, please sign in or create an account. Any previous anonymous session data will not be saved and all analysis results will be lost."
+    },
+    "verification": {
+      "title": "Check your email",
+      "description": "We've sent a verification link to",
+      "backToLogin": "Back to login"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "welcomeSubtitle": "Here's an overview of your BIM projects.",
+    "overview": "Overview",
+    "projects": "Projects",
+    "analysis": "Analysis",
+    "settings": "Settings",
+    "recentProjects": "Recent Projects",
+    "quickActions": "Quick Actions",
+    "newProject": "New Project",
+    "newProjectDescription": "Create a new BIM project",
+    "runAnalysis": "Run Analysis",
+    "runAnalysisDescription": "Analyze your BIM models",
+    "settingsDescription": "Configure your account",
+    "uploadFloorPlan": "Upload Floor Plan",
+    "viewAll": "View all",
+    "noProjects": "No projects yet",
+    "noProjectsDescription": "Get started by creating your first project.",
+    "createFirst": "Create your first project to get started",
+    "createProject": "Create Project",
+    "stats": {
+      "totalProjects": "Total Projects",
+      "activeProjects": "Active Projects",
+      "analysesRun": "Analyses Run",
+      "bimModels": "BIM Models",
+      "carbonSaved": "Carbon Saved",
+      "energySaved": "Energy Saved",
+      "carbonReduced": "Carbon Reduced"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Manage your BIM projects and models",
+    "empty": "No projects yet",
+    "emptyDescription": "Get started by creating your first project",
+    "emptyFilterDescription": "Try adjusting your search or filters",
+    "noMatchingProjects": "No matching projects",
+    "create": "Create Project",
+    "back": "Back",
+    "searchPlaceholder": "Search projects...",
+    "deleteConfirm": "Are you sure you want to delete",
+    "updated": "Updated",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "draft": "Draft",
+      "completed": "Completed",
+      "archived": "Archived"
+    },
+    "new": {
+      "title": "Create New Project",
+      "subtitle": "Set up a new BIM project with AI-powered analysis",
+      "detailsTitle": "Project Details",
+      "detailsDescription": "Enter the basic information about your project",
+      "nameLabel": "Project Name",
+      "namePlaceholder": "e.g., Downtown Office Tower",
+      "nameRequired": "Project name is required",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Brief description of the project...",
+      "typeLabel": "Building Type",
+      "typePlaceholder": "Select type...",
+      "locationLabel": "Location",
+      "locationPlaceholder": "e.g., Bangkok, Thailand",
+      "areaLabel": "Total Area (m²)",
+      "areaPlaceholder": "e.g., 5000",
+      "areaInvalid": "Must be a valid number",
+      "floorsLabel": "Number of Floors",
+      "floorsPlaceholder": "e.g., 10",
+      "floorsInvalid": "Must be a positive integer",
+      "cancel": "Cancel",
+      "submit": "Create Project",
+      "submitting": "Creating...",
+      "submitFailed": "Failed to create project"
+    },
+    "types": {
+      "office": "Office",
+      "residential": "Residential",
+      "commercial": "Commercial",
+      "industrial": "Industrial",
+      "healthcare": "Healthcare",
+      "educational": "Educational",
+      "mixed": "Mixed Use",
+      "other": "Other"
+    },
+    "detail": {
+      "overview": "Overview",
+      "models": "3D Models",
+      "analysis": "Analysis",
+      "documents": "Documents",
+      "settings": "Settings"
+    }
+  },
+  "analysis": {
+    "title": "Analysis",
+    "subtitle": "Run AI-powered analysis on your BIM models",
+    "selectProject": "Select Project",
+    "selectProjectDescription": "Choose a project to analyze",
+    "selectProjectPlaceholder": "Select a project...",
+    "noProjectsAvailable": "No projects available",
+    "analysisType": "Analysis Type",
+    "analysisTypeDescription": "Select the type of analysis to run",
+    "recentAnalyses": "Recent Analyses",
+    "recentAnalysesDescription": "View your previous analysis results",
+    "noAnalysesYet": "No analyses yet",
+    "noAnalysesHint": "Run your first analysis to see results here",
+    "runningAnalysis": "Running Analysis...",
+    "run": "Run Analysis",
+    "analysisFailed": "Failed to run analysis. Please try again.",
+    "types": {
+      "spatial": {
+        "name": "Spatial Analysis",
+        "description": "Analyze space utilization, room relationships, and layout efficiency"
+      },
+      "sustainability": {
+        "name": "Sustainability Analysis",
+        "description": "Evaluate environmental impact, material choices, and green building metrics"
+      },
+      "energy": {
+        "name": "Energy Analysis",
+        "description": "Calculate energy consumption, HVAC efficiency, and thermal performance"
+      },
+      "circulation": {
+        "name": "Circulation Analysis",
+        "description": "Analyze traffic flow, egress paths, and accessibility compliance"
+      },
+      "mep": {
+        "name": "MEP Analysis",
+        "description": "Review mechanical, electrical, and plumbing system coordination"
+      },
+      "carbon": "Carbon Analysis"
+    },
+    "results": "Results",
+    "export": "Export Report"
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": "Generate Report",
+    "types": {
+      "cfo": "CFO Report",
+      "cfp": "CFP Report",
+      "trees": "TREES Assessment",
+      "comprehensive": "Comprehensive Report"
+    },
+    "download": "Download",
+    "share": "Share"
+  },
+  "chat": {
+    "title": "CarbonBIM Agent",
+    "subtitle": "AI-powered carbon analysis for Thai construction projects",
+    "placeholder": "Ask about carbon calculations, materials, or BIM analysis...",
+    "send": "Send",
+    "thinking": "Thinking...",
+    "newChat": "New chat",
+    "dismiss": "Dismiss",
+    "enterToSend": "Press Enter to send",
+    "shiftEnterNewline": "Shift+Enter for new line",
+    "analysisComplete": "Analysis complete.",
+    "suggestions": {
+      "title": "Try asking:",
+      "spatial": "Analyze spatial efficiency",
+      "energy": "Calculate energy consumption",
+      "sustainability": "Check sustainability score",
+      "carbon": "Calculate carbon footprint"
+    },
+    "prompts": {
+      "embodiedCarbon": {
+        "title": "Calculate embodied carbon",
+        "prompt": "Calculate the embodied carbon for a 10-story office building with 5000 m² floor area"
+      },
+      "sustainability": {
+        "title": "Sustainability analysis",
+        "prompt": "What are the best strategies to reduce carbon footprint in concrete construction?"
+      },
+      "materialComparison": {
+        "title": "Material comparison",
+        "prompt": "Compare the carbon footprint of steel vs concrete for structural elements"
+      },
+      "bimAnalysis": {
+        "title": "BIM model analysis",
+        "prompt": "How do I upload and analyze an IFC model for carbon calculations?"
+      }
+    },
+    "panel": {
+      "quickActions": "Quick Actions",
+      "placeholderSignedIn": "Ask about your building...",
+      "placeholderSignedOut": "Sign in to start chatting...",
+      "enterToSend": "Press Enter to send",
+      "shortcuts": "shortcuts",
+      "signInRequired": "Sign In Required",
+      "signInMessage": "Please sign in to access the BIM Agent chat and analyze your building data.",
+      "createAccount": "Create Account",
+      "signIn": "Sign In",
+      "signInToSend": "Please sign in to send messages"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and application preferences",
+    "profile": "Profile",
+    "profileDescription": "Manage your personal information",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailDisabledHint": "Email cannot be changed",
+    "saveProfile": "Save Profile",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated successfully",
+    "profileUpdateFailed": "Failed to update profile",
+    "preferences": "Preferences",
+    "preferencesSaved": "Preferences saved successfully",
+    "preferencesSaveFailed": "Failed to save preferences",
+    "savePreferences": "Save Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "notificationsDescription": "Configure how you receive updates",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDescription": "Receive updates via email",
+    "analysisAlerts": "Analysis Alerts",
+    "analysisAlertsDescription": "Get notified when analysis completes",
+    "application": "Application",
+    "applicationDescription": "Customize your experience",
+    "darkMode": "Dark Mode",
+    "darkModeDescription": "Use dark theme throughout the app",
+    "autoSave": "Auto-Save",
+    "autoSaveDescription": "Automatically save changes",
+    "dangerZone": "Danger Zone",
+    "dangerZoneDescription": "Irreversible actions",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDescription": "Permanently delete your account and all data",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteAccountNotImplemented": "Account deletion is not yet implemented",
+    "billing": "Billing",
+    "api": "API Keys"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has been moved.",
+      "action": "Go home"
+    },
+    "serverError": {
+      "title": "Something went wrong",
+      "description": "We're having trouble loading this page. Please try again.",
+      "action": "Try again"
+    },
+    "unauthorized": {
+      "title": "Access denied",
+      "description": "You don't have permission to access this page.",
+      "action": "Go to login"
+    }
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "calculator": "Calculator",
+    "api": "API",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "contact": "Contact",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "guides": "Guides",
+    "support": "Support",
+    "status": "Status",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2025 BIM Carbon. All rights reserved."
+  },
+  "about": {
+    "nav": {
+      "home": "Home",
+      "calculator": "Calculator",
+      "pricing": "Pricing",
+      "signIn": "Sign In",
+      "caseStudies": "Case Studies"
+    },
+    "hero": {
+      "badge": "AI-Powered BIM Analysis",
+      "title": "Building Sustainability",
+      "titleHighlight": "Made Simple",
+      "subtitle": "CarbonBIM empowers Thai construction professionals with AI-driven tools to analyze, reduce, and report embodied carbon in buildings. Meet TGO standards and win green certifications."
+    },
+    "stats": {
+      "projectsAnalyzed": "Projects Analyzed",
+      "avgCarbonReduction": "Avg Carbon Reduction",
+      "companies": "Companies",
+      "avgAnalysisTime": "Avg Analysis Time"
+    },
+    "mission": {
+      "badge": "Our Mission",
+      "title": "Decarbonizing Thai Construction",
+      "description": "We believe sustainable construction should be accessible to every builder in Thailand. Our platform combines cutting-edge AI with local expertise to make carbon analysis fast, accurate, and actionable."
+    },
+    "features": {
+      "badge": "Capabilities",
+      "title": "Powerful Features",
+      "subtitle": "Everything you need to analyze and reduce embodied carbon in your construction projects",
+      "aiPowered": "AI-Powered Analysis",
+      "aiPoweredDesc": "Our multi-agent AI system automatically analyzes your BIM models for carbon hotspots and optimization opportunities",
+      "carbonAnalysis": "Carbon Footprint Calculation",
+      "carbonAnalysisDesc": "Calculate embodied carbon using Thailand's TGO emission factors and local material databases",
+      "clashDetection": "Clash Detection",
+      "clashDetectionDesc": "Automatically detect coordination issues between structural, MEP, and architectural elements",
+      "codeCompliance": "Code Compliance",
+      "codeComplianceDesc": "Verify your designs meet Thai building codes and TREES certification requirements",
+      "visualization3d": "3D Visualization",
+      "visualization3dDesc": "View and interact with your IFC models directly in the browser with our WebGL viewer",
+      "thaiLocalized": "Thai Localized",
+      "thaiLocalizedDesc": "Full Thai language support with local emission factors and construction practices"
+    },
+    "technology": {
+      "badge": "Technology",
+      "title": "Built with Modern Tech",
+      "subtitle": "Enterprise-grade architecture designed for scale and reliability",
+      "nextjs": "Next.js",
+      "nextjsDesc": "React framework for production-grade web applications",
+      "langraph": "LangGraph",
+      "langraphDesc": "Multi-agent AI orchestration for complex analysis tasks",
+      "ifcjs": "IFC.js",
+      "ifcjsDesc": "Open-source BIM toolkit for 3D model processing",
+      "fastapi": "FastAPI",
+      "fastapiDesc": "High-performance Python backend for AI computations"
+    },
+    "trust": {
+      "tgoCertified": "TGO Certified Data",
+      "treesCompliant": "TREES Compliant",
+      "thaiEnglish": "Thai & English",
+      "fastAnalysis": "Fast Analysis"
+    },
+    "cta": {
+      "startFree": "Start Free Trial",
+      "viewCaseStudies": "View Case Studies",
+      "viewPricing": "View Pricing",
+      "title": "Ready to Build Sustainably?",
+      "description": "Join hundreds of Thai construction professionals using CarbonBIM to reduce environmental impact and win green certifications."
+    },
+    "footer": {
+      "copyright": "© 2025 CarbonBIM. Built for Thai construction."
+    }
+  },
+  "caseStudies": {
+    "title": "Case Studies",
+    "subtitle": "Real Results from Thai Construction Leaders",
+    "description": "See how contractors, architects, and developers across Thailand are using BIM Carbon to win projects, reduce costs, and meet sustainability goals.",
+    "readMore": "Read Case Study",
+    "readTime": "min read",
+    "allCaseStudies": "All Case Studies",
+    "keyTakeaways": "Key Takeaways",
+    "challenge": "The Challenge",
+    "solution": "The Solution",
+    "implementation": "Implementation",
+    "outcomes": "The Outcomes",
+    "timeline": "Timeline",
+    "painPoints": "Key Pain Points",
+    "shareStory": "Share",
+    "downloadPdf": "Download PDF",
+    "readyToStart": "Ready to Achieve Similar Results?",
+    "categories": {
+      "smbContractor": "SMB Contractor",
+      "architect": "Architecture Firm",
+      "developer": "Property Developer"
+    },
+    "stats": {
+      "carbonReduction": "Avg Carbon Reduction",
+      "certifications": "TREES Certifications",
+      "projectsAnalyzed": "Projects Analyzed",
+      "greenFinancing": "Green Financing Enabled"
+    },
+    "hero": {
+      "badge": "Success Stories",
+      "title": "Real Results from",
+      "titleHighlight": "Thai Construction Leaders",
+      "verifiedResults": "Verified Results",
+      "realCompanies": "Real Companies",
+      "thaiSuccessStories": "Thai Success Stories"
+    },
+    "featured": {
+      "title": "Featured Case Studies",
+      "subtitle": "Explore how different types of companies are leveraging BIM Carbon to achieve their sustainability and business goals."
+    },
+    "cta": {
+      "title": "Ready to Write Your Success Story?",
+      "description": "Join hundreds of Thai construction professionals achieving their sustainability goals with BIM Carbon.",
+      "startFreeAnalysis": "Start Free Analysis",
+      "viewPricing": "View Pricing",
+      "readMoreCaseStudies": "Read More Case Studies"
+    },
+    "detail": {
+      "allCaseStudies": "All Case Studies",
+      "signIn": "Sign In",
+      "share": "Share",
+      "downloadPdf": "Download PDF",
+      "keyPainPoints": "Key Pain Points",
+      "keyTakeaways": "Key Takeaways",
+      "timeline": "Timeline",
+      "readyTitle": "Ready to Achieve Similar Results?",
+      "readyDescription": "Join {company} and hundreds of other Thai construction professionals using BIM Carbon.",
+      "startFreeAnalysis": "Start Free Analysis"
+    },
+    "nav": {
+      "calculator": "Calculator",
+      "pricing": "Pricing",
+      "signIn": "Sign In",
+      "home": "Home",
+      "contact": "Contact"
+    },
+    "footer": {
+      "copyright": "© 2025 BIM Carbon. Built for Thai Construction."
+    },
+    "studies": {
+      "abcConstruction": {
+        "title": "How ABC Construction Won 3 Green Building Contracts",
+        "subtitle": "A small Thai contractor used BIM Carbon to differentiate from competitors and win ฿45M in green building projects.",
+        "company": "ABC Construction Co., Ltd.",
+        "companyType": "SMB Contractor • 25 employees • Bangkok",
+        "quote": "We used to hire consultants for carbon reports. Now we do it ourselves in 15 minutes. Clients are very impressed.",
+        "quotee": "Khun Somchai Wongprasert",
+        "quoteeRole": "Managing Director, ABC Construction",
+        "results": {
+          "contracts": { "metric": "Green Contracts Won", "value": "In first 6 months" },
+          "projectValue": { "metric": "Project Value", "value": "Total contract value" },
+          "fasterReports": { "metric": "Faster Reports", "value": "Vs traditional methods" }
+        }
+      },
+      "studioVerde": {
+        "title": "Design Optimization: Saving 30% Embodied Carbon",
+        "subtitle": "How Studio Verde used AI recommendations to redesign a 50,000 sqm office building and achieve TREES-NC Gold certification.",
+        "company": "Studio Verde Architects",
+        "companyType": "Architecture Firm • 12 architects • Chiang Mai",
+        "quote": "The AI suggestions showed us alternatives we never considered. We achieved TREES Gold on our first submission.",
+        "quotee": "Khun Naree Suwannapong",
+        "quoteeRole": "Principal Architect, Studio Verde",
+        "results": {
+          "carbonReduction": { "metric": "Carbon Reduction", "value": "vs original design" },
+          "certification": { "metric": "Certification", "value": "First attempt success" },
+          "savings": { "metric": "Material Savings", "value": "Through optimization" }
+        }
+      },
+      "greenHeights": {
+        "title": "Accessing Green Financing with Automated Reports",
+        "subtitle": "Green Heights Development secured ฿500M in green bonds by providing TGO-compliant carbon documentation across 5 projects.",
+        "company": "Green Heights Development",
+        "companyType": "Property Developer • 5 active projects • Bangkok",
+        "quote": "Banks require carbon documentation for green loans. BIM Carbon gave us investor-ready reports in days, not months.",
+        "quotee": "Khun Prasert Charoenwong",
+        "quoteeRole": "CFO, Green Heights Development",
+        "results": {
+          "financing": { "metric": "Green Financing", "value": "Bond issuance secured" },
+          "interest": { "metric": "Lower Interest", "value": "vs conventional loans" },
+          "projects": { "metric": "Projects Certified", "value": "All with TGO reports" }
+        }
+      }
+    }
+  },
+  "boqAnalyzer": {
+    "backToCalculator": "Back to Calculator",
+    "badge": "AI-Powered Analysis",
+    "title": "BOQ Analyzer",
+    "description": "Upload your Bill of Quantities or 2D drawings and let AI extract material quantities for instant carbon footprint calculation.",
+    "features": {
+      "multipleFormats": {
+        "title": "Multiple Formats",
+        "description": "Supports PDF documents, scanned drawings, and image files up to 50MB."
+      },
+      "instantExtraction": {
+        "title": "Instant Extraction",
+        "description": "AI extracts quantities, materials, and units in seconds, not hours."
+      },
+      "thaiMaterials": {
+        "title": "Thai Materials",
+        "description": "Auto-maps to our database of 100+ Thai construction materials."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "steps": {
+        "upload": {
+          "title": "Upload",
+          "description": "Drop your PDF or image file"
+        },
+        "extract": {
+          "title": "Extract",
+          "description": "AI reads quantities & materials"
+        },
+        "map": {
+          "title": "Map",
+          "description": "Match to Thai emission factors"
+        },
+        "calculate": {
+          "title": "Calculate",
+          "description": "Get instant carbon results"
+        }
+      }
+    }
+  },
+  "solutions": {
+    "common": {
+      "startFreeTrial": "Start Free Trial",
+      "viewCaseStudy": "View Case Study",
+      "viewPlans": "View Plans",
+      "viewEnterprisePlans": "View Enterprise Plans",
+      "readyToStart": "Ready to Get Started?",
+      "botGreenFinanceReady": "BOT Green Finance Ready",
+      "esgCompliant": "ESG Compliant",
+      "treesReady": "TREES Ready",
+      "localData": "Local Data",
+      "thaiData": "Thai Data",
+      "backToHome": "Back to Home",
+      "getStarted": "Get Started",
+      "tagline": "Thailand's leading carbon calculation platform for construction",
+      "footerSolutions": "Solutions",
+      "footerResources": "Resources",
+      "footerContact": "Contact",
+      "forContractors": "For Contractors",
+      "forArchitects": "For Architects",
+      "forDevelopers": "For Developers",
+      "forConsultants": "For Consultants",
+      "caseStudies": "Case Studies",
+      "pricing": "Pricing",
+      "freeCalculator": "Free Calculator",
+      "location": "Bangkok, Thailand",
+      "copyright": "© 2025 CarbonBIM. All rights reserved."
+    },
+    "developers": {
+      "badge": "For Property Developers",
+      "title": "Unlock",
+      "titleHighlight": "Green Financing",
+      "subtitle": "Track carbon across your portfolio. Access preferential green loans. Meet ESG requirements with verified, auditable carbon data.",
+      "cta": "Ready to Access Green Financing?",
+      "ctaDescription": "Join leading Thai developers using CarbonBIM for ESG compliance and green finance eligibility.",
+      "portfolioScore": "Portfolio Carbon Score",
+      "projectsTracked": "projects tracked",
+      "belowBenchmark": "below industry benchmark",
+      "greenFinanceEligible": "Green Finance Eligible",
+      "whyTitle": "Why Developers Choose CarbonBIM",
+      "whySubtitle": "Turn sustainability into competitive advantage",
+      "enterpriseFeatures": "Enterprise Features",
+      "benefits": {
+        "greenFinancing": {
+          "title": "Green Financing",
+          "description": "Access preferential loan rates from BOT Green Finance programs with verified carbon data."
+        },
+        "esgReporting": {
+          "title": "ESG Reporting",
+          "description": "Generate investor-ready ESG reports with auditable carbon footprint data."
+        },
+        "portfolioTracking": {
+          "title": "Portfolio Tracking",
+          "description": "Monitor carbon performance across all your developments in one dashboard."
+        },
+        "carbonTargets": {
+          "title": "Carbon Targets",
+          "description": "Set and track carbon reduction goals aligned with Thailand NDC commitments."
+        }
+      },
+      "features": {
+        "portfolioDashboard": {
+          "title": "Portfolio Dashboard",
+          "description": "View carbon metrics across all projects. Compare performance and identify improvement areas."
+        },
+        "investorReports": {
+          "title": "Investor Reports",
+          "description": "Professional reports formatted for investor presentations and annual sustainability reports."
+        },
+        "carbonBenchmarks": {
+          "title": "Carbon Benchmarks",
+          "description": "Compare your projects against industry benchmarks and TREES certification standards."
+        },
+        "dataVerification": {
+          "title": "Data Verification",
+          "description": "TGO-aligned emission factors ensure your carbon data is credible and auditable."
+        }
+      },
+      "stats": {
+        "greenBonds": "Green Bonds in Thailand",
+        "lowerInterest": "Lower Interest Rates",
+        "materialsTracked": "Materials Tracked",
+        "tgoCompliant": "TGO Compliant"
+      },
+      "greenFinanceSection": {
+        "title": "BOT Green Finance Program",
+        "description": "Thailand's Bank of Thailand offers preferential interest rates for green buildings. CarbonBIM provides the verified carbon data required for eligibility.",
+        "lowerInterest": "Lower Interest Rate",
+        "availableFunding": "Available Funding",
+        "compliantReports": "Compliant Reports"
+      }
+    },
+    "contractors": {
+      "badge": "For Construction Contractors",
+      "title": "Win More",
+      "titleHighlight": "Green Contracts",
+      "subtitle": "Calculate your project's carbon footprint in minutes. Generate TGO-compliant reports that help you win green building contracts and meet sustainability requirements.",
+      "cta": "Ready to Win More Green Contracts?",
+      "ctaDescription": "Join hundreds of Thai contractors already using CarbonBIM.",
+      "tryCalculator": "Try Calculator",
+      "viewCaseStudies": "View Case Studies",
+      "noCreditCard": "No credit card required",
+      "freeAnalyses": "5 free analyses",
+      "reportTitle": "Carbon Analysis Report",
+      "readyInMinutes": "Ready in minutes",
+      "whyTitle": "Why Contractors Choose CarbonBIM",
+      "whySubtitle": "Built specifically for Thai construction industry needs",
+      "featuresTitle": "Powerful Features for Contractors",
+      "benefits": {
+        "winContracts": {
+          "title": "Win More Contracts",
+          "description": "Stand out in bids with professional carbon analysis reports that demonstrate environmental responsibility."
+        },
+        "tgoCompliance": {
+          "title": "TGO Compliance",
+          "description": "Generate CFO and CFP reports that meet Thailand Greenhouse Gas Management Organization standards."
+        },
+        "saveTime": {
+          "title": "Save 90% Time",
+          "description": "Calculate carbon footprint in minutes, not weeks. No consultants needed."
+        },
+        "treesReady": {
+          "title": "TREES Ready",
+          "description": "Get benchmarks against TREES certification standards for green building compliance."
+        }
+      },
+      "features": {
+        "instantAnalysis": {
+          "title": "Instant Carbon Analysis",
+          "description": "Upload your IFC model or use our calculator. Get detailed carbon breakdown by material category."
+        },
+        "professionalReports": {
+          "title": "Professional Reports",
+          "description": "Export PDF and Excel reports ready for client presentations and permit applications."
+        },
+        "thaiMaterials": {
+          "title": "Thai Material Database",
+          "description": "105+ materials with TGO emission factors. Accurate data for Thailand market."
+        },
+        "lowCarbonRecs": {
+          "title": "Low-Carbon Recommendations",
+          "description": "AI-powered suggestions to reduce carbon by up to 30% with alternative materials."
+        }
+      },
+      "stats": {
+        "thaiContractors": "Thai Contractors",
+        "timeSaved": "Time Saved",
+        "thaiMaterials": "Thai Materials",
+        "carbonReduction": "Carbon Reduction"
+      },
+      "testimonial": {
+        "quote": "CarbonBIM helped us win a ฿50M green building contract. The carbon report was key to our proposal.",
+        "name": "Somchai K.",
+        "role": "Project Manager, ABC Construction"
+      }
+    },
+    "architects": {
+      "badge": "For Architecture Firms",
+      "title": "Design",
+      "titleHighlight": "Sustainable",
+      "titleEnd": "Buildings",
+      "subtitle": "Analyze carbon impact during the design phase. Make informed material decisions. Create beautiful, sustainable architecture from the very first sketch.",
+      "startFreeTrial": "Start Free Trial",
+      "tryCalculator": "Try Calculator",
+      "trustRevit": "Works with Revit & ArchiCAD",
+      "trustIfc": "IFC 2x3/4 support",
+      "mockup": {
+        "title": "Design Comparison",
+        "subtitle": "Carbon impact analysis",
+        "optionA": "Option A: Concrete",
+        "optionAValue": "450 kgCO2e/m²",
+        "optionB": "Option B: Timber Hybrid",
+        "optionBValue": "280 kgCO2e/m²",
+        "recommended": "✓ Recommended - 38% lower"
+      },
+      "cta": "Ready to Design Sustainably?",
+      "ctaDescription": "Join leading Thai architects creating sustainable buildings with CarbonBIM.",
+      "whyTitle": "Why Architects Choose CarbonBIM",
+      "whySubtitle": "Make sustainability a design advantage",
+      "featuresTitle": "Powerful Tools for Architects",
+      "benefits": {
+        "designAnalysis": {
+          "title": "Design-Phase Analysis",
+          "description": "Evaluate carbon impact before construction begins. Compare design alternatives instantly."
+        },
+        "materialComparison": {
+          "title": "Material Comparisons",
+          "description": "See carbon implications of different material choices side-by-side."
+        },
+        "optimization": {
+          "title": "Optimization Insights",
+          "description": "AI-powered recommendations to reduce carbon by up to 30% without compromising design."
+        },
+        "certifications": {
+          "title": "Green Certifications",
+          "description": "Generate reports for TREES, LEED, and WELL certification submissions."
+        }
+      },
+      "features": {
+        "ifcIntegration": {
+          "title": "IFC Model Integration",
+          "description": "Import directly from Revit, ArchiCAD, or any IFC-compatible software."
+        },
+        "visualDashboard": {
+          "title": "Visual Carbon Dashboard",
+          "description": "Beautiful visualizations that communicate carbon impact to clients."
+        },
+        "lowCarbonAlts": {
+          "title": "Low-Carbon Alternatives",
+          "description": "Discover sustainable material options that maintain your design intent."
+        },
+        "aiAssistant": {
+          "title": "AI Design Assistant",
+          "description": "Ask questions about carbon optimization in natural language."
+        }
+      }
+    },
+    "consultants": {
+      "badge": "For Sustainability Consultants",
+      "title": "Scale Your",
+      "titleHighlight": "Practice",
+      "subtitle": "Complete carbon assessments in minutes, not days. Serve more clients with professional white-label reports powered by TGO-certified data.",
+      "startFreeTrial": "Start Free Trial",
+      "viewProPlans": "View Pro Plans",
+      "trustWhiteLabel": "White-label reports",
+      "trustApi": "API access",
+      "mockup": {
+        "title": "Client Dashboard",
+        "subtitle": "Manage all your projects",
+        "projects": "projects"
+      },
+      "stats": {
+        "timeSaved": "Time Saved",
+        "moreClients": "More Clients",
+        "thaiMaterials": "Thai Materials",
+        "reportTemplates": "Report Templates"
+      },
+      "whyTitle": "Why Consultants Choose CarbonBIM",
+      "whySubtitle": "Tools built for sustainability professionals",
+      "featuresTitle": "Professional Features",
+      "benefits": {
+        "fasterAnalysis": {
+          "title": "10x Faster Analysis",
+          "description": "Complete carbon assessments in minutes instead of days. Serve more clients without adding headcount."
+        },
+        "whiteLabel": {
+          "title": "White-Label Reports",
+          "description": "Professional PDF and Excel reports with your branding. Ready for client delivery."
+        },
+        "clientManagement": {
+          "title": "Client Management",
+          "description": "Organize projects by client. Track multiple assessments across your portfolio."
+        },
+        "tgoCertified": {
+          "title": "TGO Certified Data",
+          "description": "Emission factors from Thailand Greenhouse Gas Management Organization for credible reports."
+        }
+      },
+      "features": {
+        "instantCalcs": {
+          "title": "Instant Calculations",
+          "description": "Upload IFC models or use the calculator. Get detailed carbon breakdown by category."
+        },
+        "reportFormats": {
+          "title": "Multiple Report Formats",
+          "description": "CFO, CFP, and TREES templates. Export to PDF, Excel, or integrate via API."
+        },
+        "optimization": {
+          "title": "Optimization Recommendations",
+          "description": "AI-powered suggestions help clients reduce carbon by up to 30%."
+        },
+        "apiAccess": {
+          "title": "API Access",
+          "description": "Integrate CarbonBIM into your existing tools and workflows with our REST API."
+        }
+      },
+      "workflow": {
+        "title": "Simple Workflow",
+        "subtitle": "From client request to delivered report",
+        "step1": {
+          "title": "Upload Model",
+          "description": "IFC file or use calculator"
+        },
+        "step2": {
+          "title": "Generate Analysis",
+          "description": "Instant carbon breakdown"
+        },
+        "step3": {
+          "title": "Deliver Report",
+          "description": "White-label PDF/Excel"
+        }
+      },
+      "cta": "Ready to Scale Your Practice?",
+      "ctaDescription": "Join consultants across Thailand who are serving more clients with CarbonBIM."
+    }
+  }
+}
