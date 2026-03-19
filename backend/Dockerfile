@@ -27,9 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ifcopenshell and BIM analysis libraries
-RUN uv pip install --system ifcopenshell numpy networkx
-
 # Install Python dependencies
 COPY pyproject.toml uv.lock ./
 ENV UV_LINK_MODE=copy
