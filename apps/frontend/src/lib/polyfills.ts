@@ -18,6 +18,17 @@ if (!Promise.withResolvers) {
   };
 }
 
+// Polyfill for crypto.randomUUID (Node.js <19, older browsers)
+if (typeof crypto !== 'undefined' && !crypto.randomUUID) {
+  crypto.randomUUID = function(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+}
+
 // Suppress specific React warnings from third-party libraries (e.g., Syncfusion)
 // These warnings are harmless but noisy - they come from libraries using deprecated patterns
 if (typeof window !== 'undefined') {
