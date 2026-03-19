@@ -14,8 +14,13 @@ import { I18nProvider } from '@/components/i18n-provider';
 import { featureFlags } from '@/lib/feature-flags';
 
 // Lazy load non-critical analytics and global components
-const Analytics = lazy(() => import('@vercel/analytics/react').then(mod => ({ default: mod.Analytics })));
-const SpeedInsights = lazy(() => import('@vercel/speed-insights/next').then(mod => ({ default: mod.SpeedInsights })));
+// Only load Vercel Analytics if explicitly enabled
+const Analytics = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true' 
+  ? lazy(() => import('@vercel/analytics/react').then(mod => ({ default: mod.Analytics }))) 
+  : () => null;
+const SpeedInsights = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true' 
+  ? lazy(() => import('@vercel/speed-insights/next').then(mod => ({ default: mod.SpeedInsights }))) 
+  : () => null;
 const GoogleTagManager = lazy(() => import('@next/third-parties/google').then(mod => ({ default: mod.GoogleTagManager })));
 const PostHogIdentify = lazy(() => import('@/components/posthog-identify').then(mod => ({ default: mod.PostHogIdentify })));
 const PlanSelectionModal = lazy(() => import('@/components/billing/pricing/plan-selection-modal').then(mod => ({ default: mod.PlanSelectionModal })));
@@ -261,18 +266,22 @@ export default function RootLayout({
               </PresenceProvider>
             </I18nProvider>
           </AuthProvider>
-          {/* Analytics - lazy loaded to not block FCP */}
-          <Suspense fallback={null}>
-            <Analytics />
-          </Suspense>
-          {process.env.NEXT_PUBLIC_GTM_ID && (
-          <Suspense fallback={null}>
-              <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
-          </Suspense>
-          )}
-          <Suspense fallback={null}>
-            <SpeedInsights />
-          </Suspense>
+      {/* Analytics - lazy loaded to not block FCP */}
+      {process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true' && (
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
+      )}
+      {process.env.NEXT_PUBLIC_GTM_ID && (
+        <Suspense fallback={null}>
+          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+        </Suspense>
+      )}
+      {process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true' && (
+        <Suspense fallback={null}>
+          <SpeedInsights />
+        </Suspense>
+      )}
           <Suspense fallback={null}>
             <PostHogIdentify />
           </Suspense>

@@ -40,6 +40,8 @@ const PUBLIC_ROUTES = [
   '/pricing', // Pricing page should be public
   '/tutorials', // Tutorials page should be public
   '/countryerror', // Country restriction error page should be public
+  '/calculator', // Carbon calculator page should be public for SEO
+  '/boq-analyzer', // BOQ analyzer page should be public for SEO
   ...locales.flatMap(locale => MARKETING_ROUTES.map(route => `/${locale}${route === '/' ? '' : route}`)),
 ];
 
