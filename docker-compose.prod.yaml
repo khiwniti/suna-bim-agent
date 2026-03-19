@@ -19,14 +19,11 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      # Redirect HTTP to HTTPS
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      # Use Cloudflare for SSL (Flexible mode - Cloudflare handles SSL)
+      # Cloudflare Flexible SSL: Cloudflare terminates HTTPS externally and
+      # forwards plain HTTP to this origin. Do NOT redirect HTTP→HTTPS here —
+      # that creates an infinite redirect loop through Cloudflare's proxy.
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -72,10 +69,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`carbon-bim.ensimu.space`) && PathPrefix(`/api`, `/v1`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      # Strip /api prefix if needed
+      # Strip /api prefix so FastAPI receives /v1/... paths
       - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.middlewares=strip-api@docker"
     networks:
@@ -100,8 +96,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`carbon-bim.ensimu.space`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       # Frontend has lower priority than backend API routes
       - "traefik.http.routers.frontend.priority=1"
