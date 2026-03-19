@@ -88,13 +88,18 @@ jobs:
           DEPLOY_ENV: ${{ needs.build.outputs.environment }}
           VM_USER: ${{ secrets.AZURE_VM_USERNAME }}
           BRANCH: ${{ github.ref_name }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         with:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USERNAME }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           timeout: 300s
-          envs: DEPLOY_ENV,VM_USER,BRANCH
+          envs: DEPLOY_ENV,VM_USER,BRANCH,DATABASE_URL,SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,SUPABASE_ANON_KEY,ENCRYPTION_KEY
           script: |
             set -e
             echo "🚀 Deploying to Azure VM ($DEPLOY_ENV)..."
@@ -107,12 +112,43 @@ jobs:
             git fetch origin "$BRANCH"
             git reset --hard "origin/$BRANCH"
 
+            # Update backend .env with secrets from GitHub
+            echo "🔐 Updating backend environment variables..."
+            cd backend
+
+            # Create/update .env file with production secrets
+            cat > .env << EOF
+# Encryption key for MCP credentials
+ENCRYPTION_KEY="${ENCRYPTION_KEY}"
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY}"
+SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+SUPABASE_URL="${SUPABASE_URL}"
+
+# Database Connection - Using Supabase Connection Pooler (port 6543) for reliable connectivity
+# Direct PostgreSQL (port 5432) has IPv6 issues in some environments
+DATABASE_URL="${DATABASE_URL}"
+EOF
+
+            cd ..
+
             # Install dependencies and build
             echo "📦 Installing dependencies..."
             pnpm install --frozen-lockfile
 
             echo "🔨 Building frontend..."
             cd apps/frontend
+
+            # Export frontend environment variables for docker-compose build
+            export NEXT_PUBLIC_SUPABASE_URL="${SUPABASE_URL}"
+            export NEXT_PUBLIC_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+            export NEXT_PUBLIC_BACKEND_URL="http://localhost:8000/v1"
+            export NEXT_PUBLIC_URL="https://your-production-domain.com"  # TODO: Update with actual production domain
+            export NEXT_PUBLIC_ENV_MODE="production"
+
             pnpm build
 
             # Restart services
