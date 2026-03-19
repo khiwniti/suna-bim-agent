@@ -46,13 +46,10 @@ services:
       - internal
 
   backend:
-    image: ghcr.io/suna-ai/suna-backend:latest
+    image: ${BACKEND_IMAGE:-ghcr.io/khiwniti/suna-bim-agent-backend}:${IMAGE_TAG:-latest}
     container_name: carbon-bim-backend
     platform: linux/amd64
     restart: unless-stopped
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
     volumes:
       - ./backend/.env:/app/.env:ro
     environment:
@@ -82,15 +79,7 @@ services:
     container_name: carbon-bim-frontend
     restart: unless-stopped
     init: true
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-      args:
-        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://carbon-bim.ensimu.space/api}
-        NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-https://carbon-bim.ensimu.space}
-        NEXT_PUBLIC_ENV_MODE: ${NEXT_PUBLIC_ENV_MODE:-production}
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    image: ${FRONTEND_IMAGE:-ghcr.io/khiwniti/suna-bim-agent-frontend}:${IMAGE_TAG:-latest}
     depends_on:
       - backend
     labels:
