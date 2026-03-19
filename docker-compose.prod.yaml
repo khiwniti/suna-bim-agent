@@ -82,6 +82,8 @@ services:
     image: ${FRONTEND_IMAGE:-ghcr.io/khiwniti/suna-bim-agent-frontend}:${IMAGE_TAG:-latest}
     depends_on:
       - backend
+    environment:
+      - NEXT_PUBLIC_URL=https://carbon-bim.ensimu.space
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`carbon-bim.ensimu.space`)"

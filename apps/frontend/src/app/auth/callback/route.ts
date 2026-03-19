@@ -21,10 +21,13 @@ export async function GET(request: NextRequest) {
   const termsAccepted = searchParams.get('terms_accepted') === 'true'
   const email = searchParams.get('email') || '' // Email passed from magic link redirect URL
 
-  // Use request origin for redirects (most reliable for local dev)
-  // This ensures localhost:3000 redirects stay on localhost, not staging
-  const requestOrigin = request.nextUrl.origin
-  const baseUrl = requestOrigin || process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+  // Determine base URL for redirects.
+  // Priority: 1) NEXT_PUBLIC_URL (baked at build time), 2) x-forwarded-host from reverse proxy,
+  // 3) request origin (fallback for local dev, but returns 0.0.0.0:3000 inside Docker).
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const requestOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : request.nextUrl.origin
+  const baseUrl = process.env.NEXT_PUBLIC_URL || requestOrigin || 'http://localhost:3000'
   const error = searchParams.get('error')
   const errorCode = searchParams.get('error_code')
   const errorDescription = searchParams.get('error_description')
