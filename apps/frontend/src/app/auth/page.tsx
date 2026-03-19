@@ -24,7 +24,9 @@ import { trackSendAuthLink } from '@/lib/analytics/gtm';
 import { backendApi } from '@/lib/api-client';
 
 async function sendOtpCode(email: string): Promise<{ success: boolean; error?: { message: string } }> {
-  const res = await fetch('/api/auth/send-otp', {
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/*$/, '') || '';
+  const endpoint = baseUrl ? `${baseUrl}/v1/auth/send-otp` : '/v1/auth/send-otp';
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
