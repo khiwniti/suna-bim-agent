@@ -154,11 +154,13 @@ jobs:
             # Use production compose with Traefik
             if [ -f "docker-compose.prod.yaml" ]; then
               docker compose -f docker-compose.prod.yaml pull
-              docker compose -f docker-compose.prod.yaml up -d --remove-orphans
+              docker compose -f docker-compose.prod.yaml down --remove-orphans || true
+              docker compose -f docker-compose.prod.yaml up -d
               docker image prune -af --filter "until=24h" || true
             elif [ -f "docker-compose.yaml" ] || [ -f "docker-compose.yml" ]; then
               docker compose pull
-              docker compose up -d --remove-orphans
+              docker compose down --remove-orphans || true
+              docker compose up -d
               docker image prune -af --filter "until=24h" || true
             fi
 
