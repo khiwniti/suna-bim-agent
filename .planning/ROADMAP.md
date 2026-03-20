@@ -10,6 +10,8 @@ Goal: Stable, fully automated deployment with seamless frontend-backend connecti
 - [x] Phase 3: Routing Audit & Bug Fixes (completed 2026-03-20)
 - [x] Phase 4: End-to-end testing (completed 2026-03-20)
 - [x] Phase 5: Auth flow hardening (completed 2026-03-20)
+- [x] Phase 10: bim-agent-service (completed 2026-03-20)
+- [x] Phase 11: Migrate theme and styles (completed 2026-03-20)
 
 ### Phase 1: Azure ACA Deployment
 
