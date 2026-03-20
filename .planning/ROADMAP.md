@@ -54,7 +54,9 @@ Plans:
 **Goal:** Playwright E2E test suite covering auth flow, dashboard smoke, and API routing regressions; CI gate blocks deploy on failure
 **Status:** ✅ Complete
 **Depends on:** Phase 3
-**Plans:** 0/1 plans complete
+**Plans:** 0/1 plans
+
+**Status:** ✅ Complete
 
 Plans:
 - [x] TBD (run /gsd-plan-phase 4 to break down) (completed 2026-03-20)
@@ -64,20 +66,41 @@ Plans:
 **Goal:** Rate-limit OTP endpoint (3/60s → 429), block open-redirect in returnUrl, add E2E coverage for hardening
 **Status:** ✅ Complete
 **Depends on:** Phase 4
-**Plans:** 0/1 plans complete
+**Plans:** 0/1 plans
+
+**Status:** ✅ Complete
 
 Plans:
 - [x] TBD (run /gsd-plan-phase 5 to break down) (completed 2026-03-20)
 
 ### Phase 10: bim-agent-service
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 9
-**Plans:** 0 plans
+**Goal:** Specialized Embodied Carbon Analyst agent — Thai TGO emission factors, EN 15978 lifecycle accounting, TREES certification rating, and design optimization roadmap.
+**Requirements**: Enhanced `carbon_tool.py` + new `EmbodiedCarbonServiceTool` + specialized agent system prompt + REST API endpoints
+**Depends on:** Phase 6
+**Plans:** 1 plan
+
+**Status:** ✅ Complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 10 to break down)
+- [x] Implement embodied carbon specialist service (completed 2026-03-20)
+  - Enhanced `backend/core/tools/bim/carbon_tool.py`: TGO factors, EN 15978 stages, `optimize_carbon`, `calculate_carbon_lifecycle`
+  - Created `backend/core/tools/bim/embodied_carbon_service.py`: `EmbodiedCarbonServiceTool` with 4 tools
+  - Created `backend/core/agents/embodied_carbon_prompt.py`: Embodied Carbon Analyst system prompt
+  - Created `backend/core/bim/carbon_agent_api.py`: REST API `/bim/carbon-agent/{analyze,optimize,benchmark,factors}`
+  - Registered `bim_embodied_carbon_service_tool` in `tool_registry.py`
+  - Registered router in `api.py`
+
+### Phase 11: Migrate theme and styles from src.zip to project
+
+**Goal:** Full theme migration from src.zip to project
+**Requirements**: globals.css update + TypeScript theme tokens
+**Depends on:** Phase 10
+**Status:** ✅ Complete
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] Migrate hex color system + utility classes + TypeScript tokens (completed 2026-03-20)
 
 ---
 
@@ -86,43 +109,47 @@ Plans:
 Goal: Deliver a polished, interactive BIM 3D viewer with element selection, carbon data overlay, clash highlighting, and smooth UX.
 
 **Progress:**
-- [ ] Phase 6: IFC model loading & performance
-- [ ] Phase 7: Element selection & property panel
-- [ ] Phase 8: Carbon data overlay in viewer
-- [ ] Phase 9: Clash & compliance highlighting
+- [x] Phase 6: IFC model loading & performance (completed 2026-03-20)
+- [x] Phase 7: Element selection & property panel (completed 2026-03-20)
+- [x] Phase 8: Carbon data overlay in viewer (completed 2026-03-20)
+- [x] Phase 9: Clash & compliance highlighting (completed 2026-03-20)
 
 ### Phase 6: IFC model loading & performance
 
 **Goal:** Robust IFC loading in BIMViewer with progress feedback, error states, and performance optimisation (streaming, LOD, worker offload)
 **Depends on:** —
-**Plans:** 0 plans
+**Status:** ✅ Complete
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 6 to break down)
+- [x] IFC model loading with progress feedback, error states, retry (completed 2026-03-20)
 
 ### Phase 7: Element selection & property panel
 
 **Goal:** Click/hover element selection in 3D view triggers a property panel showing IFC metadata, material, and cost breakdown
 **Depends on:** Phase 6
-**Plans:** 0 plans
+**Status:** ✅ Complete
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+- [x] Element click selection + ElementPropertyPanel overlay (completed 2026-03-20)
 
 ### Phase 8: Carbon data overlay in viewer
 
 **Goal:** Colour-code 3D elements by embodied-carbon intensity; legend panel with total/element-level CO₂ values from backend carbon tool
 **Depends on:** Phase 7
-**Plans:** 0 plans
+**Status:** ✅ Complete
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 8 to break down)
+- [x] Carbon intensity heat-map coloring + legend panel (completed 2026-03-20)
 
 ### Phase 9: Clash & compliance highlighting
 
 **Goal:** Highlight clashing elements (red) and non-compliant elements (yellow) from backend clash/compliance tools directly in the 3D viewer
 **Depends on:** Phase 8
-**Plans:** 0 plans
+**Status:** ✅ Complete
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 9 to break down)
+- [x] Clash & compliance 3D element highlighting (completed 2026-03-20)
