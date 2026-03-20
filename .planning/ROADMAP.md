@@ -69,6 +69,16 @@ Plans:
 Plans:
 - [x] TBD (run /gsd-plan-phase 5 to break down) (completed 2026-03-20)
 
+### Phase 10: bim-agent-service
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 9
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
+
 ---
 
 ## Milestone 2: BIM 3D Viewer Improvements
