@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 import type * as OBC from '@thatopen/components';
 import type * as OBCF from '@thatopen/components-front';
@@ -17,6 +18,8 @@ interface BIMViewerProps {
   onElementSelect?: (expressId: number) => void;
 }
 
+type LoadPhase = 'download' | 'process' | 'done';
+
 export default function BIMViewer({
   modelUrl,
   selectedElements = [],
@@ -30,7 +33,10 @@ export default function BIMViewer({
   // Fix 2: store highlighter instance for external highlight/selection application
   const highlighterRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadPhase, setLoadPhase] = useState<LoadPhase>('download');
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Fix 1: keep ref in sync with the latest prop value
   useEffect(() => {
@@ -47,6 +53,10 @@ export default function BIMViewer({
   useEffect(() => {
     if (!containerRef.current) return;
     let mounted = true;
+    setError(null);
+    setLoading(true);
+    setLoadPhase('download');
+    setDownloadProgress(null);
 
     async function initViewer() {
       try {
@@ -93,10 +103,47 @@ export default function BIMViewer({
         // Fix 3: guard after fetch
         if (!mounted) { components.dispose?.(); return; }
 
-        const buffer = await response.arrayBuffer();
-        // Fix 3: guard after arrayBuffer read
+        // Stream download with progress tracking
+        const contentLength = response.headers.get('Content-Length');
+        const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
+
+        let data: Uint8Array;
+        if (response.body && totalBytes) {
+          const reader = response.body.getReader();
+          const chunks: Uint8Array[] = [];
+          let loadedBytes = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (!mounted) { components.dispose?.(); return; }
+            if (done) break;
+            chunks.push(value);
+            loadedBytes += value.byteLength;
+            setDownloadProgress(Math.round((loadedBytes / totalBytes) * 100));
+          }
+
+          // Merge chunks into single Uint8Array
+          const merged = new Uint8Array(loadedBytes);
+          let offset = 0;
+          for (const chunk of chunks) {
+            merged.set(chunk, offset);
+            offset += chunk.byteLength;
+          }
+          data = merged;
+        } else {
+          // Fallback: no Content-Length or no body stream — indeterminate progress
+          const buffer = await response.arrayBuffer();
+          if (!mounted) { components.dispose?.(); return; }
+          data = new Uint8Array(buffer);
+        }
+
+        // Switch to process phase
+        if (mounted) {
+          setLoadPhase('process');
+          setDownloadProgress(null);
+        }
         if (!mounted) { components.dispose?.(); return; }
-        const data = new Uint8Array(buffer);
+
         const model = await fragmentIfcLoader.load(data);
         // Fix 3: guard after model load
         if (!mounted) { components.dispose?.(); return; }
@@ -120,7 +167,10 @@ export default function BIMViewer({
           }
         });
 
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoadPhase('done');
+          setLoading(false);
+        }
       } catch (err) {
         console.error('BIM Viewer error:', err);
         if (mounted) {
@@ -135,14 +185,24 @@ export default function BIMViewer({
       mounted = false;
       componentsRef.current?.dispose?.();
     };
-  }, [modelUrl]);
+  }, [modelUrl, retryKey]);
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center text-destructive text-sm">
-          <p className="font-medium">โหลดโมเดลไม่สำเร็จ</p>
-          <p className="text-xs opacity-70 mt-1">{error}</p>
+        <div className="text-center space-y-3">
+          <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+          <div className="text-sm">
+            <p className="font-medium text-destructive">Failed to load model</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">{error}</p>
+          </div>
+          <button
+            onClick={() => setRetryKey(k => k + 1)}
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -153,9 +213,27 @@ export default function BIMViewer({
       <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="text-center space-y-2">
-            <div className="animate-spin h-7 w-7 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-            <p className="text-xs text-muted-foreground">กำลังโหลดโมเดล IFC...</p>
+          <div className="text-center space-y-3 w-48">
+            {loadPhase === 'download' && downloadProgress !== null ? (
+              <>
+                <div className="w-full bg-muted rounded-full h-1.5">
+                  <div
+                    className="bg-primary h-1.5 rounded-full transition-all duration-150"
+                    style={{ width: `${downloadProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Downloading… {downloadProgress}%
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="animate-spin h-7 w-7 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+                <p className="text-xs text-muted-foreground">
+                  {loadPhase === 'process' ? 'Processing model…' : 'Loading IFC model…'}
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
