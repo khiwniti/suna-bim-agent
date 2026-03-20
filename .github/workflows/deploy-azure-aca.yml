@@ -102,12 +102,60 @@ jobs:
           cache-to:   type=registry,ref=${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-frontend:cache,mode=max
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 2. Deploy — SSH into Azure VM to run `az containerapp update`
+  # 2. E2E Tests — run Playwright against Next.js dev server
+  #    Blocks deploy on failure. Set E2E_TEST_EMAIL secret for auth smoke test.
+  # ──────────────────────────────────────────────────────────────────────────
+  test:
+    name: E2E Tests
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: apps/frontend/pnpm-lock.yaml
+
+      - name: Install frontend deps
+        working-directory: apps/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: apps/frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: apps/frontend
+        env:
+          BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL:     ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_BACKEND_URL:       ${{ env.BACKEND_URL }}/v1
+          NEXT_PUBLIC_URL:               http://localhost:3000
+        run: pnpm test:e2e --project=chromium
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: apps/frontend/playwright-report/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Deploy — SSH into Azure VM to run `az containerapp update`
   #    (VM already has az CLI authenticated — no service principal needed)
   # ──────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to ACA via VM
-    needs: build
+    needs: [build, test]
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
