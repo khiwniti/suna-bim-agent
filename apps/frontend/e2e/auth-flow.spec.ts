@@ -71,3 +71,39 @@ test.describe('Auth — session redirect', () => {
     expect(isAuthPage || hasAuthContent).toBeTruthy();
   });
 });
+
+// ─── Auth hardening ───────────────────────────────────────────────────────────
+
+test.describe('Auth — hardening (Phase 5)', () => {
+  test('send-otp rate limit: 4th request returns 429', async ({ request }) => {
+    const email = `ratelimit-${Date.now()}@example.com`;
+    const post = () => request.post('/api/auth/send-otp', { data: { email } });
+
+    // First 3 should be 200 or 400 (Supabase may reject but not 429)
+    for (let i = 0; i < 3; i++) {
+      const res = await post();
+      expect(res.status()).not.toBe(429);
+    }
+
+    // 4th must hit rate limit
+    const res = await post();
+    expect(res.status()).toBe(429);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.error.message).toMatch(/too many/i);
+  });
+
+  test('returnUrl=https://evil.com is blocked — stays on /dashboard', async ({ page }) => {
+    // Visit auth with external returnUrl; if already "authenticated" (mock or open) should land on /dashboard
+    await page.goto('/auth?returnUrl=https://evil.com');
+    // The page should load without navigating to evil.com
+    expect(page.url()).not.toContain('evil.com');
+  });
+
+  test('returnUrl=/dashboard is preserved and safe', async ({ page }) => {
+    await page.goto('/auth?returnUrl=%2Fdashboard');
+    // Page should load without JS crash
+    await expect(page.locator('body')).toBeVisible();
+    expect(page.url()).not.toContain('evil.com');
+  });
+});

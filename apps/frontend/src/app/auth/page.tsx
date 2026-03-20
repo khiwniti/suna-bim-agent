@@ -44,7 +44,9 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
   const mode = searchParams.get('mode');
-  const returnUrl = searchParams.get('returnUrl') || searchParams.get('redirect');
+  const returnUrlRaw = searchParams.get('returnUrl') || searchParams.get('redirect');
+  // Open-redirect guard: only allow same-origin paths
+  const returnUrl = returnUrlRaw && returnUrlRaw.startsWith('/') ? returnUrlRaw : null;
   const message = searchParams.get('message');
   const isExpired = searchParams.get('expired') === 'true';
   const expiredEmail = searchParams.get('email') || '';
