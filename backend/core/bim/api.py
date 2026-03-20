@@ -1,9 +1,15 @@
 """BIM-specific API endpoints."""
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
+import base64
+import json
 import os
 import re
+import time
 import uuid
+
+import litellm
+from fastapi import APIRouter, Form, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
+from typing import List
 
 
 UUID_RE = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
@@ -101,3 +107,100 @@ async def bim_health():
         return {"status": "ok", "bim_tools": "available"}
     except ImportError as e:
         return {"status": "degraded", "reason": str(e)}
+
+
+@router.post("/boq/analyze")
+async def analyze_boq(pageImages: List[str] = Form(...)):
+    """Analyze a Bill of Quantities document from page images using AI vision."""
+    if not pageImages:
+        raise HTTPException(status_code=400, detail="No page images provided")
+    if len(pageImages) > 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 pages allowed")
+
+    model = os.environ.get("BOQ_ANALYSIS_MODEL", "anthropic/claude-3-5-sonnet-20241022")
+
+    content = [
+        {
+            "type": "text",
+            "text": (
+                "You are a BOQ (Bill of Quantities) extraction specialist for construction projects. "
+                "Analyze the provided document pages and extract all BOQ line items. "
+                "Return a JSON object with this exact structure:\n"
+                "{\n"
+                '  "summary": {\n'
+                '    "totalItems": <number>,\n'
+                '    "matchedItems": <number>,\n'
+                '    "totalCarbon": <kgCO2e float>,\n'
+                '    "categories": [{"category": str, "count": int, "carbon": float, "percentage": float}],\n'
+                '    "totalCost": <float or null>,\n'
+                '    "currency": <str or null>\n'
+                "  },\n"
+                '  "items": [\n'
+                "    {\n"
+                '      "id": <uuid string>,\n'
+                '      "itemNumber": <str>,\n'
+                '      "description": <str>,\n'
+                '      "quantity": <float>,\n'
+                '      "unit": <str>,\n'
+                '      "category": <str>,\n'
+                '      "unitRate": <float or null>,\n'
+                '      "amount": <float or null>,\n'
+                '      "carbonFootprint": {"total": <float>, "embodied": <float or null>},\n'
+                '      "confidence": <0.0-1.0>,\n'
+                '      "matched": <bool>\n'
+                "    }\n"
+                "  ],\n"
+                '  "metadata": {\n'
+                '    "pageCount": <int>,\n'
+                '    "analyzedAt": <ISO timestamp>,\n'
+                '    "modelUsed": <str>,\n'
+                '    "language": <str>\n'
+                "  },\n"
+                '  "warnings": [<str>]\n'
+                "}\n"
+                "Use standard Thai/international construction material carbon factors where possible. "
+                "For unknown materials, estimate based on material category. Return ONLY valid JSON."
+            ),
+        }
+    ]
+
+    for i, img_data in enumerate(pageImages[:20]):
+        if img_data.startswith("data:"):
+            media_type, b64 = img_data.split(",", 1)
+            mime = media_type.split(";")[0].replace("data:", "")
+        else:
+            mime = "image/jpeg"
+            b64 = img_data
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:{mime};base64,{b64}"},
+        })
+
+    start = time.monotonic()
+    try:
+        response = await litellm.acompletion(
+            model=model,
+            messages=[{"role": "user", "content": content}],
+            max_tokens=4096,
+            temperature=0.1,
+        )
+        raw = response.choices[0].message.content or "{}"
+        # Strip markdown code fences if present
+        raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
+        result = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=502, detail=f"AI returned invalid JSON: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"AI analysis failed: {str(e)[:200]}")
+
+    duration_ms = int((time.monotonic() - start) * 1000)
+    if "metadata" not in result:
+        result["metadata"] = {}
+    result["metadata"].update({
+        "pageCount": len(pageImages),
+        "analyzedAt": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "processingTime": duration_ms,
+        "modelUsed": model,
+    })
+
+    return result

@@ -109,15 +109,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${roobert.variable} ${roobertMono.variable}`}>
       <head>
-        {/* Preload critical fonts for faster FCP - local fonts need crossOrigin for CORS */}
-        <link
-          rel="preload"
-          href="/fonts/roobert/RoobertUprightsVF.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        
+        {/* next/font/local (roobert.ts) handles font preloading automatically via Next.js — no manual preload needed */}
+
         {/* DNS prefetch for analytics (loaded later but resolve DNS early) */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://eu.i.posthog.com" />
