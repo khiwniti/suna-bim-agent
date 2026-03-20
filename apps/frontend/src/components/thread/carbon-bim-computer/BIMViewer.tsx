@@ -28,6 +28,8 @@ export default function BIMViewer({
 }: BIMViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const componentsRef = useRef<InstanceType<typeof OBC.Components> | null>(null);
+  // Store the world so ResizeObserver can call resize()
+  const worldRef = useRef<any>(null);
   // Fix 1: store callback in ref to avoid stale closure
   const onElementSelectRef = useRef(onElementSelect);
   // Fix 2: store highlighter instance for external highlight/selection application
@@ -49,6 +51,42 @@ export default function BIMViewer({
     // TODO: OBC highlighter.highlightByID requires fragment IDs mapped from express IDs.
     // A full implementation needs the loaded model's fragmentMap. Stored for future use.
   }, [selectedElements, highlights]);
+
+  // Window resize fix: watch the container with ResizeObserver and tell the
+  // Three.js renderer to update its size. Without this the WebGL canvas stays
+  // at the dimensions it had when the model first loaded, causing a blank/wrong
+  // viewport whenever the AppWindow is dragged or resized.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(() => {
+      const world = worldRef.current;
+      if (!world) return;
+      try {
+        // @thatopen/components-front renderer exposes resize() on the world renderer
+        if (typeof world.renderer?.resize === 'function') {
+          world.renderer.resize();
+        } else if (world.renderer?.three) {
+          // Fallback: call Three.js WebGLRenderer.setSize directly
+          const { clientWidth: w, clientHeight: h } = container;
+          world.renderer.three.setSize(w, h);
+          if (typeof world.camera?.updateAspect === 'function') {
+            world.camera.updateAspect();
+          } else if (world.camera?.three) {
+            (world.camera.three as any).aspect = w / h;
+            world.camera.three.updateProjectionMatrix?.();
+          }
+        }
+      } catch {
+        // Silently ignore — world may have been disposed
+      }
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -81,6 +119,9 @@ export default function BIMViewer({
         world.scene = new OBCMod.SimpleScene(components);
         world.renderer = new OBCFMod.PostproductionRenderer(components, containerRef.current!);
         world.camera = new OBCMod.OrthoPerspectiveCamera(components);
+
+        // Store world in ref so ResizeObserver can call world.renderer.resize()
+        worldRef.current = world;
 
         await world.camera.controls.setLookAt(10, 10, 10, 0, 0, 0);
         // Fix 3: guard after async camera setup
@@ -183,6 +224,7 @@ export default function BIMViewer({
     initViewer();
     return () => {
       mounted = false;
+      worldRef.current = null;
       componentsRef.current?.dispose?.();
     };
   }, [modelUrl, retryKey]);
@@ -209,8 +251,11 @@ export default function BIMViewer({
   }
 
   return (
-    <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />
+    <div className="relative h-full w-full overflow-hidden">
+      {/* overflow-hidden prevents the Three.js canvas from bleeding outside the
+          AppWindow boundary. minHeight ensures a usable viewport even in
+          non-flex parents, but doesn't override parent flex h-full. */}
+      <div ref={containerRef} className="h-full w-full" style={{ minHeight: 300 }} />
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
           <div className="text-center space-y-3 w-48">
