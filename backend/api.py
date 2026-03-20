@@ -2,6 +2,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Initialize Sentry error tracking BEFORE other imports
+# This ensures all errors are captured, including import-time errors
+from core.monitoring import init_sentry
+init_sentry()
+
 from fastapi import FastAPI, Request, HTTPException, Response, Depends, APIRouter, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -502,14 +507,23 @@ api_router.include_router(stateless_admin_router)
 api_router.include_router(auth_api.router)
 
 from core.bim.api import router as bim_router
+from core.bim.carbon_agent_api import router as carbon_agent_router
 
 api_router.include_router(bim_router)
+api_router.include_router(carbon_agent_router)
 
 
 @api_router.get(
     "/health", summary="Health Check", operation_id="health_check", tags=["system"]
 )
-async def health_check():
+async def health_check(detailed: bool = Query(False, description="Include detailed connectivity checks")):
+    """
+    Health check endpoint with optional detailed connectivity verification.
+
+    Query Parameters:
+    - detailed: If true, includes database, Redis, and storage connectivity checks
+                If false, returns simple ok/shutting_down status (default)
+    """
     logger.debug("Health check endpoint called")
 
     # During shutdown, return unhealthy status
@@ -527,11 +541,33 @@ async def health_check():
             },
         )
 
-    return {
-        "status": "ok",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "instance_id": instance_id,
-    }
+    # Simple health check (default) - fast for K8s probes
+    if not detailed:
+        return {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "instance_id": instance_id,
+        }
+
+    # Detailed health check - includes connectivity verification
+    from core.monitoring import get_comprehensive_health, HealthStatus
+
+    health_data = await get_comprehensive_health(
+        db=db,
+        instance_id=instance_id,
+        include_storage=False,  # Storage check is optional and slower
+    )
+
+    # Return appropriate status code based on overall health
+    if health_data["overall_status"] == HealthStatus.UNHEALTHY:
+        raise HTTPException(status_code=503, detail=health_data)
+    elif health_data["overall_status"] == HealthStatus.DEGRADED:
+        # Return 200 but indicate degraded state
+        health_data["status"] = "degraded"
+        return health_data
+    else:
+        health_data["status"] = "ok"
+        return health_data
 
 
 @api_router.post(
