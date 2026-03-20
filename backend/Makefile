@@ -20,7 +20,7 @@ test-imports:
 
 ## Install optional BIM packages (ifcopenshell, etc.)
 install-bim:
-	uv pip install ifcopenshell numpy networkx ladybug-core
+	uv sync --extra bim
 
 ## Run BIM-specific tests
 test-bim:

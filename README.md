@@ -63,6 +63,12 @@ pnpm install
 # Install Python dependencies (in backend directory)
 cd backend
 uv sync
+
+# Optional: Install BIM analysis dependencies (ifcopenshell, numpy, etc.)
+# Required for IFC parsing, carbon calculation, clash detection
+uv sync --extra bim
+# OR use the convenience command:
+make install-bim
 ```
 
 ### 3️⃣ Configure Environment

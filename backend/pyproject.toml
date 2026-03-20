@@ -103,10 +103,16 @@ dependencies = [
   "psycopg[binary]>=3.3.2",
   "sqlalchemy>=2.0.45",
   "greenlet>=3.3.0",
-  # BIM analysis — IFC parsing and geometry
-  "ifcopenshell>=0.7.0",
-  "numpy>=1.24.0",
-  "networkx>=3.0",
+]
+
+[project.optional-dependencies]
+# BIM analysis tools — IFC parsing, geometry, and carbon calculation
+# Install with: uv sync --extra bim
+bim = [
+  "ifcopenshell>=0.7.0",     # IFC file parsing and BIM data extraction
+  "numpy>=1.24.0",           # Numerical operations for geometry calculations
+  "networkx>=3.0",           # Graph analysis for BIM relationships
+  "ladybug-core>=0.41.0",    # Environmental analysis and energy modeling
 ]
 
 [project.urls]

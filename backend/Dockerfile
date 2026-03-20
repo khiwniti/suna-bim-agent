@@ -27,10 +27,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies (including BIM extras for production)
 COPY pyproject.toml uv.lock ./
 ENV UV_LINK_MODE=copy
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --extra bim
 
 # Copy application code
 COPY . .
