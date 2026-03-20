@@ -29,26 +29,33 @@ test.describe('Auth — OTP flow', () => {
     await expect(page.locator('button[type="submit"], button:has-text("Send"), button:has-text("Continue")').first()).toBeVisible();
   });
 
-  test('auth page shows OTP flow on valid email submit (mocked)', async ({ page }) => {
-    // Mock the send-otp route to avoid real Supabase call
-    await page.route('**/api/auth/send-otp', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
-      });
-    });
+	test('auth page shows OTP flow on valid email submit (mocked)', async ({ page }) => {
+		// Mock the send-otp route to avoid real Supabase call
+		await page.route('**/api/auth/send-otp', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ success: true }),
+			});
+		});
 
-    await page.goto('/auth');
-    const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="mail" i]').first();
-    await emailInput.fill('test@carbon-bim.com');
-    await page.locator('button[type="submit"], button:has-text("Send"), button:has-text("Continue")').first().click();
+		await page.goto('/auth');
+		const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="mail" i]').first();
+		await emailInput.fill('test@carbon-bim.com');
 
-    // After sending OTP, should show OTP input or success message
-    await expect(
-      page.locator('input[name="otp"], input[placeholder*="code" i], input[placeholder*="OTP" i], text=/sent|check your|code/i').first()
-    ).toBeVisible({ timeout: 5000 });
-  });
+		// Check the GDPR consent checkbox (required to enable submit button)
+		const gdprCheckbox = page.locator('#gdprConsent, button[role="checkbox"]').first();
+		await gdprCheckbox.click();
+
+		// The submit button for the email form (not Google/Continue buttons)
+		const submitBtn = page.getByRole('button', { name: 'Send magic link' });
+		await submitBtn.click();
+
+		// After sending OTP, should show success state (email sent message or OTP input)
+		await expect(
+			page.locator('text=/check your|sent|email|code/i').first()
+		).toBeVisible({ timeout: 5000 });
+	});
 
   test('auth page with ?expired=true shows expiry notice', async ({ page }) => {
     await page.goto('/auth?expired=true&returnUrl=%2Fdashboard');
