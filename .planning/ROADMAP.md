@@ -78,9 +78,8 @@ Plans:
 **Goal:** Specialized Embodied Carbon Analyst agent — Thai TGO emission factors, EN 15978 lifecycle accounting, TREES certification rating, and design optimization roadmap.
 **Requirements**: Enhanced `carbon_tool.py` + new `EmbodiedCarbonServiceTool` + specialized agent system prompt + REST API endpoints
 **Depends on:** Phase 6
-**Plans:** 1 plan
-
 **Status:** ✅ Complete
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] Implement embodied carbon specialist service (completed 2026-03-20)
