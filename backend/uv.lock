@@ -539,15 +539,12 @@ dependencies = [
     { name = "gunicorn" },
     { name = "httpx" },
     { name = "huggingface-hub" },
-    { name = "ifcopenshell" },
     { name = "langfuse" },
     { name = "litellm" },
     { name = "mailtrap" },
     { name = "mcp" },
     { name = "nest-asyncio" },
-    { name = "networkx" },
     { name = "novu-py" },
-    { name = "numpy" },
     { name = "openai" },
     { name = "openpyxl" },
     { name = "orjson" },
@@ -599,6 +596,19 @@ dependencies = [
     { name = "weasyprint" },
 ]
 
+[package.optional-dependencies]
+bim = [
+    { name = "ifcopenshell" },
+    { name = "ladybug-core" },
+    { name = "networkx" },
+    { name = "numpy" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "detect-secrets" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = "==3.12.0" },
@@ -638,15 +648,16 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "huggingface-hub", specifier = ">=0.34.4" },
-    { name = "ifcopenshell", specifier = ">=0.7.0" },
+    { name = "ifcopenshell", marker = "extra == 'bim'", specifier = ">=0.7.0" },
+    { name = "ladybug-core", marker = "extra == 'bim'", specifier = ">=0.41.0" },
     { name = "langfuse", specifier = "==2.60.5" },
     { name = "litellm", specifier = ">=1.80.11" },
     { name = "mailtrap", specifier = "==2.0.1" },
     { name = "mcp", specifier = "==1.9.4" },
     { name = "nest-asyncio", specifier = "==1.6.0" },
-    { name = "networkx", specifier = ">=3.0" },
+    { name = "networkx", marker = "extra == 'bim'", specifier = ">=3.0" },
     { name = "novu-py", specifier = ">=3.11.0" },
-    { name = "numpy", specifier = ">=1.24.0" },
+    { name = "numpy", marker = "extra == 'bim'", specifier = ">=1.24.0" },
     { name = "openai", specifier = ">=1.99.5" },
     { name = "openpyxl", specifier = "==3.1.2" },
     { name = "orjson", specifier = ">=3.11.1" },
@@ -697,9 +708,10 @@ requires-dist = [
     { name = "watchtower", specifier = ">=3.0.0" },
     { name = "weasyprint", specifier = ">=63.0" },
 ]
+provides-extras = ["bim"]
 
 [package.metadata.requires-dev]
-dev = []
+dev = [{ name = "detect-secrets", specifier = ">=1.4.0" }]
 
 [[package]]
 name = "certifi"
@@ -1223,6 +1235,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5a/d3/8ae2869247df154b64c1884d7346d412fed0c49df84db635aab2d1c40e62/deprecation-2.1.0.tar.gz", hash = "sha256:72b3bde64e5d778694b0cf68178aed03d15e15477116add3fb773e581f9518ff", size = 173788, upload-time = "2020-04-20T14:23:38.738Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/02/c3/253a89ee03fc9b9682f1541728eb66db7db22148cd94f89ab22528cd1e1b/deprecation-2.1.0-py2.py3-none-any.whl", hash = "sha256:a10811591210e1fb0e768a8c25517cabeabcba6f0bf96564f8ff45189f90b14a", size = 11178, upload-time = "2020-04-20T14:23:36.581Z" },
+]
+
+[[package]]
+name = "detect-secrets"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyyaml" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/69/67/382a863fff94eae5a0cf05542179169a1c49a4c8784a9480621e2066ca7d/detect_secrets-1.5.0.tar.gz", hash = "sha256:6bb46dcc553c10df51475641bb30fd69d25645cc12339e46c824c1e0c388898a", size = 97351, upload-time = "2024-05-06T17:46:19.721Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/5e/4f5fe4b89fde1dc3ed0eb51bd4ce4c0bca406246673d370ea2ad0c58d747/detect_secrets-1.5.0-py3-none-any.whl", hash = "sha256:e24e7b9b5a35048c313e983f76c4bd09dad89f045ff059e354f9943bf45aa060", size = 120341, upload-time = "2024-05-06T17:46:16.628Z" },
 ]
 
 [[package]]
@@ -2333,6 +2358,28 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bf/ce/46fbd9c8119cfc3581ee5643ea49464d168028cfb5caff5fc0596d0cf914/jsonschema_specifications-2025.4.1.tar.gz", hash = "sha256:630159c9f4dbea161a6a2205c3011cc4f18ff381b189fff48bb39b9bf26ae608", size = 15513, upload-time = "2025-04-23T12:34:07.418Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/01/0e/b27cdbaccf30b890c40ed1da9fd4a3593a5cf94dae54fb34f8a4b74fcd3f/jsonschema_specifications-2025.4.1-py3-none-any.whl", hash = "sha256:4653bffbd6584f7de83a67e0d620ef16900b390ddc7939d56684d6c81e33f1af", size = 18437, upload-time = "2025-04-23T12:34:05.422Z" },
+]
+
+[[package]]
+name = "ladybug-core"
+version = "0.44.39"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "ladybug-geometry" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/9e/7e5995004e2d4fe8ffd2d0ba499aa088f2d3374406efd7a0ec6718b012bd/ladybug_core-0.44.39.tar.gz", hash = "sha256:c3e438f12efe3d2c1d12cc748f06bf43238843a923c741096f06226543112bbd", size = 243710, upload-time = "2026-03-16T19:31:10.54Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/2d/cd3d20faa859dcab0b22efed4a7fc2b19385975efd3f2b994493db46ad86/ladybug_core-0.44.39-py3-none-any.whl", hash = "sha256:216d33d45cd68f729110808c30d49b9c769f5e54bdbf3d99e073522fa86a5a5e", size = 273816, upload-time = "2026-03-16T19:31:08.588Z" },
+]
+
+[[package]]
+name = "ladybug-geometry"
+version = "1.34.22"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/5e/4914d890a633ad6f8c4de909553bc07a3002cb5fec2a1d1a8fb0a173e12c/ladybug_geometry-1.34.22.tar.gz", hash = "sha256:100027d5a98b842f786b52418c18da546168e4c8c4a876a6c7c8381d38996a31", size = 621840, upload-time = "2026-03-16T19:18:07.012Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/90/b589f7b68fdef569e9f0c6dc9c8cbf71368de1b251b1753d6f89aea15346/ladybug_geometry-1.34.22-py3-none-any.whl", hash = "sha256:23dbe31c9160f1399479789eea246a9b38599bcee2ffefcb03ebf08a93b25453", size = 201627, upload-time = "2026-03-16T19:18:05.545Z" },
 ]
 
 [[package]]

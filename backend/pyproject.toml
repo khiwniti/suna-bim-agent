@@ -124,6 +124,7 @@ package = false
 
 [dependency-groups]
 dev = [
+  "detect-secrets>=1.4.0",  # Secrets scanning for pre-commit and CI
 ]
 
 [tool.pytest.ini_options]

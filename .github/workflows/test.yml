@@ -1,0 +1,70 @@
+name: Test
+
+on:
+  push:
+    branches: [main, staging, production]
+  pull_request:
+    branches: [main, staging, production]
+
+jobs:
+  secrets-scan:
+    name: Secrets Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate scanning
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Scan for secrets
+        run: |
+          # Scan all files and compare against baseline
+          detect-secrets scan --baseline .secrets.baseline
+
+      - name: Verify baseline is up-to-date
+        run: |
+          # Generate new baseline and check if it differs
+          detect-secrets scan > /tmp/new-baseline.json
+          if ! diff -q .secrets.baseline /tmp/new-baseline.json; then
+            echo "❌ Secrets baseline is out of date!"
+            echo "Run: detect-secrets scan > .secrets.baseline"
+            echo "Then audit and commit the updated baseline."
+            exit 1
+          fi
+
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests
+        run: uv run pytest tests/ -v --maxfail=1
+
+      - name: Run linters
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
