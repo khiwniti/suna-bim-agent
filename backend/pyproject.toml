@@ -208,6 +208,7 @@ ignore = [
     "SIM101", # Multiple isinstance calls
     "C403", # Unnecessary list comprehension (rewrite as a set comprehension)
     "SIM401", # Use dict.get instead of if block
+    "F822", # Undefined name in __all__
 ]
 
 [tool.ruff.lint.per-file-ignores]
