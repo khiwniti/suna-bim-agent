@@ -155,6 +155,7 @@ ignore = [
     "SIM105", # Use contextlib.suppress (not always clearer in async code)
     "UP017",  # Use datetime.UTC (timezone.utc is more compatible)
     "B904",   # raise from err (not always appropriate in API error handling)
+    "B008",   # Function call in argument defaults (FastAPI Depends pattern)
     "E501",   # Line too long (logging lines often need to be longer)
     "W293",   # Blank line contains whitespace (minor formatting issue)
     "W291",   # Trailing whitespace
