@@ -68,15 +68,17 @@ test.describe('Auth — OTP flow', () => {
 // ─── Session / redirect ───────────────────────────────────────────────────────
 
 test.describe('Auth — session redirect', () => {
-  test('unauthenticated access to /dashboard redirects to /auth', async ({ page }) => {
-    // No session cookie set — should redirect
-    const response = await page.goto('/dashboard');
-    // Either redirected to auth OR shows auth page content
-    const url = page.url();
-    const isAuthPage = url.includes('/auth') || url.includes('/login') || url.includes('/signin');
-    const hasAuthContent = await page.locator('input[type="email"]').count() > 0;
-    expect(isAuthPage || hasAuthContent).toBeTruthy();
-  });
+	test('unauthenticated access to /dashboard redirects to /auth', async ({ page }) => {
+		// No session cookie set — should redirect
+		// Use domcontentloaded instead of load to avoid timeout on redirect chains
+		await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+		// Wait for redirect to complete
+		await page.waitForURL('**/auth**', { timeout: 10000 }).catch(() => {});
+		// Either redirected to auth OR shows auth page content
+		const url = page.url();
+		const isAuthPage = url.includes('/auth') || url.includes('/login') || url.includes('/signin');
+		expect(isAuthPage).toBeTruthy();
+	});
 });
 
 // ─── Auth hardening ───────────────────────────────────────────────────────────
