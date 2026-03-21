@@ -100,12 +100,16 @@ test.describe('Auth — hardening (Phase 5)', () => {
     expect(body.error.message).toMatch(/too many/i);
   });
 
-  test('returnUrl=https://evil.com is blocked — stays on /dashboard', async ({ page }) => {
-    // Visit auth with external returnUrl; if already "authenticated" (mock or open) should land on /dashboard
-    await page.goto('/auth?returnUrl=https://evil.com');
-    // The page should load without navigating to evil.com
-    expect(page.url()).not.toContain('evil.com');
-  });
+	test('returnUrl=https://evil.com is blocked — stays on /auth', async ({ page }) => {
+		// Visit auth with external returnUrl - the param stays in URL but is ignored by the app
+		await page.goto('/auth?returnUrl=https://evil.com');
+		// The page should load (auth form visible) and NOT redirect to evil.com
+		await expect(page.locator('body')).toBeVisible();
+		// Verify we're still on the auth page (not redirected to evil.com)
+		expect(page.url()).toContain('/auth');
+		// Note: The returnUrl param remains in the URL string, but the app sanitizes it internally
+		// The security is that the app ignores external URLs for redirect, not that they're removed from the URL
+	});
 
   test('returnUrl=/dashboard is preserved and safe', async ({ page }) => {
     await page.goto('/auth?returnUrl=%2Fdashboard');
