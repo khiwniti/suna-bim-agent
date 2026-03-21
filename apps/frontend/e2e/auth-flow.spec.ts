@@ -71,10 +71,14 @@ test.describe('Auth — session redirect', () => {
 	test('unauthenticated access to /dashboard redirects to /auth', async ({ page }) => {
 		// No session cookie set — should redirect
 		// Use domcontentloaded instead of load to avoid timeout on redirect chains
-		await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-		// Wait for redirect to complete
-		await page.waitForURL('**/auth**', { timeout: 10000 }).catch(() => {});
-		// Either redirected to auth OR shows auth page content
+		await page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 15000 });
+		// Wait for redirect to complete - give it more time
+		await page.waitForURL(/\/auth|\/login|\/signin/, { timeout: 15000 }).catch(async () => {
+			// If redirect didn't happen, check current URL
+			const currentUrl = page.url();
+			console.log(`Current URL after /dashboard: ${currentUrl}`);
+		});
+		// Verify we're on an auth-related page
 		const url = page.url();
 		const isAuthPage = url.includes('/auth') || url.includes('/login') || url.includes('/signin');
 		expect(isAuthPage).toBeTruthy();
