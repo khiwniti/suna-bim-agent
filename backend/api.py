@@ -5,6 +5,7 @@ load_dotenv()
 # Initialize Sentry error tracking BEFORE other imports
 # This ensures all errors are captured, including import-time errors
 from core.monitoring import init_sentry
+
 init_sentry()
 
 from fastapi import FastAPI, Request, HTTPException, Response, Depends, APIRouter, Query
@@ -162,16 +163,12 @@ async def lifespan(app: FastAPI):
         if config.ENV_MODE == EnvMode.PRODUCTION:
             from core.services import worker_metrics
 
-            _worker_metrics_task = asyncio.create_task(
-                worker_metrics.start_cloudwatch_publisher()
-            )
+            _worker_metrics_task = asyncio.create_task(worker_metrics.start_cloudwatch_publisher())
 
         # Start Redis stream cleanup task (catches orphaned streams with no TTL)
         from core.services import worker_metrics
 
-        _stream_cleanup_task = asyncio.create_task(
-            worker_metrics.start_stream_cleanup_task()
-        )
+        _stream_cleanup_task = asyncio.create_task(worker_metrics.start_stream_cleanup_task())
 
         # Start memory watchdog for observability
         _memory_watchdog_task = asyncio.create_task(_memory_watchdog())
@@ -223,9 +220,7 @@ async def lifespan(app: FastAPI):
                         event.set()
                         logger.info(f"Set cancellation event for {agent_run_id}")
                 except Exception as e:
-                    logger.error(
-                        f"Failed to set cancellation event for {agent_run_id}: {e}"
-                    )
+                    logger.error(f"Failed to set cancellation event for {agent_run_id}: {e}")
 
             # Give tasks a moment to handle cancellation gracefully
             await asyncio.sleep(1)
@@ -235,9 +230,7 @@ async def lifespan(app: FastAPI):
                 try:
                     account_id = None
                     try:
-                        run_data = await agents_repo.get_agent_run_with_thread(
-                            agent_run_id
-                        )
+                        run_data = await agents_repo.get_agent_run_with_thread(agent_run_id)
                         if run_data:
                             account_id = run_data.get("thread_account_id")
                     except Exception as lookup_err:
@@ -262,9 +255,7 @@ async def lifespan(app: FastAPI):
                     except Exception:
                         pass
                 except Exception as e:
-                    logger.error(
-                        f"Failed to update agent run {agent_run_id} on shutdown: {e}"
-                    )
+                    logger.error(f"Failed to update agent run {agent_run_id} on shutdown: {e}")
         else:
             logger.info("No active agent runs to stop on shutdown")
 
@@ -360,9 +351,7 @@ async def log_requests_middleware(request: Request, call_next):
     )
 
     # Log the incoming request
-    logger.debug(
-        f"Request started: {method} {path} from {client_ip} | Query: {query_params}"
-    )
+    logger.debug(f"Request started: {method} {path} from {client_ip} | Query: {query_params}")
 
     try:
         response = await call_next(request)
@@ -513,10 +502,10 @@ api_router.include_router(bim_router)
 # api_router.include_router(carbon_agent_router)  # Temporarily disabled - WIP
 
 
-@api_router.get(
-    "/health", summary="Health Check", operation_id="health_check", tags=["system"]
-)
-async def health_check(detailed: bool = Query(False, description="Include detailed connectivity checks")):
+@api_router.get("/health", summary="Health Check", operation_id="health_check", tags=["system"])
+async def health_check(
+    detailed: bool = Query(False, description="Include detailed connectivity checks"),
+):
     """
     Health check endpoint with optional detailed connectivity verification.
 
@@ -529,9 +518,7 @@ async def health_check(detailed: bool = Query(False, description="Include detail
     # During shutdown, return unhealthy status
     # This causes K8s readinessProbe to fail and removes pod from service endpoints
     if _is_shutting_down:
-        logger.debug(
-            f"Health check returning unhealthy (shutting down) for instance {instance_id}"
-        )
+        logger.debug(f"Health check returning unhealthy (shutting down) for instance {instance_id}")
         raise HTTPException(
             status_code=503,
             detail={
@@ -583,18 +570,14 @@ async def prewarm_user_caches(user_id: str = Depends(verify_and_get_user_id_from
 
             await prewarm_user_agents(user_id)
         except Exception as e:
-            logger.warning(
-                f"[PREWARM] Background prewarm failed for {user_id[:8]}...: {e}"
-            )
+            logger.warning(f"[PREWARM] Background prewarm failed for {user_id[:8]}...: {e}")
 
     asyncio.create_task(_do_prewarm())
 
     return {"status": "accepted", "message": "Prewarming started in background"}
 
 
-@api_router.get(
-    "/metrics", summary="System Metrics", operation_id="metrics", tags=["system"]
-)
+@api_router.get("/metrics", summary="System Metrics", operation_id="metrics", tags=["system"])
 async def metrics_endpoint():
     """
     Get API instance metrics for monitoring.
@@ -613,9 +596,7 @@ async def metrics_endpoint():
         raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
 
 
-@api_router.get(
-    "/debug", summary="Debug Information", operation_id="debug", tags=["system"]
-)
+@api_router.get("/debug", summary="Debug Information", operation_id="debug", tags=["system"])
 async def debug_endpoint():
     """Get basic debug information for troubleshooting."""
     from core.agents.api import _cancellation_events
@@ -711,11 +692,7 @@ async def health_check_docker():
             "status": "ok",
             "timestamp": metrics["timestamp"],
             "instance_id": instance_id,
-            "metrics": {
-                k: v
-                for k, v in metrics.items()
-                if k not in ("timestamp", "instance_id")
-            },
+            "metrics": {k: v for k, v in metrics.items() if k not in ("timestamp", "instance_id")},
         }
     except Exception as e:
         logger.error(f"Failed health docker check: {e}")
@@ -724,9 +701,7 @@ async def health_check_docker():
 
 app.include_router(api_router, prefix="/v1")
 
-METRICS_LOG_INTERVAL_SECONDS = int(
-    os.getenv("METRICS_LOG_INTERVAL_SECONDS", "300")
-)  # 5 min
+METRICS_LOG_INTERVAL_SECONDS = int(os.getenv("METRICS_LOG_INTERVAL_SECONDS", "300"))  # 5 min
 
 
 async def _metrics_logger_loop():
@@ -797,9 +772,7 @@ async def _memory_watchdog():
                     stale_runs = []
 
                 # Evict orphaned cancellation events (run finished but event wasn't popped)
-                stale_event_ids = [
-                    rid for rid in _cancellation_events if rid not in active_runs
-                ]
+                stale_event_ids = [rid for rid in _cancellation_events if rid not in active_runs]
                 for rid in stale_event_ids:
                     _cancellation_events.pop(rid, None)
                 if stale_event_ids:
@@ -868,9 +841,7 @@ if __name__ == "__main__":
     workers = 1 if is_dev_env else 4
     reload = is_dev_env
 
-    logger.debug(
-        f"Starting server on 0.0.0.0:8000 with {workers} workers (reload={reload})"
-    )
+    logger.debug(f"Starting server on 0.0.0.0:8000 with {workers} workers (reload={reload})")
     uvicorn.run(
         "api:app",
         host="0.0.0.0",
