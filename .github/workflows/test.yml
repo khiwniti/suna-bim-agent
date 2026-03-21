@@ -67,4 +67,5 @@ jobs:
       - name: Run linters
         run: |
           pip install ruff
-          cd backend && ruff check . && ruff format --check .
+          ruff check .
+          ruff format --check .
