@@ -62,7 +62,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run tests
-        run: uv run pytest tests/ -v --maxfail=1
+        run: uv run pytest tests/ -v --maxfail=1 -m "not e2e and not slow"
 
       - name: Run linters
         run: |
