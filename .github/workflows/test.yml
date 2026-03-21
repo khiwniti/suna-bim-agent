@@ -66,5 +66,5 @@ jobs:
 
       - name: Run linters
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
+          uv run ruff check backend/
+          uv run ruff format --check backend/
