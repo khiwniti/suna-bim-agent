@@ -19,7 +19,7 @@ class TechnicalIssue(BaseModel):
     enabled: bool = False
     message: Optional[str] = None
     status_url: Optional[str] = None
-    affected_services: Optional[List[str]] = None
+    affected_services: Optional[list[str]] = None
     description: Optional[str] = None
     estimated_resolution: Optional[str] = None
     severity: Optional[Literal["degraded", "outage", "maintenance"]] = None
@@ -86,7 +86,7 @@ async def update_technical_issue(
     enabled: bool,
     message: Optional[str] = None,
     status_url: Optional[str] = None,
-    affected_services: Optional[List[str]] = None,
+    affected_services: Optional[list[str]] = None,
     description: Optional[str] = None,
     estimated_resolution: Optional[str] = None,
     severity: Optional[Literal["degraded", "outage", "maintenance"]] = None,

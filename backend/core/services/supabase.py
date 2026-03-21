@@ -74,7 +74,7 @@ class DBConnection:
     def __init__(self):
         pass
     
-    def get_connection_stats(self) -> Dict[str, Any]:
+    def get_connection_stats(self) -> dict[str, Any]:
         """Get connection pool statistics for monitoring."""
         uptime = time.time() - self._init_time if self._init_time else 0
         return {

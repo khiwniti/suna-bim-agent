@@ -12,8 +12,8 @@ class FastCheckResult:
     estimated_total_tokens: Optional[int]
     need_compression: bool
     skip_compression: bool
-    messages: Optional[List[Dict[str, Any]]]
-    llm_end_content: Optional[Dict[str, Any]]
+    messages: Optional[list[dict[str, Any]]]
+    llm_end_content: Optional[dict[str, Any]]
 
 
 class MessagePreparer:
@@ -36,10 +36,10 @@ class MessagePreparer:
         llm_model: str,
         registry_model_id: str,
         is_auto_continue: bool,
-        auto_continue_state: Dict[str, Any],
+        auto_continue_state: dict[str, Any],
         latest_user_message_content: Optional[str],
-        memory_context: Optional[Dict[str, Any]],
-        get_llm_messages: Callable[[str], Awaitable[List[Dict[str, Any]]]],
+        memory_context: Optional[dict[str, Any]],
+        get_llm_messages: Callable[[str], Awaitable[list[dict[str, Any]]]],
         prefetch_messages_task: Optional[asyncio.Task] = None,
         prefetch_llm_end_task: Optional[asyncio.Task] = None
     ) -> FastCheckResult:
@@ -106,7 +106,7 @@ class MessagePreparer:
         prefetch_messages_task: Optional[asyncio.Task],
         prefetch_llm_end_task: Optional[asyncio.Task],
         start_time: float
-    ) -> Tuple[Optional[List[Dict[str, Any]]], Optional[Dict[str, Any]], bool]:
+    ) -> tuple[Optional[list[dict[str, Any]]], Optional[dict[str, Any]], bool]:
         if not prefetch_messages_task or not prefetch_llm_end_task:
             return None, None, False
         
@@ -142,7 +142,7 @@ class MessagePreparer:
                 
         except asyncio.CancelledError:
             logger.warning("Prefetch tasks were cancelled, falling back to fresh fetch")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Prefetch tasks timed out, falling back to fresh fetch")
         except Exception as e:
             logger.warning(f"Prefetch failed ({type(e).__name__}), falling back to fresh fetch: {e}")
@@ -152,9 +152,9 @@ class MessagePreparer:
     async def _fetch_messages_parallel(
         self,
         thread_id: str,
-        get_llm_messages: Callable[[str], Awaitable[List[Dict[str, Any]]]],
+        get_llm_messages: Callable[[str], Awaitable[list[dict[str, Any]]]],
         start_time: float
-    ) -> Tuple[List[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    ) -> tuple[list[dict[str, Any]], Optional[dict[str, Any]]]:
         from core.threads import repo as threads_repo
         
         llm_end_task = asyncio.create_task(
@@ -174,7 +174,7 @@ class MessagePreparer:
         self,
         llm_model: str,
         is_auto_continue: bool,
-        auto_continue_state: Dict[str, Any],
+        auto_continue_state: dict[str, Any],
         latest_user_message_content: Optional[str],
         thread_id: str
     ) -> int:
@@ -228,7 +228,7 @@ class MessagePreparer:
         self,
         llm_model: str,
         is_auto_continue: bool,
-        memory_context: Optional[Dict[str, Any]]
+        memory_context: Optional[dict[str, Any]]
     ) -> int:
         if is_auto_continue or not memory_context:
             return 0
@@ -245,16 +245,16 @@ class MessagePreparer:
     
     async def apply_context_compression(
         self,
-        messages: List[Dict[str, Any]],
+        messages: list[dict[str, Any]],
         llm_model: str,
         llm_max_tokens: Optional[int],
         estimated_total_tokens: Optional[int],
-        system_prompt: Dict[str, Any],
+        system_prompt: dict[str, Any],
         thread_id: str,
         skip_compression: bool,
         need_compression: bool,
         db
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         from core.agentpress.context_manager import ContextManager
         
         if len(messages) <= 2:
@@ -303,14 +303,14 @@ class MessagePreparer:
     
     async def prepare_messages_with_caching(
         self,
-        system_prompt: Dict[str, Any],
-        messages: List[Dict[str, Any]],
-        memory_context: Optional[Dict[str, Any]],
+        system_prompt: dict[str, Any],
+        messages: list[dict[str, Any]],
+        memory_context: Optional[dict[str, Any]],
         llm_model: str,
         thread_id: str,
         force_rebuild: bool,
         db
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         from core.agentpress.prompt_caching import apply_anthropic_caching_strategy, validate_cache_blocks
         
         messages_with_context = messages

@@ -21,7 +21,7 @@ class CreditService:
         # Always get fresh client from DBConnection to handle reconnects properly
         return await self.db.client
     
-    async def check_and_refresh_daily_credits(self, user_id: str) -> Tuple[bool, Decimal]:
+    async def check_and_refresh_daily_credits(self, user_id: str) -> tuple[bool, Decimal]:
         try:
             logger.info(f"[DAILY REFRESH] Starting for {user_id}")
             client = await self._get_client()
@@ -195,7 +195,7 @@ class CreditService:
         
         return balance
     
-    async def deduct_credits(self, user_id: str, amount: Decimal, description: str = None, reference_id: str = None, reference_type: str = None) -> Dict:
+    async def deduct_credits(self, user_id: str, amount: Decimal, description: str = None, reference_id: str = None, reference_type: str = None) -> dict:
         try:
             client = await self._get_client()
             result = await client.rpc('deduct_credits', {
@@ -247,7 +247,7 @@ class CreditService:
         amount: Decimal, 
         type: str = 'admin_grant',
         description: str = None,
-        metadata: Dict = None
+        metadata: dict = None
     ) -> Decimal:
         try:
             client = await self._get_client()
@@ -315,7 +315,7 @@ class CreditService:
         user_id: str, 
         limit: int = 50, 
         offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         client = await self._get_client()
         result = await client.from_('credit_ledger')\
             .select('*')\
@@ -327,7 +327,7 @@ class CreditService:
         
         return result.data or []
     
-    async def get_account_summary(self, user_id: str) -> Dict[str, Any]:
+    async def get_account_summary(self, user_id: str) -> dict[str, Any]:
         client = await self._get_client()
         account_result = await client.from_('credit_accounts')\
             .select('*')\

@@ -11,7 +11,7 @@ class MessageFetcher:
     def __init__(self):
         self.validator = MessageValidator()
     
-    async def get_llm_messages(self, thread_id: str, lightweight: bool = False) -> List[Dict[str, Any]]:
+    async def get_llm_messages(self, thread_id: str, lightweight: bool = False) -> list[dict[str, Any]]:
         logger.debug(f"Getting messages for thread {thread_id} (lightweight={lightweight})")
         
         if not lightweight:
@@ -49,14 +49,14 @@ class MessageFetcher:
             
             return messages
             
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"⏱️ Timeout getting messages for thread {thread_id} after {MESSAGE_QUERY_TIMEOUT}s")
             raise
         except Exception as e:
             logger.error(f"Failed to get messages for thread {thread_id}: {str(e)}", exc_info=True)
             raise
     
-    async def _fetch_image_contexts(self, thread_id: str, threads_repo) -> List[Dict[str, Any]]:
+    async def _fetch_image_contexts(self, thread_id: str, threads_repo) -> list[dict[str, Any]]:
         try:
             image_messages = await threads_repo.get_image_context_messages(thread_id)
             if not image_messages:
@@ -82,7 +82,7 @@ class MessageFetcher:
             logger.error(f"Failed to fetch image_context messages: {e}")
             return []
     
-    def _inject_image_contexts(self, messages: List[Dict[str, Any]], image_contexts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _inject_image_contexts(self, messages: list[dict[str, Any]], image_contexts: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not image_contexts:
             return messages
         
@@ -118,7 +118,7 @@ class MessageFetcher:
         
         return result
     
-    def _has_tool_use_content(self, msg: Dict[str, Any]) -> bool:
+    def _has_tool_use_content(self, msg: dict[str, Any]) -> bool:
         """Check if message content contains tool_use blocks (Anthropic format)."""
         content = msg.get('content')
         if isinstance(content, list):
@@ -127,7 +127,7 @@ class MessageFetcher:
                     return True
         return False
     
-    async def _fetch_from_db(self, thread_id: str, lightweight: bool, threads_repo, _time) -> List[Dict[str, Any]]:
+    async def _fetch_from_db(self, thread_id: str, lightweight: bool, threads_repo, _time) -> list[dict[str, Any]]:
         all_messages = []
 
         if lightweight:
@@ -152,7 +152,7 @@ class MessageFetcher:
 
         return all_messages
     
-    def _parse_messages(self, all_messages: List[Dict[str, Any]], lightweight: bool) -> List[Dict[str, Any]]:
+    def _parse_messages(self, all_messages: list[dict[str, Any]], lightweight: bool) -> list[dict[str, Any]]:
         messages = []
 
         for item in all_messages:
@@ -179,7 +179,7 @@ class MessageFetcher:
 
         return messages
     
-    def _parse_single_message(self, item: Dict[str, Any], content: Any, is_compressed: bool, metadata: Dict[str, Any] = None) -> Dict[str, Any] | None:
+    def _parse_single_message(self, item: dict[str, Any], content: Any, is_compressed: bool, metadata: dict[str, Any] = None) -> dict[str, Any] | None:
         metadata = metadata or {}
         parsed_item = None
 

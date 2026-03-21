@@ -13,8 +13,8 @@ async def insert_admin_audit_log(
     admin_account_id: str,
     action: str,
     target_account_id: str,
-    details: Dict[str, Any]
-) -> Dict[str, Any]:
+    details: dict[str, Any]
+) -> dict[str, Any]:
     """Insert an admin audit log entry."""
     sql = """
     INSERT INTO admin_audit_log (admin_account_id, action, target_account_id, details)
@@ -39,13 +39,13 @@ async def get_user_transactions_paginated(
     page: int = 1,
     page_size: int = 20,
     type_filter: Optional[str] = None
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int]:
     """Get paginated credit ledger transactions for a user."""
     offset = (page - 1) * page_size
     
     # Build dynamic WHERE clause
     where_clauses = ["account_id = :account_id"]
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "account_id": account_id,
         "limit": page_size,
         "offset": offset
@@ -95,7 +95,7 @@ async def get_user_transactions_paginated(
 async def get_recent_transactions(
     account_id: str,
     limit: int = 20
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get recent credit ledger transactions for a user."""
     sql = """
     SELECT *
@@ -108,7 +108,7 @@ async def get_recent_transactions(
     return serialize_rows(rows) if rows else []
 
 
-async def get_billing_subscription(account_id: str) -> Optional[Dict[str, Any]]:
+async def get_billing_subscription(account_id: str) -> Optional[dict[str, Any]]:
     """Get the most recent billing subscription for an account."""
     sql = """
     SELECT *

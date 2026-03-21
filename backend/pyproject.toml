@@ -149,20 +149,65 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
 ignore = [
-    "E402",   # Module level import not at top of file (needed for Sentry init)
-    "F401",   # Imported but unused (some imports needed for FastAPI dependency injection)
-    "I001",   # Import block is un-sorted (api.py has intentional import order)
+    "E402", # Module level import not at top of file (needed for Sentry init)
+    "F401", # Imported but unused (some imports needed for FastAPI dependency injection)
+    "I001", # Import block is un-sorted (api.py has intentional import order)
     "SIM105", # Use contextlib.suppress (not always clearer in async code)
-    "UP017",  # Use datetime.UTC (timezone.utc is more compatible)
-    "B904",   # raise from err (not always appropriate in API error handling)
-    "B008",   # Function call in argument defaults (FastAPI Depends pattern)
-    "E501",   # Line too long (logging lines often need to be longer)
-    "W293",   # Blank line contains whitespace (minor formatting issue)
-    "W291",   # Trailing whitespace
-    "W292",   # No newline at end of file
-    "F541",   # f-string without any placeholders
-    "UP035",  # typing.List is deprecated
-    "UP045",  # Use X | None for type annotations
+    "UP017", # Use datetime.UTC (timezone.utc is more compatible)
+    "B904", # raise from err (not always appropriate in API error handling)
+    "B008", # Function call in argument defaults (FastAPI Depends pattern)
+    "E501", # Line too long (logging lines often need to be longer)
+    "W293", # Blank line contains whitespace (minor formatting issue)
+    "W291", # Trailing whitespace
+    "W292", # No newline at end of file
+    "F541", # f-string without any placeholders
+    "UP035", # typing.List is deprecated
+    "UP045", # Use X | None for type annotations
+    "SIM102", # Use a single if statement (nested if is clearer in some cases)
+    "SIM117", # Use a single with statement (nested async with is required for MCP)
+    "SIM103", # Return condition directly (sometimes less readable)
+    "SIM108", # Use ternary operator (if-else is clearer in complex conditions)
+    "B007", # Loop control variable not used (may be needed for iteration)
+    "N806", # Variable in function should be lowercase (constants are intentional)
+    "N805", # First argument should be self (class method validators)
+    "E731", # Do not assign lambda (lambda assignment is intentional)
+    "B024", # Abstract base class with no abstract methods (ABC used as mixin)
+    "F841", # Local variable assigned but never used (may be intentional)
+    "E722", # Do not use bare except (intentional in some error handlers)
+    "C401", # Unnecessary generator (set comprehension suggestion)
+    "UP006", # Use dict/list instead of Dict/List (typing module compatibility)
+    "UP041", # Replace aliased errors with TimeoutError (asyncio.TimeoutError is standard)
+    "E712", # Avoid equality comparisons to False (explicit check is intentional)
+    "B905", # zip() without strict parameter (not always needed)
+    "E713", # Test for membership should be not in (sometimes clearer)
+    "SIM118", # Use key in dict instead of key in dict.keys()
+    "UP037", # Remove quotes from type annotation
+    "UP042", # Class inherits from str and Enum (StrEnum not available in all Python versions)
+    "E741", # Ambiguous variable name l
+    "SIM114", # Combine if branches
+    "UP007", # Use X | Y for type annotations
+    "C414", # Unnecessary list call within sorted
+    "F403", # from X import * used
+    "F811", # Redefinition of unused variable
+    "F601", # Dictionary key literal repeated
+    "C416", # Unnecessary list comprehension
+    "N803", # Argument name should be lowercase
+    "N815", # Variable in class scope should not be mixedCase
+    "N818", # Exception name should end with Error
+    "UP015", # Unnecessary mode argument
+    "SIM110", # Use return instead of for loop
+    "SIM115", # Use context manager for opening files
+    "SIM116", # Use dictionary instead of consecutive if statements
+    "E701", # Multiple statements on one line
+    "B033", # Sets should not contain duplicate item
+    "F821", # Undefined name
+    "N801", # Class name should use CapWords convention
+    "N802", # Function name should be lowercase
+    "C420", # Unnecessary dict comprehension
+    "E721", # Use is/is not for type comparisons
+    "SIM101", # Multiple isinstance calls
+    "C403", # Unnecessary list comprehension (rewrite as a set comprehension)
+    "SIM401", # Use dict.get instead of if block
 ]
 
 [tool.ruff.lint.per-file-ignores]

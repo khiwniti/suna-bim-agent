@@ -243,7 +243,7 @@ class APIKeyService:
             logger.error(f"Error creating API key: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Failed to create API key")
 
-    async def list_api_keys(self, account_id: UUID) -> List[APIKeyResponse]:
+    async def list_api_keys(self, account_id: UUID) -> list[APIKeyResponse]:
         """
         List all API keys for the specified account
 

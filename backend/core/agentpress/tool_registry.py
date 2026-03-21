@@ -10,7 +10,7 @@ class ToolRegistry:
         self._cached_openapi_schemas = None  # ⚡ Cache schemas for repeated calls
         logger.debug("Initialized new ToolRegistry instance")
     
-    def register_tool(self, tool_class: Type[Tool], function_names: Optional[List[str]] = None, **kwargs):
+    def register_tool(self, tool_class: type[Tool], function_names: Optional[list[str]] = None, **kwargs):
         import time
         start = time.time()
         
@@ -53,7 +53,7 @@ class ToolRegistry:
             cache_info = f"(instance={'cached' if used_cache else 'new'}, schema={'cached' if schema_cached else 'computed'})"
             logger.debug(f"⏱️ [TIMING] register_tool({tool_class.__name__}): {elapsed:.1f}ms {cache_info}")
 
-    def get_available_functions(self) -> Dict[str, Callable]:
+    def get_available_functions(self) -> dict[str, Callable]:
         if hasattr(self, '_cached_functions') and self._cached_functions is not None:
             return self._cached_functions
         
@@ -72,13 +72,13 @@ class ToolRegistry:
         if hasattr(self, '_cached_functions'):
             self._cached_functions = None
 
-    def get_tool(self, tool_name: str) -> Dict[str, Any]:
+    def get_tool(self, tool_name: str) -> dict[str, Any]:
         tool = self.tools.get(tool_name, {})
         if not tool:
             logger.warning(f"Tool not found: {tool_name}")
         return tool
 
-    def get_openapi_schemas(self) -> List[Dict[str, Any]]:
+    def get_openapi_schemas(self) -> list[dict[str, Any]]:
         if self._cached_openapi_schemas is not None:
             return self._cached_openapi_schemas
 
@@ -112,7 +112,7 @@ class ToolRegistry:
         logger.info(f"🎯 [HYBRID CACHE] Exposing {native_exposed} native tools, hiding {mcp_hidden} MCP tools (smart separation)")
         return schemas
     
-    def get_all_schemas(self) -> List[Dict[str, Any]]:
+    def get_all_schemas(self) -> list[dict[str, Any]]:
         return [
             tool_info['schema'].schema 
             for tool_info in self.tools.values()

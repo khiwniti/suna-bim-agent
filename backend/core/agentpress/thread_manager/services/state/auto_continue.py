@@ -9,8 +9,8 @@ import litellm
 class AutoContinueManager:
     @staticmethod
     def check_trigger(
-        chunk: Dict[str, Any], 
-        auto_continue_state: Dict[str, Any], 
+        chunk: dict[str, Any], 
+        auto_continue_state: dict[str, Any], 
         native_max_auto_continues: int
     ) -> bool:
         if chunk.get('type') == 'status':
@@ -44,8 +44,8 @@ class AutoContinueManager:
     
     @staticmethod
     async def track_tool_result_tokens(
-        chunk: Dict[str, Any],
-        auto_continue_state: Dict[str, Any],
+        chunk: dict[str, Any],
+        auto_continue_state: dict[str, Any],
         llm_model: str
     ) -> None:
         if chunk.get('type') != 'tool':
@@ -72,10 +72,10 @@ class AutoContinueManager:
     def handle_tool_pairing_error(
         e: Exception,
         error_str: str,
-        auto_continue_state: Dict[str, Any],
+        auto_continue_state: dict[str, Any],
         max_error_retries: int,
         thread_id: str
-    ) -> tuple[bool, Optional[Dict[str, Any]]]:
+    ) -> tuple[bool, Optional[dict[str, Any]]]:
         auto_continue_state['error_retry_count'] = auto_continue_state.get('error_retry_count', 0) + 1
         
         if auto_continue_state['error_retry_count'] > max_error_retries:
@@ -97,11 +97,11 @@ class AutoContinueManager:
     @staticmethod
     def handle_anthropic_overload_error(
         e: Exception,
-        auto_continue_state: Dict[str, Any],
+        auto_continue_state: dict[str, Any],
         max_error_retries: int,
         llm_model: str,
         thread_id: str
-    ) -> tuple[bool, Optional[Dict[str, Any]], str]:
+    ) -> tuple[bool, Optional[dict[str, Any]], str]:
         auto_continue_state['error_retry_count'] = auto_continue_state.get('error_retry_count', 0) + 1
         
         if auto_continue_state['error_retry_count'] > max_error_retries:
@@ -140,7 +140,7 @@ class AutoContinueManager:
     @staticmethod
     async def run_generator(
         thread_id: str,
-        system_prompt: Dict[str, Any],
+        system_prompt: dict[str, Any],
         llm_model: str,
         llm_temperature: float,
         llm_max_tokens: Optional[int],
@@ -148,8 +148,8 @@ class AutoContinueManager:
         config,
         stream: bool,
         generation,
-        auto_continue_state: Dict[str, Any],
-        temporary_message: Optional[Dict[str, Any]],
+        auto_continue_state: dict[str, Any],
+        temporary_message: Optional[dict[str, Any]],
         native_max_auto_continues: int,
         latest_user_message_content: Optional[str],
         cancellation_event: Optional[asyncio.Event],

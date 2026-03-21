@@ -40,15 +40,15 @@ class ThreadManager:
             
         self.agent_config = agent_config
         self.jit_config = jit_config
-        self._memory_context: Optional[Dict[str, Any]] = None
+        self._memory_context: Optional[dict[str, Any]] = None
         
         self.message_fetcher = MessageFetcher()
         self.execution_orchestrator = ExecutionOrchestrator()
 
-    def set_memory_context(self, memory_context: Optional[Dict[str, Any]]):
+    def set_memory_context(self, memory_context: Optional[dict[str, Any]]):
         self._memory_context = memory_context
 
-    def add_tool(self, tool_class: Type[Tool], function_names: Optional[List[str]] = None, **kwargs):
+    def add_tool(self, tool_class: type[Tool], function_names: Optional[list[str]] = None, **kwargs):
         self.tool_registry.register_tool(tool_class, function_names, **kwargs)
 
     async def create_thread(
@@ -56,7 +56,7 @@ class ThreadManager:
         account_id: Optional[str] = None,
         project_id: Optional[str] = None,
         is_public: bool = False,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> str:
         from core.threads import repo as threads_repo
         
@@ -80,9 +80,9 @@ class ThreadManager:
         self,
         thread_id: str,
         type: str,
-        content: Union[Dict[str, Any], List[Any], str],
+        content: dict[str, Any] | list[Any] | str,
         is_llm_message: bool = False,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
         agent_id: Optional[str] = None,
         agent_version_id: Optional[str] = None
     ):
@@ -115,7 +115,7 @@ class ThreadManager:
             logger.error(f"Failed to add message to thread {thread_id}: {e}")
             return None
 
-    async def get_llm_messages(self, thread_id: str, lightweight: bool = False) -> List[Dict[str, Any]]:
+    async def get_llm_messages(self, thread_id: str, lightweight: bool = False) -> list[dict[str, Any]]:
         return await self.message_fetcher.get_llm_messages(thread_id, lightweight)
     
     async def thread_has_images(self, thread_id: str) -> bool:
@@ -124,9 +124,9 @@ class ThreadManager:
     async def run_thread(
         self,
         thread_id: str,
-        system_prompt: Dict[str, Any],
+        system_prompt: dict[str, Any],
         stream: bool = True,
-        temporary_message: Optional[Dict[str, Any]] = None,
+        temporary_message: Optional[dict[str, Any]] = None,
         llm_model: str = "gpt-5",
         llm_temperature: float = 0,
         llm_max_tokens: Optional[int] = None,
@@ -138,7 +138,7 @@ class ThreadManager:
         cancellation_event: Optional[asyncio.Event] = None,
         prefetch_messages_task: Optional[asyncio.Task] = None,
         prefetch_llm_end_task: Optional[asyncio.Task] = None,
-    ) -> Union[Dict[str, Any], AsyncGenerator]:
+    ) -> dict[str, Any] | AsyncGenerator:
         logger.debug(f"🚀 Starting thread execution for {thread_id} with model {llm_model}")
 
         if processor_config is None:
@@ -182,13 +182,13 @@ class ThreadManager:
         )
 
     async def _execute_run(
-        self, thread_id: str, system_prompt: Dict[str, Any], llm_model: str,
+        self, thread_id: str, system_prompt: dict[str, Any], llm_model: str,
         llm_temperature: float, llm_max_tokens: Optional[int], tool_choice: ToolChoice,
         config: ProcessorConfig, stream: bool, generation: Optional[StatefulGenerationClient],
-        auto_continue_state: Dict[str, Any], temporary_message: Optional[Dict[str, Any]] = None,
+        auto_continue_state: dict[str, Any], temporary_message: Optional[dict[str, Any]] = None,
         latest_user_message_content: Optional[str] = None, cancellation_event: Optional[asyncio.Event] = None,
         prefetch_messages_task: Optional[asyncio.Task] = None, prefetch_llm_end_task: Optional[asyncio.Task] = None
-    ) -> Union[Dict[str, Any], AsyncGenerator]:
+    ) -> dict[str, Any] | AsyncGenerator:
         if not isinstance(config, ProcessorConfig):
             logger.error(f"ERROR: config is {type(config)}, expected ProcessorConfig. Value: {config}")
             config = ProcessorConfig()
@@ -222,7 +222,7 @@ class ThreadManager:
             ErrorProcessor.log_error(processed_error)
             return processed_error.to_stream_dict()
 
-    async def _create_single_error_generator(self, error_dict: Dict[str, Any]):
+    async def _create_single_error_generator(self, error_dict: dict[str, Any]):
         yield error_dict
     
     async def cleanup(self):

@@ -29,7 +29,7 @@ class ToolSchema:
         schema (Dict[str, Any]): The actual schema definition
     """
     schema_type: SchemaType
-    schema: Dict[str, Any]
+    schema: dict[str, Any]
 
 @dataclass
 class ToolResult:
@@ -100,9 +100,9 @@ class Tool(ABC):
     
     def __init__(self):
         """Initialize tool with empty schema registry."""
-        self._schemas: Dict[str, List[ToolSchema]] = {}
+        self._schemas: dict[str, list[ToolSchema]] = {}
         self._metadata: Optional[ToolMetadata] = None
-        self._method_metadata: Dict[str, MethodMetadata] = {}
+        self._method_metadata: dict[str, MethodMetadata] = {}
         # logger.debug(f"Initializing tool class: {self.__class__.__name__}")
         self._register_metadata()
         self._register_schemas()
@@ -125,7 +125,7 @@ class Tool(ABC):
                 self._schemas[name] = method.tool_schemas
                 # logger.debug(f"Registered schemas for method '{name}' in {self.__class__.__name__}")
 
-    def get_schemas(self) -> Dict[str, List[ToolSchema]]:
+    def get_schemas(self) -> dict[str, list[ToolSchema]]:
         """Get all registered tool schemas.
         
         Returns:
@@ -141,7 +141,7 @@ class Tool(ABC):
         """
         return self._metadata
 
-    def get_method_metadata(self) -> Dict[str, MethodMetadata]:
+    def get_method_metadata(self) -> dict[str, MethodMetadata]:
         """Get metadata for all methods.
         
         Returns:
@@ -149,7 +149,7 @@ class Tool(ABC):
         """
         return self._method_metadata
 
-    def success_response(self, data: Union[Dict[str, Any], str, list]) -> ToolResult:
+    def success_response(self, data: dict[str, Any] | str | list) -> ToolResult:
         """Create a successful tool result.
         
         Args:
@@ -185,7 +185,7 @@ def _add_schema(func, schema: ToolSchema):
     # logger.debug(f"Added {schema.schema_type.value} schema to function {func.__name__}")
     return func
 
-def openapi_schema(schema: Dict[str, Any]):
+def openapi_schema(schema: dict[str, Any]):
     """Decorator for OpenAPI schema tools."""
     def decorator(func):
         # logger.debug(f"Applying OpenAPI schema to function {func.__name__}")

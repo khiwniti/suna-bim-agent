@@ -7,8 +7,8 @@ except ImportError:
     psutil = None
 
 
-def get_system_metrics() -> Dict[str, Any]:
-    out: Dict[str, Any] = {}
+def get_system_metrics() -> dict[str, Any]:
+    out: dict[str, Any] = {}
     if psutil is None:
         return {"error": "psutil not installed"}
 

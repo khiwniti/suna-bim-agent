@@ -44,7 +44,7 @@ STRESS_TEST_HOST_HEADER = os.getenv("STRESS_TEST_HOST_HEADER", "20.55.21.69")
 class StressTestConfig(BaseModel):
     num_requests: int = 20
     batch_size: Optional[int] = None  # Defaults to num_requests (all at once)
-    prompts: Optional[List[str]] = None
+    prompts: Optional[list[str]] = None
 
 
 class StressTestResult(BaseModel):
@@ -56,7 +56,7 @@ class StressTestResult(BaseModel):
     request_time: float = 0.0  # Time for HTTP request to complete
     error: Optional[str] = None
     # Detailed timing breakdown returned directly from HTTP response (no Redis needed)
-    timing_breakdown: Optional[Dict[str, float]] = None
+    timing_breakdown: Optional[dict[str, float]] = None
 
 
 # Default prompts for stress testing
@@ -76,7 +76,7 @@ async def run_single_request_via_http(
     prompt: str,
     host_header: Optional[str] = None,
     skip_ssl_verify: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run a single agent request by making an actual HTTP call.
     This gets distributed across workers like real traffic.
@@ -206,7 +206,7 @@ async def run_stress_test(
 
     async def generate():
         """Generator for streaming results."""
-        all_results: List[Dict[str, Any]] = []
+        all_results: list[dict[str, Any]] = []
         start_time = time.time()
         num_batches = (num_requests + batch_size - 1) // batch_size
 

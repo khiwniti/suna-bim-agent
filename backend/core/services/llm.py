@@ -116,7 +116,7 @@ def _configure_openai_compatible(model_name: str, api_key: Optional[str], api_ba
         raise LLMError("OPENAI_COMPATIBLE_API_KEY and OPENAI_COMPATIBLE_API_BASE required for openai-compatible models")
 
 
-def _save_debug_input(params: Dict[str, Any]) -> Optional[str]:
+def _save_debug_input(params: dict[str, Any]) -> Optional[str]:
     """Save LLM input for debugging. Returns correlation_id for tracking."""
     return llm_debug.log_input(
         model=params.get("model", "unknown"),
@@ -134,7 +134,7 @@ def _save_debug_input(params: Dict[str, Any]) -> Optional[str]:
 _INTERNAL_MESSAGE_PROPERTIES = {"message_id"}
 
 
-def _strip_internal_properties(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _strip_internal_properties(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     cleaned_messages = []
     for msg in messages:
         if not isinstance(msg, dict):
@@ -148,9 +148,9 @@ def _strip_internal_properties(messages: List[Dict[str, Any]]) -> List[Dict[str,
 
 
 async def estimate_llm_request_tokens(
-    messages: List[Dict[str, Any]],
+    messages: list[dict[str, Any]],
     model_name: str,
-    tools: Optional[List[Dict[str, Any]]] = None,
+    tools: Optional[list[dict[str, Any]]] = None,
     tool_choice: str = "auto",
 ) -> int:
     """Estimate token usage using the same payload shape as LLM calls.
@@ -159,7 +159,7 @@ async def estimate_llm_request_tokens(
     message fields before counting.
     """
     cleaned_messages = _strip_internal_properties(messages)
-    count_kwargs: Dict[str, Any] = {
+    count_kwargs: dict[str, Any] = {
         "model": model_name,
         "messages": cleaned_messages,
     }
@@ -171,23 +171,23 @@ async def estimate_llm_request_tokens(
 
 
 async def make_llm_api_call(
-    messages: List[Dict[str, Any]],
+    messages: list[dict[str, Any]],
     model_name: str,
     response_format: Optional[Any] = None,
     temperature: float = 0,
     max_tokens: Optional[int] = None,
-    tools: Optional[List[Dict[str, Any]]] = None,
+    tools: Optional[list[dict[str, Any]]] = None,
     tool_choice: str = "auto",
     api_key: Optional[str] = None,
     api_base: Optional[str] = None,
     stream: bool = True,
     top_p: Optional[float] = None,
     model_id: Optional[str] = None,
-    headers: Optional[Dict[str, str]] = None,
-    extra_headers: Optional[Dict[str, str]] = None,
-    stop: Optional[List[str]] = None,
+    headers: Optional[dict[str, str]] = None,
+    extra_headers: Optional[dict[str, str]] = None,
+    stop: Optional[list[str]] = None,
     frequency_penalty: Optional[float] = 0.2,
-) -> Union[Dict[str, Any], AsyncGenerator, ModelResponse]:
+) -> dict[str, Any] | AsyncGenerator | ModelResponse:
     messages = _strip_internal_properties(messages)
     
     if model_name == "mock-ai":
@@ -381,7 +381,7 @@ setup_api_keys()
 logger.info(f"[LLM] Module initialized: retries={litellm.num_retries}, timeout={litellm.request_timeout}s, stream_timeout={litellm.stream_timeout}s")
 
 
-_prewarm_cache: Dict[str, float] = {}
+_prewarm_cache: dict[str, float] = {}
 _PREWARM_CACHE_TTL = 60.0
 
 
@@ -414,7 +414,7 @@ async def prewarm_llm_connection(model_name: str) -> None:
                 litellm.acompletion(**params),
                 timeout=5.0
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         except Exception:
             pass

@@ -10,7 +10,7 @@ from core.services.llm import make_llm_api_call, LLMError
 
 @dataclass
 class ValidationResult:
-    prepared_messages: List[Dict[str, Any]]
+    prepared_messages: list[dict[str, Any]]
     is_valid: bool
     applied_fallback: bool
 
@@ -18,12 +18,12 @@ class ValidationResult:
 class LLMExecutor:
     async def validate_and_repair_tool_calls(
         self,
-        prepared_messages: List[Dict[str, Any]],
+        prepared_messages: list[dict[str, Any]],
         thread_id: str,
         force_tool_fallback: bool,
-        messages: Optional[List[Dict[str, Any]]],
-        memory_context: Optional[Dict[str, Any]],
-        system_prompt: Dict[str, Any],
+        messages: Optional[list[dict[str, Any]]],
+        memory_context: Optional[dict[str, Any]],
+        system_prompt: dict[str, Any],
         llm_model: str,
         db,
         get_llm_messages,
@@ -109,7 +109,7 @@ class LLMExecutor:
             applied_fallback=applied_fallback
         )
     
-    async def _persist_orphan_repair(self, thread_id: str, orphaned_ids: List[str]) -> None:
+    async def _persist_orphan_repair(self, thread_id: str, orphaned_ids: list[str]) -> None:
         try:
             from core.threads import repo as threads_repo
             from core.cache.runtime_cache import invalidate_message_history_cache
@@ -121,7 +121,7 @@ class LLMExecutor:
         except Exception as e:
             logger.warning(f"Failed to persist orphan repair to DB: {e}")
     
-    async def _persist_ordering_repair(self, thread_id: str, out_of_order_ids: List[str]) -> None:
+    async def _persist_ordering_repair(self, thread_id: str, out_of_order_ids: list[str]) -> None:
         try:
             from core.threads import repo as threads_repo
             from core.cache.runtime_cache import invalidate_message_history_cache
@@ -137,17 +137,17 @@ class LLMExecutor:
     
     async def check_and_apply_late_compression(
         self,
-        prepared_messages: List[Dict[str, Any]],
-        messages: List[Dict[str, Any]],
+        prepared_messages: list[dict[str, Any]],
+        messages: list[dict[str, Any]],
         llm_model: str,
         registry_model_id: str,
         llm_max_tokens: Optional[int],
-        system_prompt: Dict[str, Any],
+        system_prompt: dict[str, Any],
         thread_id: str,
-        memory_context: Optional[Dict[str, Any]],
+        memory_context: Optional[dict[str, Any]],
         db,
         enable_prompt_caching: bool = True
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         from litellm.utils import token_counter
         from core.ai_models import model_manager
         from core.agentpress.context_manager import ContextManager
@@ -199,11 +199,11 @@ class LLMExecutor:
     
     async def execute(
         self,
-        prepared_messages: List[Dict[str, Any]],
+        prepared_messages: list[dict[str, Any]],
         llm_model: str,
         llm_temperature: float,
         llm_max_tokens: Optional[int],
-        openapi_tool_schemas: Optional[List[Dict[str, Any]]],
+        openapi_tool_schemas: Optional[list[dict[str, Any]]],
         tool_choice: str,
         native_tool_calling: bool,
         xml_tool_calling: bool,
@@ -243,12 +243,12 @@ class LLMExecutor:
     @staticmethod
     def update_generation_tracking(
         generation,
-        prepared_messages: List[Dict[str, Any]],
+        prepared_messages: list[dict[str, Any]],
         llm_model: str,
         llm_max_tokens: Optional[int],
         llm_temperature: float,
         tool_choice: str,
-        openapi_tool_schemas: Optional[List[Dict[str, Any]]]
+        openapi_tool_schemas: Optional[list[dict[str, Any]]]
     ) -> None:
         if not generation:
             return

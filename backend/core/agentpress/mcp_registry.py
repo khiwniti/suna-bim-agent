@@ -34,14 +34,14 @@ class MCPToolStatus(Enum):
 class MCPToolInfo:
     tool_name: str
     toolkit_slug: str
-    mcp_config: Dict[str, Any]
+    mcp_config: dict[str, Any]
     status: MCPToolStatus = MCPToolStatus.DISCOVERED
     
     load_time_ms: Optional[float] = None
     last_used_ms: Optional[float] = None
     call_count: int = 0
     
-    schema: Optional[Dict[str, Any]] = None
+    schema: Optional[dict[str, Any]] = None
     description: Optional[str] = None
     instance: Optional[Any] = None
     
@@ -50,7 +50,7 @@ class MCPToolInfo:
 
 
 class MCPExecutionContext:
-    def __init__(self, thread_manager, user_context: Optional[Dict] = None):
+    def __init__(self, thread_manager, user_context: Optional[dict] = None):
         self.thread_manager = thread_manager
         self.user_context = user_context or {}
         self.execution_stats = {
@@ -66,12 +66,12 @@ class MCPRegistry:
     SCHEMA_CACHE_KEY_PREFIX = "mcp_schema:"
     
     def __init__(self):
-        self._tools: Dict[str, MCPToolInfo] = {}
-        self._toolkit_mapping: Dict[str, Set[str]] = {}
-        self._status_index: Dict[MCPToolStatus, Set[str]] = {
+        self._tools: dict[str, MCPToolInfo] = {}
+        self._toolkit_mapping: dict[str, set[str]] = {}
+        self._status_index: dict[MCPToolStatus, set[str]] = {
             status: set() for status in MCPToolStatus
         }
-        self._schema_cache: Dict[str, Dict[str, Any]] = {}
+        self._schema_cache: dict[str, dict[str, Any]] = {}
         self._initialized = False
         self._redis_client = None
         
@@ -91,7 +91,7 @@ class MCPRegistry:
         
         logger.debug(f"🔧 [MCP REGISTRY] Registered {tool_name} from {toolkit}")
     
-    def activate_tool(self, tool_name: str, instance: Any, schema: Optional[Dict] = None) -> bool:
+    def activate_tool(self, tool_name: str, instance: Any, schema: Optional[dict] = None) -> bool:
         if tool_name not in self._tools:
             logger.warning(f"⚠️  [MCP REGISTRY] Cannot activate unknown tool: {tool_name}")
             return False
@@ -130,13 +130,13 @@ class MCPRegistry:
         tool_info = self._tools.get(tool_name)
         return tool_info and tool_info.status == MCPToolStatus.ACTIVE
     
-    def get_tools_by_status(self, status: MCPToolStatus) -> List[str]:
+    def get_tools_by_status(self, status: MCPToolStatus) -> list[str]:
         return list(self._status_index[status])
     
-    def get_tools_by_toolkit(self, toolkit_slug: str) -> List[str]:
+    def get_tools_by_toolkit(self, toolkit_slug: str) -> list[str]:
         return list(self._toolkit_mapping.get(toolkit_slug, set()))
     
-    def get_available_toolkits(self) -> List[str]:
+    def get_available_toolkits(self) -> list[str]:
         return list(self._toolkit_mapping.keys())
     
     async def _ensure_redis(self) -> bool:
@@ -150,7 +150,7 @@ class MCPRegistry:
                 return False
         return True
     
-    async def _get_cached_toolkit_schemas(self, toolkit_slug: str) -> Optional[Dict[str, Dict[str, Any]]]:
+    async def _get_cached_toolkit_schemas(self, toolkit_slug: str) -> Optional[dict[str, dict[str, Any]]]:
         if not await self._ensure_redis():
             return None
         
@@ -168,7 +168,7 @@ class MCPRegistry:
         
         return None
     
-    async def _cache_toolkit_schemas(self, toolkit_slug: str, schemas: Dict[str, Dict[str, Any]]) -> None:
+    async def _cache_toolkit_schemas(self, toolkit_slug: str, schemas: dict[str, dict[str, Any]]) -> None:
         if not await self._ensure_redis():
             return
         
@@ -186,7 +186,7 @@ class MCPRegistry:
         except Exception as e:
             logger.debug(f"⚠️ [MCP SCHEMA CACHE] Write error: {e}")
     
-    async def get_discovery_info(self, filter_pattern: Optional[str] = None, load_schemas: bool = True, account_id: Optional[str] = None) -> Dict[str, Any]:
+    async def get_discovery_info(self, filter_pattern: Optional[str] = None, load_schemas: bool = True, account_id: Optional[str] = None) -> dict[str, Any]:
         available_tools = {}
         tools_needing_schemas = []
         
@@ -233,7 +233,7 @@ class MCPRegistry:
             "filter_applied": filter_pattern
         }
     
-    async def _load_schemas_from_mcp(self, tool_names: List[str], account_id: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
+    async def _load_schemas_from_mcp(self, tool_names: list[str], account_id: Optional[str] = None) -> dict[str, dict[str, Any]]:
         from core.composio_integration.composio_profile_service import ComposioProfileService
         from core.services.supabase import DBConnection
         
@@ -397,7 +397,7 @@ class MCPRegistry:
         
         return schemas
     
-    async def _load_custom_mcp_schemas(self, custom_type: str, config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    async def _load_custom_mcp_schemas(self, custom_type: str, config: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Load schemas from custom MCP servers (SSE, HTTP, JSON/stdio)"""
         schemas = {}
         
@@ -416,7 +416,7 @@ class MCPRegistry:
         
         return schemas
     
-    async def _load_sse_mcp_schemas(self, config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    async def _load_sse_mcp_schemas(self, config: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Load schemas from SSE MCP server"""
         url = config.get('url')
         if not url:
@@ -484,7 +484,7 @@ class MCPRegistry:
         
         return schemas
     
-    async def _load_http_mcp_schemas(self, config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    async def _load_http_mcp_schemas(self, config: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Load schemas from HTTP/Streamable HTTP MCP server"""
         url = config.get('url')
         if not url:
@@ -524,7 +524,7 @@ class MCPRegistry:
         
         return schemas
     
-    async def _load_json_mcp_schemas(self, config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    async def _load_json_mcp_schemas(self, config: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Load schemas from JSON/stdio MCP server"""
         command = config.get('command')
         if not command:
@@ -570,7 +570,7 @@ class MCPRegistry:
         
         return schemas
 
-    async def execute_tool(self, tool_name: str, args: Dict[str, Any], 
+    async def execute_tool(self, tool_name: str, args: dict[str, Any], 
                           context: MCPExecutionContext) -> ToolResult:
         start_time = time.time()
         
@@ -690,7 +690,7 @@ class MCPRegistry:
         return warmed_count
     
 
-    def get_registry_stats(self) -> Dict[str, Any]:
+    def get_registry_stats(self) -> dict[str, Any]:
         return {
             "total_tools": len(self._tools),
             "active_tools": len(self._status_index[MCPToolStatus.ACTIVE]),

@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def extract_tool_call_chunk_data(tool_call_chunk: Any) -> Dict[str, Any]:
+def extract_tool_call_chunk_data(tool_call_chunk: Any) -> dict[str, Any]:
     """
     Extract tool call chunk data from a LiteLLM tool_call_chunk object.
     
@@ -49,7 +49,7 @@ def extract_tool_call_chunk_data(tool_call_chunk: Any) -> Dict[str, Any]:
     return tool_call_data_chunk
 
 
-def is_tool_call_complete(tool_call_buffer_entry: Dict[str, Any]) -> bool:
+def is_tool_call_complete(tool_call_buffer_entry: dict[str, Any]) -> bool:
     """
     Check if a buffered tool call is complete (has all required fields and valid JSON arguments).
     
@@ -126,7 +126,7 @@ def _normalize_json_string_values(value: Any) -> Any:
     return value
 
 
-def parse_native_tool_call_arguments(arguments: Any) -> Dict[str, Any]:
+def parse_native_tool_call_arguments(arguments: Any) -> dict[str, Any]:
     """
     Parse native tool call arguments, handling both string and dict formats.
     Also normalizes nested JSON strings (e.g. arrays passed as strings).
@@ -161,7 +161,7 @@ def parse_native_tool_call_arguments(arguments: Any) -> Dict[str, Any]:
 def convert_to_exec_tool_call(
     tool_call: Any,
     raw_arguments_str: Optional[str] = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Convert a native tool call object to exec_tool_call format.
     
@@ -203,7 +203,7 @@ def convert_to_exec_tool_call(
     }
 
 
-def convert_buffer_to_complete_tool_calls(tool_calls_buffer: Dict[int, Dict[str, Any]]) -> List[Dict[str, Any]]:
+def convert_buffer_to_complete_tool_calls(tool_calls_buffer: dict[int, dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Convert buffered tool calls to complete tool call format.
     Includes automatic repair of malformed JSON from LLMs.
@@ -254,9 +254,9 @@ def convert_buffer_to_complete_tool_calls(tool_calls_buffer: Dict[int, Dict[str,
 
 
 def convert_to_unified_tool_call_format(
-    tool_call: Dict[str, Any],
+    tool_call: dict[str, Any],
     parse_arguments: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     function_name = tool_call.get('function', {}).get('name', 'unknown')
     tool_call_id = tool_call.get('id', str(uuid.uuid4()))
     raw_arguments = tool_call.get('function', {}).get('arguments', '')
@@ -275,11 +275,11 @@ def convert_to_unified_tool_call_format(
 
 
 def convert_buffer_to_metadata_tool_calls(
-    tool_calls_buffer: Dict[int, Dict[str, Any]], 
+    tool_calls_buffer: dict[int, dict[str, Any]], 
     include_partial: bool = False,
     delta_mode: bool = False,
-    sent_lengths: Optional[Dict[int, int]] = None
-) -> List[Dict[str, Any]]:
+    sent_lengths: Optional[dict[int, int]] = None
+) -> list[dict[str, Any]]:
     """
     Convert buffered tool calls to unified metadata format for streaming chunks.
     

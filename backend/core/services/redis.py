@@ -65,8 +65,8 @@ class StreamHub:
     def __init__(self, redis_client: Redis, queue_maxsize: int = 256):
         self._redis = redis_client
         self._queue_maxsize = queue_maxsize
-        self._pumps: Dict[str, asyncio.Task] = {}
-        self._subs: Dict[str, Set[asyncio.Queue]] = defaultdict(_builtin_set)
+        self._pumps: dict[str, asyncio.Task] = {}
+        self._subs: dict[str, builtins.set[asyncio.Queue]] = defaultdict(_builtin_set)
         self._lock = asyncio.Lock()
         # Metrics
         self.streams_active = 0
@@ -140,7 +140,7 @@ class StreamHub:
             try:
                 msg = await asyncio.wait_for(queue.get(), timeout=timeout)
                 yield msg
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 yield None
 
     def subscription(self, stream_key: str, last_id: str = "0"):
@@ -162,7 +162,7 @@ class StreamHub:
                 pass
         logger.debug(f"Hub: Closed, cancelled {len(tasks)} pumps")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "streams_active": self.streams_active,
             "subscribers_total": self.subscribers_total,
@@ -191,7 +191,7 @@ class RedisClient:
         self._error_count = 0
         self._init_time: Optional[float] = None
     
-    def _get_config(self) -> Dict[str, Any]:
+    def _get_config(self) -> dict[str, Any]:
         load_dotenv()
         
         redis_host = os.getenv("REDIS_HOST", "localhost")
@@ -217,7 +217,7 @@ class RedisClient:
             "url": redis_url,
         }
     
-    def get_pool_info(self) -> Dict[str, Any]:
+    def get_pool_info(self) -> dict[str, Any]:
         """Get connection pool stats for monitoring."""
         def _pool_stats(pool, name):
             if not pool:
@@ -307,7 +307,7 @@ class RedisClient:
                 self._initialized = True
                 self._init_time = time.time()
                 logger.info(f"Successfully connected to Redis (general_pool={GENERAL_POOL_SIZE}, stream_pool={STREAM_POOL_SIZE})")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error("Redis ping timed out after 5 seconds")
                 raise ConnectionError("Redis connection timeout - is Redis running?")
             except Exception as e:
@@ -412,7 +412,7 @@ class RedisClient:
         self._op_count += 1
         try:
             return await asyncio.wait_for(coro, timeout=timeout_seconds)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._timeout_count += 1
             logger.warning(f"⚠️ [REDIS TIMEOUT] {operation_name} timed out after {timeout_seconds}s")
             return default
@@ -486,7 +486,7 @@ class RedisClient:
         )
         return result or 0
     
-    async def delete_multiple(self, keys: List[str], timeout: float = None) -> int:
+    async def delete_multiple(self, keys: list[str], timeout: float = None) -> int:
         """Delete multiple keys using pipelining for efficiency."""
         if not keys:
             return 0
@@ -610,7 +610,7 @@ class RedisClient:
         )
         return result if result is not None else -2
     
-    async def scan_keys(self, pattern: str, count: int = 100, timeout: float = None) -> List[str]:
+    async def scan_keys(self, pattern: str, count: int = 100, timeout: float = None) -> list[str]:
         """Scan keys with timeout protection - returns partial results on timeout."""
         timeout = timeout or DEFAULT_STREAM_TIMEOUT
         client = await self.get_client()
@@ -645,7 +645,7 @@ class RedisClient:
         )
         return result or 0
     
-    async def zrangebyscore(self, key: str, min: str, max: str, timeout: float = None) -> List[str]:
+    async def zrangebyscore(self, key: str, min: str, max: str, timeout: float = None) -> list[str]:
         """Get sorted set range by score with timeout protection."""
         timeout = timeout or DEFAULT_OP_TIMEOUT
         client = await self.get_client()
@@ -715,7 +715,7 @@ class RedisClient:
     
     # ========== Stream Operations with Timeout ==========
     
-    async def stream_add(self, stream_key: str, fields: Dict[str, str], maxlen: int = None, 
+    async def stream_add(self, stream_key: str, fields: dict[str, str], maxlen: int = None, 
                         approximate: bool = True, timeout: Optional[float] = None, 
                         fail_silently: bool = True) -> Optional[str]:
         """Add to stream with timeout protection."""
@@ -747,7 +747,7 @@ class RedisClient:
             raise
     
     async def stream_read(self, stream_key: str, last_id: str = "0", block_ms: int = None,
-                          count: int = None, timeout: Optional[float] = None) -> List[tuple]:
+                          count: int = None, timeout: Optional[float] = None) -> list[tuple]:
         """Read from stream with timeout protection. Uses STREAM_POOL if blocking."""
         # Use stream pool for blocking reads to prevent starvation
         if block_ms and block_ms > 0:
@@ -793,7 +793,7 @@ class RedisClient:
         return entries
     
     async def stream_range(self, stream_key: str, start: str = "-", end: str = "+", 
-                           count: int = None, timeout: Optional[float] = None) -> List[tuple]:
+                           count: int = None, timeout: Optional[float] = None) -> list[tuple]:
         """Get stream range with timeout protection."""
         if self._initialized and self._client:
             client = self._client
@@ -825,12 +825,12 @@ class RedisClient:
         )
         return result or 0
     
-    async def xadd(self, stream_key: str, fields: Dict[str, str], maxlen: int = None, 
+    async def xadd(self, stream_key: str, fields: dict[str, str], maxlen: int = None, 
                    approximate: bool = True, timeout: Optional[float] = None) -> Optional[str]:
         return await self.stream_add(stream_key, fields, maxlen=maxlen, approximate=approximate, timeout=timeout)
     
-    async def xread(self, streams: Dict[str, str], count: int = None, block: int = None,
-                    timeout: Optional[float] = None) -> List:
+    async def xread(self, streams: dict[str, str], count: int = None, block: int = None,
+                    timeout: Optional[float] = None) -> list:
         """Read from multiple streams with timeout protection. Uses STREAM_POOL if blocking."""
         # Use stream pool for blocking reads to prevent starvation
         if block and block > 0:
@@ -862,7 +862,7 @@ class RedisClient:
         return result or []
     
     async def xrange(self, stream_key: str, start: str = "-", end: str = "+", 
-                     count: int = None, timeout: Optional[float] = None) -> List:
+                     count: int = None, timeout: Optional[float] = None) -> list:
         """Get stream range with timeout protection."""
         if self._initialized and self._client:
             client = self._client
@@ -917,8 +917,8 @@ class RedisClient:
     
     # ========== Consumer Group Operations ==========
     
-    async def xreadgroup(self, groupname: str, consumername: str, streams: Dict[str, str],
-                         block: int = None, count: int = None, timeout: Optional[float] = None) -> List:
+    async def xreadgroup(self, groupname: str, consumername: str, streams: dict[str, str],
+                         block: int = None, count: int = None, timeout: Optional[float] = None) -> list:
         """Read from consumer group with timeout protection. Uses STREAM_POOL if blocking."""
         block_ms = block or 0
         # Use stream pool for blocking reads to prevent starvation
@@ -963,7 +963,7 @@ class RedisClient:
     
     # ========== Health Check ==========
     
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform health check and return diagnostics."""
         start = time.time()
         try:
@@ -995,7 +995,7 @@ class RedisClient:
 redis = RedisClient()
 
 
-def get_redis_config() -> Dict[str, Any]:
+def get_redis_config() -> dict[str, Any]:
     temp_client = RedisClient()
     return temp_client._get_config()
 
@@ -1031,7 +1031,7 @@ async def setex(key: str, seconds: int, value: str, timeout: float = None):
 async def delete(key: str, timeout: float = None):
     return await redis.delete(key, timeout=timeout)
 
-async def delete_multiple(keys: List[str], timeout: float = None) -> int:
+async def delete_multiple(keys: list[str], timeout: float = None) -> int:
     return await redis.delete_multiple(keys, timeout=timeout)
 
 async def incr(key: str, timeout: float = None) -> int:
@@ -1122,7 +1122,7 @@ async def check_stop_signal(agent_run_id: str) -> bool:
 async def clear_stop_signal(agent_run_id: str):
     await redis.clear_stop_signal(agent_run_id)
 
-async def xreadgroup(groupname: str, consumername: str, streams: Dict[str, str], 
+async def xreadgroup(groupname: str, consumername: str, streams: dict[str, str], 
                      block: int = None, count: int = None, timeout: Optional[float] = None):
     return await redis.xreadgroup(groupname=groupname, consumername=consumername, 
                                  streams=streams, block=block, count=count, timeout=timeout)
@@ -1130,10 +1130,10 @@ async def xreadgroup(groupname: str, consumername: str, streams: Dict[str, str],
 async def xack(stream: str, group: str, *ids, timeout: Optional[float] = None):
     return await redis.xack(stream, group, *ids, timeout=timeout)
 
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     return await redis.health_check()
 
-def get_pool_info() -> Dict[str, Any]:
+def get_pool_info() -> dict[str, Any]:
     return redis.get_pool_info()
 
 

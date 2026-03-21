@@ -29,7 +29,7 @@ except ImportError:
 set_json_dumps(_json_serialize)
 set_json_loads(_json_deserialize)
 
-from core.utils.config import config, EnvMode
+from core.utils.config import config
 
 def _get_db_config():
     """
@@ -110,7 +110,7 @@ TRANSIENT_ERRORS = (
 )
 
 
-def serialize_row(row: Dict[str, Any]) -> Dict[str, Any]:
+def serialize_row(row: dict[str, Any]) -> dict[str, Any]:
     from decimal import Decimal
     result = {}
     for k, v in row.items():
@@ -125,7 +125,7 @@ def serialize_row(row: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
     
-def serialize_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def serialize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [serialize_row(row) for row in rows]
 
 
@@ -260,7 +260,7 @@ def has_read_replica() -> bool:
     return _has_read_replica
 
 
-def get_db_stats() -> Dict[str, Any]:
+def get_db_stats() -> dict[str, Any]:
     """
     Get database connection statistics for monitoring.
     
@@ -534,10 +534,9 @@ async def transaction() -> AsyncIterator[AsyncSession]:
     
     for attempt in range(MAX_RETRIES):
         try:
-            async with _session_factory() as session:
-                async with session.begin():
-                    yield session
-                    return
+            async with _session_factory() as session, session.begin():
+                yield session
+                return
         except (OperationalError, InterfaceError) as e:
             if _is_transient(e) and attempt < MAX_RETRIES - 1:
                 await asyncio.sleep(RETRY_DELAY * (2 ** attempt))
@@ -550,16 +549,14 @@ def _prep_params(params: Optional[dict]) -> dict:
         return {}
     result = {}
     for k, v in params.items():
-        if isinstance(v, dict):
-            result[k] = _json_serialize(v)
-        elif isinstance(v, list) and v and isinstance(v[0], dict):
+        if isinstance(v, dict) or isinstance(v, list) and v and isinstance(v[0], dict):
             result[k] = _json_serialize(v)
         else:
             result[k] = v
     return result
 
 
-async def execute(sql: str, params: Optional[dict] = None) -> List[dict]:
+async def execute(sql: str, params: Optional[dict] = None) -> list[dict]:
     import time as _time
     t0 = _time.time()
     async with get_session() as session:
@@ -585,7 +582,7 @@ async def execute(sql: str, params: Optional[dict] = None) -> List[dict]:
         return rows
 
 
-async def execute_read(sql: str, params: Optional[dict] = None) -> List[dict]:
+async def execute_read(sql: str, params: Optional[dict] = None) -> list[dict]:
     import time as _time
     t0 = _time.time()
     async with get_read_session() as session:
@@ -635,7 +632,7 @@ async def execute_scalar_read(sql: str, params: Optional[dict] = None):
         return result.scalar()
 
 
-async def execute_mutate(sql: str, params: Optional[dict] = None) -> List[dict]:
+async def execute_mutate(sql: str, params: Optional[dict] = None) -> list[dict]:
     async with get_session() as session:
         result = await session.execute(text(sql), _prep_params(params))
         await session.commit()
@@ -656,7 +653,7 @@ class Table:
                             Set to False if you need strong consistency (read-after-write).
         """
         self.name = _validate_identifier(name, "table name")
-        self._json_cols: Set[str] = set()
+        self._json_cols: set[str] = set()
         self.use_read_replica = use_read_replica
     
     def json_columns(self, *cols: str) -> 'Table':
@@ -717,7 +714,7 @@ class Table:
             return dict(row._mapping) if row else None
     
     async def list(self, filters: Optional[dict] = None, cols: str = "*", order_by: Optional[str] = None, 
-                   limit: int = 100, offset: int = 0, use_replica: Optional[bool] = None) -> List[dict]:
+                   limit: int = 100, offset: int = 0, use_replica: Optional[bool] = None) -> list[dict]:
         """
         List rows with optional filters.
         

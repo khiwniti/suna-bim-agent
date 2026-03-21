@@ -72,7 +72,7 @@ class ContextManager:
         """Get the singleton Anthropic client."""
         return _get_anthropic_client_singleton()
     
-    async def save_compressed_messages(self, compressed_messages: List[Dict[str, Any]]) -> int:
+    async def save_compressed_messages(self, compressed_messages: list[dict[str, Any]]) -> int:
         """Save compressed message content to database metadata.
         
         Updates messages in DB with:
@@ -105,7 +105,7 @@ class ContextManager:
         """Get the singleton Bedrock client."""
         return _get_bedrock_client_singleton()
 
-    async def count_tokens(self, model: str, messages: List[Dict[str, Any]], system_prompt: Optional[Dict[str, Any]] = None, apply_caching: bool = True) -> int:
+    async def count_tokens(self, model: str, messages: list[dict[str, Any]], system_prompt: Optional[dict[str, Any]] = None, apply_caching: bool = True) -> int:
         """Count tokens using the correct tokenizer for the model.
         
         For Anthropic/Claude models: Uses Anthropic's official tokenizer
@@ -265,7 +265,7 @@ class ContextManager:
         else:
             return await asyncio.to_thread(token_counter, model=model, messages=messages_to_count)
 
-    async def estimate_token_usage(self, prompt_messages: List[Dict[str, Any]], completion_content: str, model: str) -> Dict[str, Any]:
+    async def estimate_token_usage(self, prompt_messages: list[dict[str, Any]], completion_content: str, model: str) -> dict[str, Any]:
         """
         Estimate token usage for billing when exact usage is unavailable.
         This is critical for billing on timeouts, crashes, disconnects, etc.
@@ -331,7 +331,7 @@ class ContextManager:
                     "fallback": True
                 }
     
-    def is_tool_result_message(self, msg: Dict[str, Any]) -> bool:
+    def is_tool_result_message(self, msg: dict[str, Any]) -> bool:
         """Check if a message is a tool result message.
 
         Detects tool results from:
@@ -360,7 +360,7 @@ class ContextManager:
 
         return False
     
-    def get_tool_call_ids_from_message(self, msg: Dict[str, Any]) -> List[str]:
+    def get_tool_call_ids_from_message(self, msg: dict[str, Any]) -> list[str]:
         """Extract tool_call IDs from an assistant message with tool_calls.
         
         Returns list of tool_call IDs, or empty list if no tool_calls.
@@ -380,7 +380,7 @@ class ContextManager:
                     ids.append(tc_id)
         return ids
     
-    def get_tool_call_id_from_result(self, msg: Dict[str, Any]) -> Optional[str]:
+    def get_tool_call_id_from_result(self, msg: dict[str, Any]) -> Optional[str]:
         """Extract the tool_call_id from a tool result message.
 
         Returns the tool_call_id, or None if not a tool result message.
@@ -403,7 +403,7 @@ class ContextManager:
 
         return None
     
-    def group_messages_by_tool_calls(self, messages: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+    def group_messages_by_tool_calls(self, messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
         """Group messages into atomic units respecting tool call pairing.
         
         CRITICAL: This ensures assistant messages with tool_calls are always grouped
@@ -425,8 +425,8 @@ class ContextManager:
         if not messages:
             return []
         
-        groups: List[List[Dict[str, Any]]] = []
-        current_group: List[Dict[str, Any]] = []
+        groups: list[list[dict[str, Any]]] = []
+        current_group: list[dict[str, Any]] = []
         expected_tool_call_ids: set = set()  # IDs we're waiting for results
         
         for msg in messages:
@@ -492,7 +492,7 @@ class ContextManager:
         
         return groups
     
-    def flatten_message_groups(self, groups: List[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    def flatten_message_groups(self, groups: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
         """Flatten message groups back into a flat list of messages.
         
         Args:
@@ -506,7 +506,7 @@ class ContextManager:
             result.extend(group)
         return result
     
-    def validate_tool_call_pairing(self, messages: List[Dict[str, Any]]) -> tuple[bool, List[str], List[str]]:
+    def validate_tool_call_pairing(self, messages: list[dict[str, Any]]) -> tuple[bool, list[str], list[str]]:
         """Validate that tool calls and tool results are properly paired in BOTH directions.
         
         Bedrock requires:
@@ -527,7 +527,7 @@ class ContextManager:
         # Track all tool_call_ids that have been answered with tool results
         answered_tool_call_ids: set = set()
         # Track orphaned tool results (results without matching assistant)
-        orphaned_tool_result_ids: List[str] = []
+        orphaned_tool_result_ids: list[str] = []
         
         # First pass: collect all tool_call IDs from assistant messages
         for msg in messages:
@@ -558,7 +558,7 @@ class ContextManager:
         
         return is_valid, orphaned_tool_result_ids, unanswered_tool_call_ids
     
-    def needs_tool_ordering_repair(self, messages: List[Dict[str, Any]]) -> bool:
+    def needs_tool_ordering_repair(self, messages: list[dict[str, Any]]) -> bool:
         """Fast O(n) check if messages have tool ordering issues. Exits early in common case.
         
         This is a lightweight pre-check that detects if user messages interrupt the
@@ -608,7 +608,7 @@ class ContextManager:
         
         return False  # No issues found
     
-    def remove_orphaned_tool_results(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def remove_orphaned_tool_results(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Remove orphaned tool results that have no matching assistant message.
         
         This is a repair function to fix invalid message structures before sending to LLM.
@@ -643,7 +643,7 @@ class ContextManager:
         
         return result
     
-    def remove_unanswered_tool_calls(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def remove_unanswered_tool_calls(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Remove or fix assistant messages with tool_calls that have no matching tool results.
         
         This is a repair function to fix invalid message structures before sending to LLM.
@@ -716,7 +716,7 @@ class ContextManager:
         
         return result
     
-    def repair_tool_call_pairing(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def repair_tool_call_pairing(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Repair both directions of tool call pairing issues.
 
         This handles:
@@ -745,7 +745,7 @@ class ContextManager:
 
         return result
 
-    def validate_tool_call_ordering(self, messages: List[Dict[str, Any]]) -> tuple[bool, List[str], List[str]]:
+    def validate_tool_call_ordering(self, messages: list[dict[str, Any]]) -> tuple[bool, list[str], list[str]]:
         """Validate that tool results immediately follow their assistant tool_calls.
 
         Some LLM providers (like Minimax) require tool results to appear right after
@@ -757,8 +757,8 @@ class ContextManager:
         Returns:
             Tuple of (is_valid, out_of_order_tool_call_ids, out_of_order_tool_result_ids)
         """
-        out_of_order_tool_call_ids: List[str] = []
-        out_of_order_tool_result_ids: List[str] = []
+        out_of_order_tool_call_ids: list[str] = []
+        out_of_order_tool_result_ids: list[str] = []
 
         for i, msg in enumerate(messages):
             if not isinstance(msg, dict):
@@ -805,7 +805,7 @@ class ContextManager:
 
         return is_valid, out_of_order_tool_call_ids, out_of_order_tool_result_ids
 
-    def remove_out_of_order_tool_pairs(self, messages: List[Dict[str, Any]], out_of_order_ids: List[str]) -> List[Dict[str, Any]]:
+    def remove_out_of_order_tool_pairs(self, messages: list[dict[str, Any]], out_of_order_ids: list[str]) -> list[dict[str, Any]]:
         """Remove assistant tool_calls and their delayed tool results that are out of order.
 
         Args:
@@ -869,7 +869,7 @@ class ContextManager:
 
         return result
 
-    def strip_all_tool_content_as_fallback(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def strip_all_tool_content_as_fallback(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """EMERGENCY FALLBACK: Strip all tool-related content if repair completely fails.
 
         This is a last-resort method that removes:
@@ -920,9 +920,9 @@ class ContextManager:
     
     def remove_old_tool_outputs(
         self, 
-        messages: List[Dict[str, Any]], 
+        messages: list[dict[str, Any]], 
         keep_last_n: int = 8
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Compress old tool output messages IN-MEMORY, keeping only the most recent N uncompressed.
         
         CRITICAL: This method compresses CONTENT only - it never removes messages.
@@ -1000,9 +1000,9 @@ class ContextManager:
     
     def compress_user_messages_in_memory(
         self,
-        messages: List[Dict[str, Any]],
+        messages: list[dict[str, Any]],
         keep_last_n: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Compress user messages IN-MEMORY, keeping only the most recent N uncompressed.
         
         Args:
@@ -1051,9 +1051,9 @@ class ContextManager:
     
     def compress_assistant_messages_in_memory(
         self,
-        messages: List[Dict[str, Any]],
+        messages: list[dict[str, Any]],
         keep_last_n: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Compress assistant messages IN-MEMORY, keeping only the most recent N uncompressed.
         
         Args:
@@ -1100,7 +1100,7 @@ class ContextManager:
         
         return result
     
-    def compress_message(self, msg_content: Union[str, dict], message_id: Optional[str] = None, max_length: int = 3000) -> Union[str, dict]:
+    def compress_message(self, msg_content: str | dict, message_id: Optional[str] = None, max_length: int = 3000) -> str | dict:
         """Compress the message content."""
         if isinstance(msg_content, str):
             if len(msg_content) > max_length:
@@ -1108,7 +1108,7 @@ class ContextManager:
             else:
                 return msg_content
         
-    def safe_truncate(self, msg_content: Union[str, dict], max_length: int = 100000) -> Union[str, dict]:
+    def safe_truncate(self, msg_content: str | dict, max_length: int = 100000) -> str | dict:
         """Truncate the message content safely by removing the middle portion."""
         max_length = min(max_length, 100000)
         if isinstance(msg_content, str):
@@ -1139,7 +1139,7 @@ class ContextManager:
             else:
                 return msg_content
   
-    async def compress_tool_result_messages(self, messages: List[Dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def compress_tool_result_messages(self, messages: list[dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> list[dict[str, Any]]:
         """Compress the tool result messages except the most recent N (configured by keep_recent_tool_outputs).
         
         Compression is deterministic (simple truncation), ensuring consistent results across requests.
@@ -1169,7 +1169,7 @@ class ContextManager:
                             msg["content"] = self.safe_truncate(msg["content"], int(max_tokens_value * 2))
         return messages
 
-    async def compress_user_messages(self, messages: List[Dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def compress_user_messages(self, messages: list[dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> list[dict[str, Any]]:
         """Compress the user messages except the most recent one.
         
         Compression is deterministic (simple truncation), ensuring consistent results across requests.
@@ -1200,7 +1200,7 @@ class ContextManager:
                             msg["content"] = self.safe_truncate(msg["content"], int(max_tokens_value * 2))
         return messages
 
-    async def compress_assistant_messages(self, messages: List[Dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def compress_assistant_messages(self, messages: list[dict[str, Any]], llm_model: str, max_tokens: Optional[int], token_threshold: int = 1000, uncompressed_total_token_count: Optional[int] = None) -> list[dict[str, Any]]:
         """Compress the assistant messages except the most recent one.
         
         Compression is deterministic (simple truncation), ensuring consistent results across requests.
@@ -1232,9 +1232,9 @@ class ContextManager:
                             
         return messages
 
-    def remove_meta_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def remove_meta_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Remove meta messages from the messages."""
-        result: List[Dict[str, Any]] = []
+        result: list[dict[str, Any]] = []
         for msg in messages:
             msg_content = msg.get('content')
             # Try to parse msg_content as JSON if it's a string
@@ -1259,14 +1259,14 @@ class ContextManager:
                 result.append(msg)
         return result
 
-    async def compress_messages(self, messages: List[Dict[str, Any]], llm_model: str, max_tokens: Optional[int] = 41000, token_threshold: int = 4096, max_iterations: int = 5, actual_total_tokens: Optional[int] = None, system_prompt: Optional[Dict[str, Any]] = None, thread_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def compress_messages(self, messages: list[dict[str, Any]], llm_model: str, max_tokens: Optional[int] = 41000, token_threshold: int = 4096, max_iterations: int = 5, actual_total_tokens: Optional[int] = None, system_prompt: Optional[dict[str, Any]] = None, thread_id: Optional[str] = None) -> list[dict[str, Any]]:
         """Compress the messages WITHOUT applying caching during iterations.
         
         Caching should be applied ONCE at the end by the caller, not during compression.
         Compressed messages are saved to the database for future reads.
         """
         # Capture original content for messages with message_id (for tracking compression)
-        original_content_map: Dict[str, Any] = {}
+        original_content_map: dict[str, Any] = {}
         for msg in messages:
             message_id = msg.get('message_id')
             if message_id:
@@ -1393,7 +1393,7 @@ class ContextManager:
         logger.info(f"✨ Final compression complete: {compressed_total} tokens (target: {target_tokens}, max: {max_tokens})")
         
         # Identify messages that were compressed and save to database
-        compressed_to_save: List[Dict[str, Any]] = []
+        compressed_to_save: list[dict[str, Any]] = []
         for msg in result:
             message_id = msg.get('message_id')
             if message_id and message_id in original_content_map:
@@ -1421,13 +1421,13 @@ class ContextManager:
     
     async def compress_messages_by_omitting_messages(
             self, 
-            messages: List[Dict[str, Any]], 
+            messages: list[dict[str, Any]], 
             llm_model: str, 
             max_tokens: Optional[int] = 41000,
             removal_batch_size: int = 3,  # Now operates on groups, not individual messages
             min_groups_to_keep: int = 5,  # Minimum number of groups to preserve
-            system_prompt: Optional[Dict[str, Any]] = None
-        ) -> List[Dict[str, Any]]:
+            system_prompt: Optional[dict[str, Any]] = None
+        ) -> list[dict[str, Any]]:
         """Compress the messages by omitting message GROUPS from the middle.
         
         CRITICAL: This method operates on atomic message groups to preserve
@@ -1464,7 +1464,7 @@ class ContextManager:
         current_token_count = initial_token_count
         
         # Track all omitted messages to save them with placeholder content
-        all_omitted_messages: List[Dict[str, Any]] = []
+        all_omitted_messages: list[dict[str, Any]] = []
         
         while current_token_count > max_allowed_tokens and safety_limit > 0:
             safety_limit -= 1
@@ -1514,7 +1514,7 @@ class ContextManager:
 
         # Save omitted messages with placeholder content so they're read as compressed next time
         if all_omitted_messages:
-            omitted_to_save: List[Dict[str, Any]] = []
+            omitted_to_save: list[dict[str, Any]] = []
             for msg in all_omitted_messages:
                 message_id = msg.get('message_id')
                 if message_id:
@@ -1577,7 +1577,7 @@ class ContextManager:
             
         return final_messages
     
-    async def middle_out_messages(self, messages: List[Dict[str, Any]], max_messages: int = 320) -> List[Dict[str, Any]]:
+    async def middle_out_messages(self, messages: list[dict[str, Any]], max_messages: int = 320) -> list[dict[str, Any]]:
         """Remove message GROUPS from the middle of the list, keeping approximately max_messages total.
         
         CRITICAL: This method operates on atomic message groups to preserve
@@ -1631,7 +1631,7 @@ class ContextManager:
             logger.info(f"📦 Middle-out: removed {removed_count} groups from middle ({len(message_groups)} -> {len(kept_groups)} groups)")
             
             # Save removed messages with placeholder content
-            omitted_to_save: List[Dict[str, Any]] = []
+            omitted_to_save: list[dict[str, Any]] = []
             for group in removed_groups:
                 for msg in group:
                     message_id = msg.get('message_id')

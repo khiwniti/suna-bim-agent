@@ -4,7 +4,7 @@ from core.services.db import execute, execute_one, serialize_row, serialize_rows
 from core.utils.logger import logger
 
 
-async def get_feedback_stats() -> Dict[str, Any]:
+async def get_feedback_stats() -> dict[str, Any]:
     sql = """
     SELECT 
         COUNT(*) as total_feedback,
@@ -53,11 +53,11 @@ async def list_feedback_paginated(
     has_text: Optional[bool] = None,
     sort_by: str = "created_at",
     sort_order: str = "desc"
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int]:
     offset = (page - 1) * page_size
     
     where_clauses = ["1=1"]
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "limit": page_size,
         "offset": offset
     }
@@ -127,9 +127,9 @@ async def get_all_feedback(
     has_text: Optional[bool] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     where_clauses = ["1=1"]
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     
     if rating_filter is not None:
         where_clauses.append("f.rating = :rating_filter")
@@ -186,7 +186,7 @@ async def get_all_feedback(
 async def get_feedback_time_series(
     days: int = 30,
     granularity: str = "day"
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     if granularity == "week":
@@ -231,7 +231,7 @@ async def get_feedback_time_series(
     ]
 
 
-async def get_rating_trends(days: int = 30) -> Dict[str, Any]:
+async def get_rating_trends(days: int = 30) -> dict[str, Any]:
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     sql = """
@@ -251,7 +251,7 @@ async def get_rating_trends(days: int = 30) -> Dict[str, Any]:
         return {"periods": [], "data": {}}
     
     periods_set = set()
-    data_by_rating: Dict[str, Dict[str, int]] = {}
+    data_by_rating: dict[str, dict[str, int]] = {}
     
     for row in rows:
         period = row["period"].isoformat() if row["period"] else None
@@ -277,9 +277,9 @@ async def get_feedback_for_analysis(
     max_rating: Optional[float] = None,
     only_with_text: bool = True,
     days: Optional[int] = None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     where_clauses = []
-    params: Dict[str, Any] = {"limit": limit}
+    params: dict[str, Any] = {"limit": limit}
     
     if only_with_text:
         where_clauses.append("feedback_text IS NOT NULL AND feedback_text != ''")
@@ -327,7 +327,7 @@ async def get_feedback_for_analysis(
         for row in rows
     ]
 
-async def get_sentiment_summary() -> Dict[str, Any]:
+async def get_sentiment_summary() -> dict[str, Any]:
     sql = """
     SELECT 
         COUNT(*) as total,
@@ -366,7 +366,7 @@ async def get_sentiment_summary() -> Dict[str, Any]:
     }
 
 
-async def get_critical_feedback(limit: int = 20) -> List[Dict[str, Any]]:
+async def get_critical_feedback(limit: int = 20) -> list[dict[str, Any]]:
     sql = """
     SELECT 
         f.feedback_id,

@@ -26,7 +26,7 @@ class ExecutionOrchestrator:
     async def execute_pipeline(
         self,
         thread_id: str,
-        system_prompt: Dict[str, Any],
+        system_prompt: dict[str, Any],
         llm_model: str,
         registry_model_id: str,
         llm_temperature: float,
@@ -35,8 +35,8 @@ class ExecutionOrchestrator:
         config: ProcessorConfig,
         stream: bool,
         generation: Optional['StatefulGenerationClient'],
-        auto_continue_state: Dict[str, Any],
-        memory_context: Optional[Dict[str, Any]],
+        auto_continue_state: dict[str, Any],
+        memory_context: Optional[dict[str, Any]],
         latest_user_message_content: Optional[str],
         cancellation_event: Optional[asyncio.Event],
         prefetch_messages_task: Optional[asyncio.Task],
@@ -157,7 +157,7 @@ class ExecutionOrchestrator:
         
         return registry_model_id, llm_model
     
-    async def _get_tool_schemas(self, tool_registry) -> Optional[List[Dict[str, Any]]]:
+    async def _get_tool_schemas(self, tool_registry) -> Optional[list[dict[str, Any]]]:
         schema_start = time.time()
         openapi_tool_schemas = await asyncio.to_thread(tool_registry.get_openapi_schemas)
         logger.debug(f"⏱️ [TIMING] Get tool schemas: {(time.time() - schema_start) * 1000:.1f}ms")
@@ -169,15 +169,15 @@ class ExecutionOrchestrator:
         llm_model: str,
         registry_model_id: str,
         llm_max_tokens: Optional[int],
-        system_prompt: Dict[str, Any],
-        memory_context: Optional[Dict[str, Any]],
-        auto_continue_state: Dict[str, Any],
+        system_prompt: dict[str, Any],
+        memory_context: Optional[dict[str, Any]],
+        auto_continue_state: dict[str, Any],
         latest_user_message_content: Optional[str],
         get_llm_messages_func,
         db,
         prefetch_messages_task: Optional[asyncio.Task] = None,
         prefetch_llm_end_task: Optional[asyncio.Task] = None
-    ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]], Optional[int], bool]:
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], Optional[int], bool]:
         is_auto_continue = auto_continue_state.get('count', 0) > 0
         messages = None
         estimated_total_tokens = None
@@ -257,9 +257,9 @@ class ExecutionOrchestrator:
     async def _fetch_and_refresh_messages(
         self,
         thread_id: str,
-        messages: Optional[List[Dict[str, Any]]],
+        messages: Optional[list[dict[str, Any]]],
         get_llm_messages_func
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         if messages is None:
             fetch_start = time.time()
             messages = await get_llm_messages_func(thread_id)
@@ -274,19 +274,19 @@ class ExecutionOrchestrator:
     
     async def _validate_and_finalize_messages(
         self,
-        prepared_messages: List[Dict[str, Any]],
-        messages: List[Dict[str, Any]],
+        prepared_messages: list[dict[str, Any]],
+        messages: list[dict[str, Any]],
         thread_id: str,
         llm_model: str,
         registry_model_id: str,
         llm_max_tokens: Optional[int],
-        system_prompt: Dict[str, Any],
-        memory_context: Optional[Dict[str, Any]],
-        auto_continue_state: Dict[str, Any],
+        system_prompt: dict[str, Any],
+        memory_context: Optional[dict[str, Any]],
+        auto_continue_state: dict[str, Any],
         estimated_total_tokens: Optional[int],
         get_llm_messages_func,
         db
-    ) -> tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         force_tool_fallback = auto_continue_state.get('force_tool_fallback', False)
         
         validation_result = await self.llm_executor.validate_and_repair_tool_calls(

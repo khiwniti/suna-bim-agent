@@ -47,7 +47,7 @@ class TimeSeriesPoint(BaseModel):
     with_text_count: int
 
 class RatingTrends(BaseModel):
-    periods: List[str]
+    periods: list[str]
     data: dict
 
 class CriticalFeedback(BaseModel):
@@ -65,10 +65,10 @@ class LLMAnalysisRequest(BaseModel):
 
 class LLMAnalysisResponse(BaseModel):
     analysis: str
-    key_themes: List[str]
-    improvement_areas: List[dict]
-    positive_highlights: List[str]
-    actionable_recommendations: List[dict]
+    key_themes: list[str]
+    improvement_areas: list[dict]
+    positive_highlights: list[str]
+    actionable_recommendations: list[dict]
     feedback_analyzed_count: int
     generated_at: str
 
@@ -136,7 +136,7 @@ async def export_all_feedback(
     start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
     end_date: Optional[str] = Query(None, description="End date (ISO format)"),
     admin: dict = Depends(require_admin)
-) -> List[FeedbackWithUser]:
+) -> list[FeedbackWithUser]:
     try:
         start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00')) if start_date else None
         end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00')) if end_date else None
@@ -154,7 +154,7 @@ async def export_all_feedback(
         raise HTTPException(status_code=500, detail="Failed to export feedback")
 
 
-@router.get("/time-series", response_model=List[TimeSeriesPoint])
+@router.get("/time-series", response_model=list[TimeSeriesPoint])
 async def get_feedback_time_series(
     days: int = Query(30, ge=1, le=365, description="Number of days to look back"),
     granularity: str = Query("day", description="Granularity: day, week, month"),
@@ -181,7 +181,7 @@ async def get_rating_trends(
         raise HTTPException(status_code=500, detail="Failed to retrieve rating trends")
 
 
-@router.get("/critical", response_model=List[CriticalFeedback])
+@router.get("/critical", response_model=list[CriticalFeedback])
 async def get_critical_feedback(
     limit: int = Query(20, ge=1, le=100, description="Number of items"),
     admin: dict = Depends(require_admin)

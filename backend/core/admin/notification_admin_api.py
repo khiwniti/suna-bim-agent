@@ -10,7 +10,7 @@ router = APIRouter(prefix="/admin/notifications", tags=["admin-notifications"])
 
 class TriggerWorkflowRequest(BaseModel):
     workflow_id: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     subscriber_id: Optional[str] = None
     subscriber_email: Optional[str] = None
     broadcast: bool = False

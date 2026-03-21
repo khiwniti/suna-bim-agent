@@ -62,7 +62,7 @@ class ThreadAnalytics(BaseModel):
     thread_id: str
     project_id: Optional[str] = None
     project_name: Optional[str] = None
-    project_categories: Optional[List[str]] = None  # Changed to array
+    project_categories: Optional[list[str]] = None  # Changed to array
     account_id: Optional[str] = None
     user_email: Optional[str] = None
     message_count: int
@@ -105,7 +105,7 @@ class CohortRetentionRow(BaseModel):
 class CohortRetentionResponse(BaseModel):
     cohorts_back: int
     weeks_to_measure: int
-    rows: List[CohortRetentionRow]
+    rows: list[CohortRetentionRow]
 
 
 class DailyTopUserData(BaseModel):
@@ -145,8 +145,8 @@ class ConversionFunnel(BaseModel):
     signups: int
     subscriptions: int
     # Breakdown by platform (clickable to see emails)
-    web_subscriber_emails: List[str] = []
-    app_subscriber_emails: List[str] = []
+    web_subscriber_emails: list[str] = []
+    app_subscriber_emails: list[str] = []
     visitor_to_signup_rate: float
     signup_to_subscription_rate: float
     overall_conversion_rate: float
@@ -158,7 +158,7 @@ class ActivationStats(BaseModel):
     total_signups: int
     activated_signups: int
     activation_rate: float  # Percentage (0-100)
-    distribution: Dict[str, int]  # {"0": 5078, "1": 4091, "2-5": 5356, "6-10": 1156, "10+": 659}
+    distribution: dict[str, int]  # {"0": 5078, "1": 4091, "2-5": 5356, "6-10": 1156, "10+": 659}
     date: str
 
 
@@ -279,7 +279,7 @@ def get_ga_client() -> "BetaAnalyticsDataClient":
     return BetaAnalyticsDataClient(credentials=credentials)
 
 
-async def search_paid_subscriptions(start_date: datetime, end_date: datetime, include_emails: bool = False) -> Dict[str, Any]:
+async def search_paid_subscriptions(start_date: datetime, end_date: datetime, include_emails: bool = False) -> dict[str, Any]:
     """
     Search Stripe for active paid subscriptions created within a date range.
     Excludes free tier subscriptions using metadata filter.
@@ -307,7 +307,7 @@ async def search_paid_subscriptions(start_date: datetime, end_date: datetime, in
         query = f"status:'active' AND -metadata['tier']:'free' AND created>={start_ts} AND created<={end_ts}"
         
         count = 0
-        emails: List[str] = []
+        emails: list[str] = []
         has_more = True
         next_page = None
         
@@ -347,7 +347,7 @@ async def search_paid_subscriptions(start_date: datetime, end_date: datetime, in
         return {'count': 0, 'emails': []}
 
 
-def query_google_analytics(date_str: str) -> Dict[str, int]:
+def query_google_analytics(date_str: str) -> dict[str, int]:
     """
     Query Google Analytics for visitor stats on a specific date.
     Returns dict with 'pageviews' and 'unique_visitors'.
@@ -388,7 +388,7 @@ def query_google_analytics(date_str: str) -> Dict[str, int]:
     }
 
 
-async def query_vercel_analytics(date_str: str) -> Dict[str, int]:
+async def query_vercel_analytics(date_str: str) -> dict[str, int]:
     """
     Query Vercel Analytics from our database (populated via drains).
     Returns dict with 'pageviews' and 'unique_visitors'.
@@ -415,7 +415,7 @@ async def query_vercel_analytics(date_str: str) -> Dict[str, int]:
         return {"pageviews": 0, "unique_visitors": 0}
 
 
-async def query_vercel_analytics_range(start_date: str, end_date: str) -> Dict[str, int]:
+async def query_vercel_analytics_range(start_date: str, end_date: str) -> dict[str, int]:
     """
     Query Vercel Analytics for a date range (for ARR views endpoint).
     Returns dict mapping date -> unique_visitors count.
@@ -429,7 +429,7 @@ async def query_vercel_analytics_range(start_date: str, end_date: str) -> Dict[s
             'end_date': end_date
         }).execute()
         
-        views_by_date: Dict[str, int] = {}
+        views_by_date: dict[str, int] = {}
         total = 0
         
         for row in result.data or []:
@@ -579,7 +579,7 @@ async def export_threads(
         client = await db.client
 
         page = 1
-        all_threads: List[ThreadAnalytics] = []
+        all_threads: list[ThreadAnalytics] = []
         export_page_size = 100
 
         while True:
@@ -672,7 +672,7 @@ def _resolve_share_origin(share_origin: Optional[str]) -> str:
     return origin.rstrip("/")
 
 
-def _build_threads_export_workbook(threads: List[ThreadAnalytics], share_origin: str) -> bytes:
+def _build_threads_export_workbook(threads: list[ThreadAnalytics], share_origin: str) -> bytes:
     workbook = Workbook()
     worksheet = workbook.active
     worksheet.title = "Threads"
@@ -994,7 +994,7 @@ async def _browse_threads_filtered(
     )
 
 
-async def _enrich_threads(client, threads: List[Dict]) -> List[ThreadAnalytics]:
+async def _enrich_threads(client, threads: list[dict]) -> list[ThreadAnalytics]:
     """Enrich a small list of threads with message counts, emails, project names."""
     if not threads:
         return []
@@ -1282,7 +1282,7 @@ async def get_daily_top_users(
 async def translate_text(
     request: TranslateRequest,
     admin: dict = Depends(require_admin)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Translate text to target language using OpenAI."""
     text = request.text
     target_language = request.target_language
@@ -1329,7 +1329,7 @@ async def get_message_distribution(
     date_from: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get distribution of threads by user message count for a date range."""
     try:
         db = DBConnection()
@@ -1385,7 +1385,7 @@ async def get_category_distribution(
     date_to: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     tier: Optional[str] = Query(None, description="Filter by subscription tier"),
     admin: dict = Depends(require_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get distribution of projects by category for a date range, optionally filtered by tier."""
     try:
         db = DBConnection()
@@ -1471,7 +1471,7 @@ async def get_tier_distribution(
     date_from: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get distribution of threads by subscription tier for a date range."""
     try:
         db = DBConnection()
@@ -1854,7 +1854,7 @@ class WeeklyActualData(BaseModel):
 
 class WeeklyActualsResponse(BaseModel):
     # Key is "{week_number}_{platform}" e.g. "1_web", "1_app"
-    actuals: Dict[str, WeeklyActualData]
+    actuals: dict[str, WeeklyActualData]
 
 
 @router.get("/arr/signups")
@@ -1862,7 +1862,7 @@ async def get_signups_by_date(
     date_from: str = Query(..., description="Start date YYYY-MM-DD"),
     date_to: str = Query(..., description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get signup counts grouped by date for a date range.
     Frontend can aggregate into weeks as needed.
@@ -1903,7 +1903,7 @@ async def get_views_by_date(
     date_to: str = Query(..., description="End date YYYY-MM-DD"),
     source: AnalyticsSource = Query("vercel", description="Analytics source: vercel (primary) or ga"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get view counts (unique visitors) grouped by date.
     Frontend can aggregate into weeks as needed.
@@ -1941,7 +1941,7 @@ async def get_views_by_date(
             response = client.run_report(request)
             
             # Parse response into date -> count mapping
-            views_by_date: Dict[str, int] = {}
+            views_by_date: dict[str, int] = {}
             total = 0
             
             for row in response.rows or []:
@@ -1971,7 +1971,7 @@ async def get_new_paid_by_date(
     date_from: str = Query(..., description="Start date YYYY-MM-DD"),
     date_to: str = Query(..., description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get new paid subscription counts grouped by date for a date range.
     Uses Stripe Search API to find new subscriptions, excluding free tier.
@@ -1992,7 +1992,7 @@ async def get_new_paid_by_date(
         # Search for active paid subscriptions created in range
         query = f"status:'active' AND -metadata['tier']:'free' AND created>={start_ts} AND created<={end_ts}"
         
-        new_paid_by_date: Dict[str, int] = {}
+        new_paid_by_date: dict[str, int] = {}
         has_more = True
         next_page = None
         
@@ -2031,14 +2031,14 @@ async def get_new_paid_by_date(
         raise HTTPException(status_code=500, detail="Failed to get new paid subscriptions")
 
 
-async def _fetch_churn_from_stripe(start_ts: int, end_ts: int) -> Dict[str, Dict[str, int]]:
+async def _fetch_churn_from_stripe(start_ts: int, end_ts: int) -> dict[str, dict[str, int]]:
     """
     Fetch churn data from Stripe for a timestamp range.
     Returns dict with 'deleted' and 'downgrade' counts by date.
     """
-    async def fetch_deleted_churns() -> Dict[str, int]:
+    async def fetch_deleted_churns() -> dict[str, int]:
         """Fetch subscription.deleted events for paid subscriptions."""
-        churn_counts: Dict[str, int] = {}
+        churn_counts: dict[str, int] = {}
         has_more = True
         starting_after = None
         
@@ -2077,9 +2077,9 @@ async def _fetch_churn_from_stripe(start_ts: int, end_ts: int) -> Dict[str, Dict
         
         return churn_counts
     
-    async def fetch_downgrade_churns() -> Dict[str, int]:
+    async def fetch_downgrade_churns() -> dict[str, int]:
         """Fetch subscription.updated events where amount dropped from >0 to 0."""
-        churn_counts: Dict[str, int] = {}
+        churn_counts: dict[str, int] = {}
         has_more = True
         starting_after = None
         
@@ -2146,7 +2146,7 @@ async def get_churn_by_date(
     date_from: str = Query(..., description="Start date YYYY-MM-DD"),
     date_to: str = Query(..., description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get churned subscriber counts grouped by date for a date range.
     Uses database cache for historical data, only fetches from Stripe for today.
@@ -2222,7 +2222,7 @@ async def get_churn_by_date(
                     }, on_conflict='churn_date').execute()
         
         # 5. Build response
-        churn_by_date: Dict[str, int] = {}
+        churn_by_date: dict[str, int] = {}
         for date_str, counts in cached_dates.items():
             total = counts['deleted'] + counts['downgrade']
             if total > 0:
@@ -2374,7 +2374,7 @@ async def delete_arr_weekly_actual(
     week_number: int,
     platform: str = Query('web', description="Platform: 'web' or 'app'"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Delete ARR weekly actual for a specific week and platform. Super admin only."""
     try:
         if platform not in ('web', 'app'):
@@ -2403,7 +2403,7 @@ async def toggle_field_override(
     request: ToggleOverrideRequest,
     platform: str = Query('web', description="Platform: 'web' or 'app'"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Toggle the override status for a specific field in a week and platform.
     
     When override is True, the field value is 'locked' and won't be overwritten by Stripe data.
@@ -2561,7 +2561,7 @@ class MonthlyActualData(BaseModel):
 
 class MonthlyActualsResponse(BaseModel):
     # Key is "{month_index}_{platform}" e.g. "0_web", "0_app"
-    actuals: Dict[str, MonthlyActualData]
+    actuals: dict[str, MonthlyActualData]
 
 
 @router.get("/arr/monthly-actuals")
@@ -2702,7 +2702,7 @@ async def delete_arr_monthly_actual(
     month_index: int,
     platform: str = Query('web', description="Platform: 'web' or 'app'"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Delete ARR monthly actual for a specific month and platform. Super admin only."""
     try:
         if platform not in ('web', 'app'):
@@ -2726,7 +2726,7 @@ async def toggle_monthly_field_override(
     request: ToggleOverrideRequest,
     platform: str = Query('web', description="Platform: 'web' or 'app'"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Toggle the override status for a specific field in a month and platform.
     
     When override is True, the field value is 'locked' and won't be overwritten by calculated data.
@@ -2785,7 +2785,7 @@ class RevenueSummary(BaseModel):
     mrr: float  # Monthly Recurring Revenue
     arr: float  # Annual Recurring Revenue (MRR * 12)
     total_paid_subscribers: int
-    subscribers_by_tier: Dict[str, int]  # tier_name -> count
+    subscribers_by_tier: dict[str, int]  # tier_name -> count
     arpu: float  # Average Revenue Per User
     mrr_change_percent: Optional[float] = None  # vs last month
     new_paid_this_month: int
@@ -2820,7 +2820,7 @@ class ProfitabilitySummary(BaseModel):
     gross_margin_percent: float
 
     # Breakdown by tier
-    by_tier: List[TierProfitability]
+    by_tier: list[TierProfitability]
 
     # Breakdown by platform
     web_revenue: float
@@ -2837,7 +2837,7 @@ class ProfitabilitySummary(BaseModel):
     # User counts
     unique_paying_users: int   # Users who made a payment in this period
     unique_active_users: int   # Users who had usage in this period (including free)
-    paying_user_emails: List[str] = []  # Emails of paying users (clickable)
+    paying_user_emails: list[str] = []  # Emails of paying users (clickable)
 
     total_active_subscriptions: int = 0
     stripe_active_subscriptions: int = 0
@@ -2875,7 +2875,7 @@ class TaskPerformance(BaseModel):
     avg_duration_seconds: Optional[float] = None  # Excludes stuck tasks (> 1hr)
     avg_duration_with_stuck_seconds: Optional[float] = None  # Includes all tasks
     stuck_task_count: int = 0  # Tasks with duration > 1hr (likely stuck)
-    runs_by_status: Dict[str, int]
+    runs_by_status: dict[str, int]
 
 
 class ToolUsage(BaseModel):
@@ -2890,7 +2890,7 @@ class ToolAdoptionSummary(BaseModel):
     """Tool adoption metrics."""
     total_tool_calls: int
     total_threads_with_tools: int
-    top_tools: List[ToolUsage]
+    top_tools: list[ToolUsage]
     tool_adoption_rate: float  # % of threads using any tool
 
 
@@ -2913,7 +2913,7 @@ async def get_revenue_summary(
         last_month_start = (month_start - timedelta(days=1)).replace(day=1)
         
         # Get all active paid subscriptions from Stripe
-        subscribers_by_tier: Dict[str, int] = {}
+        subscribers_by_tier: dict[str, int] = {}
         total_mrr = 0.0
         total_paid_subscribers = 0
         
@@ -3200,8 +3200,8 @@ async def get_tool_adoption(
         messages = messages_result.data or []
         
         # Parse tool usage
-        tool_counts: Dict[str, int] = {}
-        tool_threads: Dict[str, set] = {}
+        tool_counts: dict[str, int] = {}
+        tool_threads: dict[str, set] = {}
         threads_with_tools: set = set()
         total_tool_calls = 0
         
@@ -3243,7 +3243,7 @@ async def get_tool_adoption(
         total_threads = threads_result.count or 0
         
         # Build top tools list
-        top_tools: List[ToolUsage] = []
+        top_tools: list[ToolUsage] = []
         for tool_name, count in sorted(tool_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
             unique_threads = len(tool_threads.get(tool_name, set()))
             percentage = (unique_threads / total_threads * 100) if total_threads > 0 else 0.0
@@ -3274,7 +3274,7 @@ async def get_tool_adoption(
 # ============================================================================
 
 # Display names for tiers
-TIER_DISPLAY_NAMES: Dict[str, str] = {
+TIER_DISPLAY_NAMES: dict[str, str] = {
     'none': 'No Plan',
     'free': 'Basic',
     'tier_2_20': 'Plus',
@@ -3330,11 +3330,11 @@ _stripe_semaphore = asyncio.Semaphore(15)
 # Short-lived cache to avoid duplicate Stripe calls for identical ranges
 _STRIPE_REVENUE_CACHE_TTL_SECONDS = 120
 _STRIPE_REVENUE_MAX_CACHE_ENTRIES = 64
-_stripe_revenue_cache: Dict[tuple[int, int], Dict[str, Any]] = {}
-_stripe_revenue_inflight: Dict[tuple[int, int], asyncio.Task] = {}
+_stripe_revenue_cache: dict[tuple[int, int], dict[str, Any]] = {}
+_stripe_revenue_inflight: dict[tuple[int, int], asyncio.Task] = {}
 
 
-def _new_stripe_revenue_results() -> Dict[str, Any]:
+def _new_stripe_revenue_results() -> dict[str, Any]:
     return {
         'total_revenue': 0.0,
         'payment_count': 0,
@@ -3345,7 +3345,7 @@ def _new_stripe_revenue_results() -> Dict[str, Any]:
     }
 
 
-def _merge_stripe_revenue_results(target: Dict[str, Any], source: Dict[str, Any]) -> None:
+def _merge_stripe_revenue_results(target: dict[str, Any], source: dict[str, Any]) -> None:
     target['total_revenue'] += source['total_revenue']
     target['payment_count'] += source['payment_count']
 
@@ -3383,7 +3383,7 @@ def _prune_stripe_revenue_cache(now: float) -> None:
         _stripe_revenue_cache.pop(key, None)
 
 
-async def _fetch_stripe_revenue_for_window(window_start_ts: int, window_end_ts: int) -> Dict[str, Any]:
+async def _fetch_stripe_revenue_for_window(window_start_ts: int, window_end_ts: int) -> dict[str, Any]:
     """
     Fetch Stripe charges for one time window.
     Uses only fields available from the list response (with expansions) to avoid
@@ -3545,7 +3545,7 @@ async def _fetch_stripe_revenue_for_window(window_start_ts: int, window_end_ts: 
         return window_results
 
 
-async def _fetch_stripe_revenue(start_ts: int, end_ts: int) -> Dict[str, Any]:
+async def _fetch_stripe_revenue(start_ts: int, end_ts: int) -> dict[str, Any]:
     """
     Fetch actual revenue from Stripe Charges for a date range.
     Uses Charges (not Invoices) because they represent actual money collected after coupons/discounts.
@@ -3575,7 +3575,7 @@ async def _fetch_stripe_revenue(start_ts: int, end_ts: int) -> Dict[str, Any]:
         logger.info(f"Stripe revenue awaiting in-flight request for range {start_ts}-{end_ts}")
         return await inflight_task
 
-    async def _compute_revenue() -> Dict[str, Any]:
+    async def _compute_revenue() -> dict[str, Any]:
         started = time.perf_counter()
         results = _new_stripe_revenue_results()
 
@@ -3585,7 +3585,7 @@ async def _fetch_stripe_revenue(start_ts: int, end_ts: int) -> Dict[str, Any]:
         window_seconds = window_days * day_seconds
 
         window_tasks = []
-        window_ranges: List[tuple[int, int]] = []
+        window_ranges: list[tuple[int, int]] = []
         current_ts = start_ts
         while current_ts < end_ts:
             window_end = min(current_ts + window_seconds, end_ts)
@@ -3714,12 +3714,12 @@ async def _fetch_revenuecat_active_subscriptions() -> int:
         return 0
 
 
-async def _fetch_revenuecat_revenue(client, range_start: datetime, range_end: datetime) -> Dict[str, Any]:
+async def _fetch_revenuecat_revenue(client, range_start: datetime, range_end: datetime) -> dict[str, Any]:
     """
     Fetch RevenueCat revenue from webhook_events using RPC.
     Returns revenue by tier with user emails.
     """
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         'total_revenue': 0.0,
         'payment_count': 0,
         'by_tier': {},  # tier -> {'revenue': float, 'count': int, 'users': set}
@@ -3807,7 +3807,7 @@ async def get_profitability(
             'end_date': range_end_utc.isoformat()
         }).execute()
 
-        usage_costs_by_tier: Dict[str, Dict] = {}
+        usage_costs_by_tier: dict[str, dict] = {}
         for row in (usage_costs_result.data or []):
             tier = row.get('tier', 'unknown')
             provider = row.get('provider', 'stripe')
@@ -3829,7 +3829,7 @@ async def get_profitability(
         # Combine Stripe and RevenueCat tier data
         all_tiers = set(stripe_revenue['by_tier'].keys()) | set(revenuecat_revenue['by_tier'].keys()) | set(usage_costs_by_tier.keys())
 
-        tier_metrics: Dict[str, Dict] = {}
+        tier_metrics: dict[str, dict] = {}
         for tier in all_tiers:
             tier_metrics[tier] = {
                 'stripe_revenue': stripe_revenue['by_tier'].get(tier, {}).get('revenue', 0),
@@ -3845,7 +3845,7 @@ async def get_profitability(
         logger.info(f"Tier metrics built for {len(tier_metrics)} tiers")
 
         # 5. Build profitability response
-        by_tier: List[TierProfitability] = []
+        by_tier: list[TierProfitability] = []
         total_revenue = 0.0
         total_cost = 0.0
         total_actual_cost = 0.0
@@ -4043,11 +4043,11 @@ async def get_profitability(
 
 class ConversationInsight(BaseModel):
     """Aggregated insights from conversation analytics."""
-    sentiment_distribution: Dict[str, int]  # {"positive": 45, "neutral": 30, "negative": 25}
+    sentiment_distribution: dict[str, int]  # {"positive": 45, "neutral": 30, "negative": 25}
     avg_frustration: float
     feature_request_count: int
     total_analyzed: int
-    intent_distribution: Dict[str, int]  # {"task": 100, "question": 50, ...}
+    intent_distribution: dict[str, int]  # {"task": 100, "question": 50, ...}
 
 
 class ConversationAnalyticsItem(BaseModel):
@@ -4058,7 +4058,7 @@ class ConversationAnalyticsItem(BaseModel):
     user_email: Optional[str] = None
     sentiment_label: Optional[str] = None
     frustration_score: Optional[float] = None
-    frustration_signals: List[str] = []
+    frustration_signals: list[str] = []
     intent_type: Optional[str] = None
     is_feature_request: bool = False
     feature_request_text: Optional[str] = None
@@ -4302,8 +4302,8 @@ class AccountEngagementItem(BaseModel):
 class RFMEngagementSummary(BaseModel):
     """Summary of RFM engagement across all accounts."""
     total_accounts: int
-    segments: Dict[str, int]
-    at_risk_accounts: List[AccountEngagementItem]
+    segments: dict[str, int]
+    at_risk_accounts: list[AccountEngagementItem]
     avg_churn_risk: float
 
 
@@ -4402,7 +4402,7 @@ async def get_rfm_engagement_summary(
         """
         segment_rows = await execute(segment_sql, {"days": days})
 
-        segment_counts: Dict[str, int] = {}
+        segment_counts: dict[str, int] = {}
         total_accounts = 0
         total_churn = 0.0
         for row in segment_rows:
@@ -4560,7 +4560,7 @@ async def get_accounts_by_segment(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(50, ge=1, le=200, description="Items per page"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get accounts in a specific RFM segment with their emails.
     All RFM calculation done in SQL for scalability.
@@ -4959,7 +4959,7 @@ async def get_conversations_by_category(
         raise HTTPException(status_code=500, detail="Failed to get conversations by category")
 
 
-async def _build_conversation_items(client, records: List[Dict[str, Any]]) -> List[ConversationAnalyticsItem]:
+async def _build_conversation_items(client, records: list[dict[str, Any]]) -> list[ConversationAnalyticsItem]:
     """
     Build ConversationAnalyticsItem list with user emails and first messages.
     """
@@ -5106,7 +5106,7 @@ async def get_topic_distribution(
     date_from: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get topic distribution counts.
 
@@ -5131,7 +5131,7 @@ async def get_topic_distribution(
         records = result.data or []
 
         # Calculate distribution
-        topic_counts: Dict[str, int] = {}
+        topic_counts: dict[str, int] = {}
         for r in records:
             topic = r.get('primary_topic')
             if topic:
@@ -5152,7 +5152,7 @@ async def get_topic_distribution(
 @router.get("/conversations/queue-status")
 async def get_analytics_queue_status(
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get the current status of the conversation analytics queue.
 
@@ -5213,7 +5213,7 @@ async def get_use_case_patterns(
     date_from: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get patterns of what users are doing.
 
@@ -5263,7 +5263,7 @@ async def get_clustered_use_cases_endpoint(
     distance_threshold: float = Query(0.3, ge=0.1, le=0.8, description="Cosine distance threshold (lower = tighter clusters)"),
     min_cluster_size: int = Query(1, ge=1, le=10, description="Minimum items to form a cluster"),
     admin: dict = Depends(require_super_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get use cases grouped by semantic similarity using embedding-based clustering.
 

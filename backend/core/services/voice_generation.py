@@ -38,13 +38,13 @@ class VoiceGenerationRequest(BaseModel):
 
 
 class VoiceGenerationResponse(BaseModel):
-    audio_urls: List[str]  # List of audio URLs to play sequentially
+    audio_urls: list[str]  # List of audio URLs to play sequentially
     char_count: int
     chunk_count: int
     cost: float
 
 
-def split_text_naturally(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> List[str]:
+def split_text_naturally(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> list[str]:
     """
     Split text into chunks of max_chars, breaking at natural boundaries.
 

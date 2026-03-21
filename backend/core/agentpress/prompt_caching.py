@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from core.utils.logger import logger
 
 
-async def get_stored_threshold(thread_id: str, model: str, client=None) -> Optional[Dict[str, Any]]:
+async def get_stored_threshold(thread_id: str, model: str, client=None) -> Optional[dict[str, Any]]:
     from core.threads import repo as threads_repo
     
     try:
@@ -95,7 +95,7 @@ def estimate_token_count(text: str, model: str = "claude-3-5-sonnet-20240620") -
         return int(word_count * 1.3)
 
 
-def get_message_token_count(message: Dict[str, Any], model: str = "claude-3-5-sonnet-20240620") -> int:
+def get_message_token_count(message: dict[str, Any], model: str = "claude-3-5-sonnet-20240620") -> int:
     content = message.get('content', '')
     if isinstance(content, list):
         total_tokens = 0
@@ -110,7 +110,7 @@ def get_message_token_count(message: Dict[str, Any], model: str = "claude-3-5-so
     return estimate_token_count(str(content), model)
 
 
-def get_messages_token_count(messages: List[Dict[str, Any]], model: str = "claude-3-5-sonnet-20240620") -> int:
+def get_messages_token_count(messages: list[dict[str, Any]], model: str = "claude-3-5-sonnet-20240620") -> int:
     return sum(get_message_token_count(msg, model) for msg in messages)
 
 
@@ -164,7 +164,7 @@ def calculate_optimal_cache_threshold(
     return final_threshold
 
 
-def add_cache_control(message: Dict[str, Any]) -> Dict[str, Any]:
+def add_cache_control(message: dict[str, Any]) -> dict[str, Any]:
     from copy import deepcopy
     cached_msg = deepcopy(message)
     content = cached_msg.get('content', '')
@@ -191,8 +191,8 @@ def add_cache_control(message: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def apply_caching_strategy(
-    working_system_prompt: Dict[str, Any], 
-    conversation_messages: List[Dict[str, Any]], 
+    working_system_prompt: dict[str, Any], 
+    conversation_messages: list[dict[str, Any]], 
     model_name: str,
     thread_id: Optional[str] = None,
     turn_number: Optional[int] = None,
@@ -200,7 +200,7 @@ async def apply_caching_strategy(
     context_window_tokens: Optional[int] = None,
     cache_threshold_tokens: Optional[int] = None,
     client=None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     message_roles = [msg.get('role', 'unknown') for msg in conversation_messages]
     role_counts = {}
     for role in message_roles:
@@ -348,8 +348,8 @@ async def apply_caching_strategy(
 
 
 async def apply_anthropic_caching_strategy(
-    working_system_prompt: Dict[str, Any], 
-    conversation_messages: List[Dict[str, Any]], 
+    working_system_prompt: dict[str, Any], 
+    conversation_messages: list[dict[str, Any]], 
     model_name: str,
     thread_id: Optional[str] = None,
     turn_number: Optional[int] = None,
@@ -357,7 +357,7 @@ async def apply_anthropic_caching_strategy(
     context_window_tokens: Optional[int] = None,
     cache_threshold_tokens: Optional[int] = None,
     client=None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     return await apply_caching_strategy(
         working_system_prompt=working_system_prompt,
         conversation_messages=conversation_messages,
@@ -397,15 +397,15 @@ def _get_max_cache_blocks(model_name: str) -> int:
     return 4
 
 
-def group_messages_by_tool_calls_for_caching(messages: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+def group_messages_by_tool_calls_for_caching(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
     if not messages:
         return []
     
-    groups: List[List[Dict[str, Any]]] = []
-    current_group: List[Dict[str, Any]] = []
+    groups: list[list[dict[str, Any]]] = []
+    current_group: list[dict[str, Any]] = []
     expected_tool_call_ids: set = set()
     
-    def get_tool_call_ids(msg: Dict[str, Any]) -> List[str]:
+    def get_tool_call_ids(msg: dict[str, Any]) -> list[str]:
         if msg.get('role') != 'assistant':
             return []
         tool_calls = msg.get('tool_calls') or []
@@ -413,14 +413,14 @@ def group_messages_by_tool_calls_for_caching(messages: List[Dict[str, Any]]) -> 
             return []
         return [tc.get('id') for tc in tool_calls if isinstance(tc, dict) and tc.get('id')]
     
-    def get_tool_call_id(msg: Dict[str, Any]) -> Optional[str]:
+    def get_tool_call_id(msg: dict[str, Any]) -> Optional[str]:
         if 'tool_call_id' in msg:
             return msg.get('tool_call_id')
         if msg.get('role') == 'tool':
             return msg.get('tool_call_id')
         return None
     
-    def is_tool_result(msg: Dict[str, Any]) -> bool:
+    def is_tool_result(msg: dict[str, Any]) -> bool:
         return msg.get('role') == 'tool' or 'tool_call_id' in msg
     
     for msg in messages:
@@ -462,10 +462,10 @@ def group_messages_by_tool_calls_for_caching(messages: List[Dict[str, Any]]) -> 
 
 
 def create_conversation_chunks(
-    messages: List[Dict[str, Any]], 
+    messages: list[dict[str, Any]], 
     chunk_threshold_tokens: int,
     max_blocks: int,
-    prepared_messages: List[Dict[str, Any]],
+    prepared_messages: list[dict[str, Any]],
     model: str = "claude-3-5-sonnet-20240620"
 ) -> tuple[int, Optional[str]]:
     logger.debug(f"Creating conversation chunks - chunk threshold: {chunk_threshold_tokens}, max blocks: {max_blocks}")
@@ -476,14 +476,14 @@ def create_conversation_chunks(
     logger.debug(f"Grouped {len(messages)} messages into {len(message_groups)} atomic groups for caching")
     
     chunks_created = 0
-    current_chunk_groups: List[List[Dict[str, Any]]] = []
+    current_chunk_groups: list[list[dict[str, Any]]] = []
     current_chunk_tokens = 0
     last_cached_message_id = None
     
-    def get_group_tokens(group: List[Dict[str, Any]]) -> int:
+    def get_group_tokens(group: list[dict[str, Any]]) -> int:
         return sum(get_message_token_count(msg, model) for msg in group)
     
-    def can_place_cache_breakpoint(group: List[Dict[str, Any]]) -> bool:
+    def can_place_cache_breakpoint(group: list[dict[str, Any]]) -> bool:
         if not group:
             return False
         
@@ -557,10 +557,10 @@ def create_conversation_chunks(
 
 
 def get_recent_messages_within_token_limit(
-    messages: List[Dict[str, Any]], 
+    messages: list[dict[str, Any]], 
     token_limit: int, 
     model: str = "claude-3-5-sonnet-20240620"
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     if not messages:
         return []
     
@@ -578,7 +578,7 @@ def get_recent_messages_within_token_limit(
     return recent_messages
 
 
-def validate_cache_blocks(messages: List[Dict[str, Any]], model_name: str, max_blocks: int = None) -> List[Dict[str, Any]]:
+def validate_cache_blocks(messages: list[dict[str, Any]], model_name: str, max_blocks: int = None) -> list[dict[str, Any]]:
     if not supports_prompt_caching(model_name):
         return messages
     

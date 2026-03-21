@@ -52,9 +52,9 @@ class ProcessedError:
     error_type: str
     message: str
     original_error: Optional[Exception] = None
-    context: Optional[Dict[str, Any]] = None
+    context: Optional[dict[str, Any]] = None
     
-    def to_stream_dict(self) -> Dict[str, Any]:
+    def to_stream_dict(self) -> dict[str, Any]:
         """Convert to stream-compatible error dict."""
         return {
             "type": "status",
@@ -68,7 +68,7 @@ class ErrorProcessor:
     """Centralized error processing using LiteLLM's exception hierarchy."""
     
     @staticmethod
-    def process_llm_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> ProcessedError:
+    def process_llm_error(error: Exception, context: Optional[dict[str, Any]] = None) -> ProcessedError:
         """Process LLM-related errors using LiteLLM's exception types."""
         error_message = ErrorProcessor.safe_error_to_string(error)
         
@@ -199,7 +199,7 @@ class ErrorProcessor:
             )
     
     @staticmethod
-    def process_tool_error(error: Exception, tool_name: str, context: Optional[Dict[str, Any]] = None) -> ProcessedError:
+    def process_tool_error(error: Exception, tool_name: str, context: Optional[dict[str, Any]] = None) -> ProcessedError:
         """Process tool execution errors."""
         return ProcessedError(
             error_type="tool_execution_error",
@@ -209,7 +209,7 @@ class ErrorProcessor:
         )
     
     @staticmethod
-    def process_system_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> ProcessedError:
+    def process_system_error(error: Exception, context: Optional[dict[str, Any]] = None) -> ProcessedError:
         """Process general system errors."""
         return ProcessedError(
             error_type="system_error",

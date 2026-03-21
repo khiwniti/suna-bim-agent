@@ -4,12 +4,12 @@ from core.utils.logger import logger
 
 
 class MessageValidator:
-    def validate_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_message(self, message: dict[str, Any]) -> dict[str, Any]:
         if message.get('role') == 'assistant' and message.get('tool_calls'):
             return self.validate_tool_calls(message)
         return message
     
-    def validate_tool_calls(self, message: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_tool_calls(self, message: dict[str, Any]) -> dict[str, Any]:
         tool_calls = message.get('tool_calls') or []
         if not tool_calls or not isinstance(tool_calls, list):
             return message

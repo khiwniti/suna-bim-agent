@@ -59,7 +59,7 @@ class ThreadState:
                     threads_repo.check_thread_has_images(thread_id),
                     timeout=5.0
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 elapsed = (time.time() - start) * 1000
                 logger.warning(f"⚠️ thread_has_images QUERY timeout after {elapsed:.1f}ms for {thread_id}")
                 return False

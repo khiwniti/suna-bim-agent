@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class XMLToolCall:
     """Represents a parsed XML tool call."""
     function_name: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     raw_xml: str
 
 
@@ -94,7 +94,7 @@ def _parse_invoke_block(function_name: str, invoke_content: str, full_block: str
     )
 
 
-def parse_xml_tool_calls_to_objects(content: str) -> List[XMLToolCall]:
+def parse_xml_tool_calls_to_objects(content: str) -> list[XMLToolCall]:
     """
     Parse XML tool calls from content, returning XMLToolCall objects.
     
@@ -145,7 +145,7 @@ def strip_xml_tool_calls(content: str) -> str:
     return cleaned.strip()
 
 
-def extract_xml_chunks(content: str) -> List[str]:
+def extract_xml_chunks(content: str) -> list[str]:
     """
     Extract complete <function_calls> XML chunks from content.
     
@@ -192,7 +192,7 @@ def parse_xml_tool_calls_with_ids(
     xml_chunk: str, 
     assistant_message_id: Optional[str] = None, 
     start_index: int = 0
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Parse XML chunk into tool call format with generated IDs.
     
@@ -248,7 +248,7 @@ def parse_xml_tool_calls_with_ids(
         return results
 
 
-def parse_xml_tool_calls(content: str) -> List[Dict[str, Any]]:
+def parse_xml_tool_calls(content: str) -> list[dict[str, Any]]:
     """
     Parse XML-style function calls from message content.
     

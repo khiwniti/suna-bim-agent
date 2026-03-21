@@ -102,7 +102,7 @@ async def create_api_key(
         raise HTTPException(status_code=500, detail="Failed to create API key")
 
 
-@router.get("/api-keys", response_model=List[APIKeyResponse])
+@router.get("/api-keys", response_model=list[APIKeyResponse])
 async def list_api_keys(
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
     api_key_service: APIKeyService = Depends(get_api_key_service),
