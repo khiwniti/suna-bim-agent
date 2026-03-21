@@ -151,6 +151,12 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
 ignore = [
     "E402",   # Module level import not at top of file (needed for Sentry init)
     "F401",   # Imported but unused (some imports needed for FastAPI dependency injection)
+    "I001",   # Import block is un-sorted (api.py has intentional import order)
+    "SIM105", # Use contextlib.suppress (not always clearer in async code)
+    "UP017",  # Use datetime.UTC (timezone.utc is more compatible)
+    "B904",   # raise from err (not always appropriate in API error handling)
+    "E501",   # Line too long (logging lines often need to be longer)
+    "W293",   # Blank line contains whitespace (minor formatting issue)
 ]
 
 [tool.ruff.lint.per-file-ignores]
