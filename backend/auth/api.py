@@ -57,18 +57,17 @@ async def send_otp_email(request: SendOtpRequest):
                 headers={
                     "Authorization": f"Bearer {service_role_key}",
                     "apikey": service_role_key,
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                json={
-                    "type": "magiclink",
-                    "email": email
-                },
-                timeout=30.0
+                json={"type": "magiclink", "email": email},
+                timeout=30.0,
             )
 
             if response.status_code != 200:
                 error_detail = response.text
-                logger.error(f"Supabase generate_link failed: {response.status_code} - {error_detail}")
+                logger.error(
+                    f"Supabase generate_link failed: {response.status_code} - {error_detail}"
+                )
 
                 # Check for specific error - user might not exist
                 if "User not found" in error_detail:
@@ -92,14 +91,11 @@ async def send_otp_email(request: SendOtpRequest):
             # Fall back to telling the user to check their email (Supabase might have sent one)
             raise HTTPException(
                 status_code=500,
-                detail="Unable to generate verification code. Please try the magic link in your email."
+                detail="Unable to generate verification code. Please try the magic link in your email.",
             )
 
         # Send custom email with OTP code via Mailtrap
-        success = email_service.send_otp_email(
-            user_email=email,
-            otp_code=otp_token
-        )
+        success = email_service.send_otp_email(user_email=email, otp_code=otp_token)
 
         if not success:
             logger.error(f"Failed to send OTP email to {email}")
@@ -107,10 +103,7 @@ async def send_otp_email(request: SendOtpRequest):
 
         logger.info(f"OTP email sent successfully to {email}")
 
-        return SendOtpResponse(
-            success=True,
-            message="Verification code sent to your email"
-        )
+        return SendOtpResponse(success=True, message="Verification code sent to your email")
 
     except HTTPException:
         raise
