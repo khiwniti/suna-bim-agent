@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for accurate scanning
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,18 +25,14 @@ jobs:
         run: pip install detect-secrets
 
       - name: Scan for secrets
-        run: |
-          # Scan all files and compare against baseline
-          detect-secrets scan --baseline .secrets.baseline
+        run: detect-secrets scan --baseline .secrets.baseline
 
       - name: Verify baseline is up-to-date
         run: |
-          # Generate new baseline and check if it differs
           detect-secrets scan > /tmp/new-baseline.json
           if ! diff -q .secrets.baseline /tmp/new-baseline.json; then
-            echo "❌ Secrets baseline is out of date!"
+            echo "Secrets baseline is out of date!"
             echo "Run: detect-secrets scan > .secrets.baseline"
-            echo "Then audit and commit the updated baseline."
             exit 1
           fi
 
@@ -64,8 +60,8 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/ -v --maxfail=1 -m "not e2e and not slow"
 
-    - name: Run linters
-      run: |
-        pip install ruff
-        ruff check --config pyproject.toml .
-        ruff format --check .
+      - name: Run linters
+        run: |
+          pip install ruff
+          ruff check --config pyproject.toml .
+          ruff format --check .
