@@ -1,0 +1,146 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: carbon-bim-rg
+  CONTAINER_APPS_ENV: carbon-bim-env
+  BACKEND_APP_NAME: carbon-bim-backend
+  FRONTEND_APP_NAME: carbon-bim-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Set image tag
+        id: image-tag
+        run: echo "tag=${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim:${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        run: |
+          docker build \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-backend:${{ github.sha }} \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-backend:latest \
+            ./backend
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-backend:${{ github.sha }}
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-backend:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_ENV_MODE=production \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-frontend:${{ github.sha }} \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-frontend:latest \
+            ./apps/frontend
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-frontend:${{ github.sha }}
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/carbon-bim-frontend:latest
+
+      - name: Deploy backend to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ./backend
+          acrName: ${{ secrets.ACR_NAME }}
+          containerAppName: ${{ env.BACKEND_APP_NAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          environmentVariables: |
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Deploy frontend to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ./apps/frontend
+          acrName: ${{ secrets.ACR_NAME }}
+          containerAppName: ${{ env.FRONTEND_APP_NAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          environmentVariables: |
+            NEXT_PUBLIC_ENV_MODE=production
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Get backend URL
+        id: backend-url
+        run: |
+          BACKEND_URL=$(az containerapp show \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          echo "url=https://$BACKEND_URL" >> $GITHUB_OUTPUT
+
+      - name: Get frontend URL
+        id: frontend-url
+        run: |
+          FRONTEND_URL=$(az containerapp show \
+            --name ${{ env.FRONTEND_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          echo "url=https://$FRONTEND_URL" >> $GITHUB_OUTPUT
+
+      - name: Health check - Backend
+        run: |
+          echo "Waiting for backend to be ready..."
+          sleep 30
+          BACKEND_URL=${{ steps.backend-url.outputs.url }}
+          for i in {1..10}; do
+            if curl -sf "$BACKEND_URL/v1/health" > /dev/null; then
+              echo "Backend health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: Backend not ready, waiting..."
+            sleep 10
+          done
+          echo "Backend health check failed after 10 attempts"
+          exit 1
+
+      - name: Health check - Frontend
+        run: |
+          echo "Waiting for frontend to be ready..."
+          sleep 30
+          FRONTEND_URL=${{ steps.frontend-url.outputs.url }}
+          for i in {1..10}; do
+            if curl -sf "$FRONTEND_URL" > /dev/null; then
+              echo "Frontend health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: Frontend not ready, waiting..."
+            sleep 10
+          done
+          echo "Frontend health check failed after 10 attempts"
+          exit 1
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend URL:** ${{ steps.backend-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend URL:** ${{ steps.frontend-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY

@@ -34,6 +34,7 @@ progress:
 - Phase 8 added: Carbon data overlay in viewer
 - Phase 9 added: Clash & compliance highlighting
 - Phase 10 added: bim-agent-service
+- Phase 12 added: Deep research and comprehensive test coverage for entire system
 
 ### Key Decisions
 
