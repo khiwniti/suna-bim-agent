@@ -16,6 +16,7 @@ from core.services.supabase import DBConnection
 
 class HealthStatus:
     """Health status constants."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -36,6 +37,7 @@ async def check_database_health(db: DBConnection) -> Dict[str, Any]:
     """
     try:
         import time
+
         start = time.time()
 
         # Execute simple query to verify connectivity
@@ -77,6 +79,7 @@ async def check_redis_health() -> Dict[str, Any]:
     """
     try:
         import time
+
         start = time.time()
 
         # Ping Redis to verify connectivity
@@ -120,6 +123,7 @@ async def check_storage_health(db: DBConnection) -> Dict[str, Any]:
     """
     try:
         import time
+
         start = time.time()
 
         # List buckets to verify storage connectivity

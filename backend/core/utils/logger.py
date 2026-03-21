@@ -32,19 +32,36 @@ logging.getLogger().handlers.clear()
 # Keep third-party library noise down (only warnings+)
 NOISY_LOGGERS = (
     # AWS SDK
-    "boto3", "botocore", "urllib3", "s3transfer", "watchtower",
+    "boto3",
+    "botocore",
+    "urllib3",
+    "s3transfer",
+    "watchtower",
     # HTTP clients
-    "httpcore", "httpx", "aiohttp", "requests", "hpack",
+    "httpcore",
+    "httpx",
+    "aiohttp",
+    "requests",
+    "hpack",
     # Async / event loop
-    "asyncio", "concurrent",
+    "asyncio",
+    "concurrent",
     # AI SDKs
-    "openai", "anthropic", "httpx._client",
+    "openai",
+    "anthropic",
+    "httpx._client",
     # Web frameworks
-    "uvicorn.access", "uvicorn.error", "fastapi",
+    "uvicorn.access",
+    "uvicorn.error",
+    "fastapi",
     # Database
-    "sqlalchemy", "databases", "aiosqlite",
+    "sqlalchemy",
+    "databases",
+    "aiosqlite",
     # Other
-    "websockets", "multipart", "charset_normalizer",
+    "websockets",
+    "multipart",
+    "charset_normalizer",
 )
 for noisy_logger in NOISY_LOGGERS:
     logging.getLogger(noisy_logger).setLevel(logging.WARNING)
@@ -116,9 +133,7 @@ def _setup_cloudwatch_logging() -> None:
         return
 
     default_enabled = "true" if ENV_MODE == "PRODUCTION" else "false"
-    cloudwatch_enabled = (
-        os.getenv("CLOUDWATCH_LOGGING_ENABLED", default_enabled).lower() == "true"
-    )
+    cloudwatch_enabled = os.getenv("CLOUDWATCH_LOGGING_ENABLED", default_enabled).lower() == "true"
     if not cloudwatch_enabled:
         return
 
@@ -199,12 +214,13 @@ from datetime import datetime
 from typing import Optional, Any
 import time
 
+
 class FileDebugLogger:
     _instance = None
     _files: dict = {}
     _start_times: dict = {}
     _debug_dir: Path = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -212,51 +228,55 @@ class FileDebugLogger:
             cls._instance._start_times = {}
             cls._instance._debug_dir = Path(__file__).parent.parent.parent / "debug_logs"
         return cls._instance
-    
+
     def _get_file(self, session: str, category: str):
         key = f"{session}:{category}"
-        
+
         if key not in self._files:
             self._debug_dir.mkdir(exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{category}_{session[:8]}_{timestamp}.log" if session else f"{category}_{timestamp}.log"
+            filename = (
+                f"{category}_{session[:8]}_{timestamp}.log"
+                if session
+                else f"{category}_{timestamp}.log"
+            )
             filepath = self._debug_dir / filename
-            
-            self._files[key] = open(filepath, 'a', encoding='utf-8')
+
+            self._files[key] = open(filepath, "a", encoding="utf-8")
             self._start_times[key] = time.perf_counter()
-            
+
             self._files[key].write(f"# Debug Log: {category}\n")
             self._files[key].write(f"# Session: {session or 'default'}\n")
             self._files[key].write(f"# Started: {datetime.now().isoformat()}\n")
             self._files[key].write(f"# {'=' * 60}\n\n")
             self._files[key].flush()
-        
+
         return self._files[key], self._start_times[key]
-    
+
     def log(
         self,
         message: str,
         session: str = "default",
         category: str = "debug",
         save_to_file: bool = True,
-        **kwargs
+        **kwargs,
     ):
         if not save_to_file:
             return
-        
+
         try:
             file, start_time = self._get_file(session, category)
             elapsed_ms = (time.perf_counter() - start_time) * 1000
-            
+
             extras = " | ".join(f"{k}={v}" for k, v in kwargs.items()) if kwargs else ""
             extras_str = f" | {extras}" if extras else ""
-            
+
             line = f"[{elapsed_ms:10.1f}ms] {message}{extras_str}\n"
             file.write(line)
             file.flush()
         except Exception as e:
             pass
-    
+
     def close(self, session: str = None, category: str = None):
         if session and category:
             key = f"{session}:{category}"
@@ -276,7 +296,7 @@ class FileDebugLogger:
                     pass
             self._files.clear()
             self._start_times.clear()
-    
+
     def close_session(self, session: str):
         keys_to_remove = [k for k in self._files.keys() if k.startswith(f"{session}:")]
         for key in keys_to_remove:

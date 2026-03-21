@@ -18,6 +18,7 @@ litellm.drop_params = True
 
 litellm.set_verbose = False
 import logging
+
 logging.getLogger("LiteLLM").setLevel(logging.WARNING)
 logging.getLogger("litellm").setLevel(logging.WARNING)
 
@@ -27,25 +28,25 @@ litellm.stream_timeout = int(os.environ.get("LITELLM_STREAM_TIMEOUT", 300))
 
 from litellm.integrations.custom_logger import CustomLogger
 
+
 class LLMTimingCallback(CustomLogger):
-    
     def __init__(self):
         super().__init__()
         self._retry_counts = {}
-    
+
     def log_pre_api_call(self, model, messages, kwargs):
         litellm_params = kwargs.get("litellm_params") or {}
         metadata = litellm_params.get("metadata") if isinstance(litellm_params, dict) else {}
         if metadata is None:
             metadata = {}
-        
+
         retry_count = metadata.get("_litellm_retry_count", 0) if isinstance(metadata, dict) else 0
         if retry_count > 0:
             logger.warning(f"[LLM] RETRY #{retry_count} for {model}")
-    
+
     def log_post_api_call(self, kwargs, response_obj, start_time, end_time):
         pass
-    
+
     def log_success_event(self, kwargs, response_obj, start_time, end_time):
         try:
             duration = (end_time - start_time).total_seconds()
@@ -54,14 +55,14 @@ class LLMTimingCallback(CustomLogger):
                 logger.warning(f"[LLM] SLOW: {model} took {duration:.2f}s")
         except:
             pass
-    
+
     def log_failure_event(self, kwargs, response_obj, start_time, end_time):
         model = kwargs.get("model", "unknown")
         try:
             duration = (end_time - start_time).total_seconds()
         except:
             duration = 0
-        
+
         exception = kwargs.get("exception", response_obj)
         error_str = str(exception)[:200] if exception else "unknown"
         logger.error(f"[LLM] FAIL: {model} after {duration:.2f}s - {error_str}")
@@ -84,36 +85,42 @@ class LLMError(Exception):
 def setup_api_keys() -> None:
     if not config:
         return
-    
-    if getattr(config, 'ANTHROPIC_API_KEY', None):
+
+    if getattr(config, "ANTHROPIC_API_KEY", None):
         os.environ["ANTHROPIC_API_KEY"] = config.ANTHROPIC_API_KEY
-    
-    if getattr(config, 'OPENAI_API_KEY', None):
+
+    if getattr(config, "OPENAI_API_KEY", None):
         os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
-    
-    if getattr(config, 'OPENROUTER_API_KEY', None):
+
+    if getattr(config, "OPENROUTER_API_KEY", None):
         os.environ["OPENROUTER_API_KEY"] = config.OPENROUTER_API_KEY
-        openrouter_base = getattr(config, 'OPENROUTER_API_BASE', None) or "https://openrouter.ai/api/v1"
+        openrouter_base = (
+            getattr(config, "OPENROUTER_API_BASE", None) or "https://openrouter.ai/api/v1"
+        )
         os.environ["OPENROUTER_API_BASE"] = openrouter_base
-    
-    if getattr(config, 'OR_APP_NAME', None):
+
+    if getattr(config, "OR_APP_NAME", None):
         os.environ["OR_APP_NAME"] = config.OR_APP_NAME
-    if getattr(config, 'OR_SITE_URL', None):
+    if getattr(config, "OR_SITE_URL", None):
         os.environ["OR_SITE_URL"] = config.OR_SITE_URL
-    
-    if getattr(config, 'AWS_BEARER_TOKEN_BEDROCK', None):
+
+    if getattr(config, "AWS_BEARER_TOKEN_BEDROCK", None):
         os.environ["AWS_BEARER_TOKEN_BEDROCK"] = config.AWS_BEARER_TOKEN_BEDROCK
 
 
-def _configure_openai_compatible(model_name: str, api_key: Optional[str], api_base: Optional[str]) -> None:
+def _configure_openai_compatible(
+    model_name: str, api_key: Optional[str], api_base: Optional[str]
+) -> None:
     if not model_name.startswith("openai-compatible/"):
         return
-    
-    key = api_key or getattr(config, 'OPENAI_COMPATIBLE_API_KEY', None)
-    base = api_base or getattr(config, 'OPENAI_COMPATIBLE_API_BASE', None)
-    
+
+    key = api_key or getattr(config, "OPENAI_COMPATIBLE_API_KEY", None)
+    base = api_base or getattr(config, "OPENAI_COMPATIBLE_API_BASE", None)
+
     if not key or not base:
-        raise LLMError("OPENAI_COMPATIBLE_API_KEY and OPENAI_COMPATIBLE_API_BASE required for openai-compatible models")
+        raise LLMError(
+            "OPENAI_COMPATIBLE_API_KEY and OPENAI_COMPATIBLE_API_BASE required for openai-compatible models"
+        )
 
 
 def _save_debug_input(params: dict[str, Any]) -> Optional[str]:
@@ -140,10 +147,10 @@ def _strip_internal_properties(messages: list[dict[str, Any]]) -> list[dict[str,
         if not isinstance(msg, dict):
             cleaned_messages.append(msg)
             continue
-        
+
         cleaned_msg = {k: v for k, v in msg.items() if k not in _INTERNAL_MESSAGE_PROPERTIES}
         cleaned_messages.append(cleaned_msg)
-    
+
     return cleaned_messages
 
 
@@ -189,10 +196,11 @@ async def make_llm_api_call(
     frequency_penalty: Optional[float] = 0.2,
 ) -> dict[str, Any] | AsyncGenerator | ModelResponse:
     messages = _strip_internal_properties(messages)
-    
+
     if model_name == "mock-ai":
         logger.info(f"[LLM] Using mock provider for testing")
         from core.test_harness.mock_llm import get_mock_provider
+
         mock_provider = get_mock_provider(delay_ms=20)
         return mock_provider.acompletion(
             messages=messages,
@@ -200,21 +208,22 @@ async def make_llm_api_call(
             stream=stream,
             tools=tools,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
         )
-    
+
     logger.info(f"[LLM] call: {model_name} ({len(messages)} msgs)")
     _configure_openai_compatible(model_name, api_key, api_base)
-    
+
     from core.ai_models import model_manager
+
     resolved_model_name = model_manager.resolve_model_id(model_name) or model_name
-    
+
     override_params = {
         "messages": messages,
         "temperature": temperature,
         "stream": stream,
     }
-    
+
     if response_format is not None:
         override_params["response_format"] = response_format
     if top_p is not None:
@@ -244,39 +253,46 @@ async def make_llm_api_call(
     if tools:
         params["tools"] = tools
         params["tool_choice"] = tool_choice
-    
+
     if model_id:
         params["model_id"] = model_id
     if stream:
         params["stream_options"] = {"include_usage": True}
-    
+
     import time as time_module
+
     call_start = time_module.monotonic()
-    
+
     try:
         # Save debug input and get correlation_id for tracking
         correlation_id = _save_debug_input(params)
-        
+
         if stream:
             response = await litellm.acompletion(**params)
             ttft = time_module.monotonic() - call_start
-            
+
             if ttft > 30.0:
                 logger.error(f"[LLM] TTFT={ttft:.2f}s (CRITICAL) {model_name}")
             elif ttft > 10.0:
                 logger.warning(f"[LLM] TTFT={ttft:.2f}s (slow) {model_name}")
             else:
                 logger.info(f"[LLM] TTFT={ttft:.2f}s {model_name}")
-            
-            if hasattr(response, '__aiter__'):
-                return _wrap_streaming_response(response, call_start, model_name, ttft_seconds=ttft, correlation_id=correlation_id)
+
+            if hasattr(response, "__aiter__"):
+                return _wrap_streaming_response(
+                    response,
+                    call_start,
+                    model_name,
+                    ttft_seconds=ttft,
+                    correlation_id=correlation_id,
+                )
             return response
         else:
             response = await litellm.acompletion(**params)
             duration = time_module.monotonic() - call_start
             logger.info(f"[LLM] {duration:.2f}s {model_name}")
             return response
-        
+
     except Exception as e:
         total_time = time_module.monotonic() - call_start
         logger.error(f"[LLM] call error after {total_time:.2f}s for {model_name}: {str(e)[:100]}")
@@ -285,59 +301,70 @@ async def make_llm_api_call(
         raise LLMError(processed_error.message, error_type=processed_error.error_type)
 
 
-async def _wrap_streaming_response(response, start_time: float, model_name: str, ttft_seconds: float = None, correlation_id: str = None) -> AsyncGenerator:
+async def _wrap_streaming_response(
+    response,
+    start_time: float,
+    model_name: str,
+    ttft_seconds: float = None,
+    correlation_id: str = None,
+) -> AsyncGenerator:
     import time as time_module
+
     chunk_count = 0
     last_chunk_time = time_module.monotonic()
-    
+
     # Debug output collection
-    debug_chunks = [] if (config and getattr(config, 'DEBUG_SAVE_LLM_IO', False)) else None
+    debug_chunks = [] if (config and getattr(config, "DEBUG_SAVE_LLM_IO", False)) else None
     accumulated_content = ""
     accumulated_tool_calls = []
     finish_reason = None
-    
+
     try:
         if ttft_seconds is not None:
             yield {"__llm_ttft_seconds__": ttft_seconds, "model": model_name}
-        
+
         async for chunk in response:
             chunk_count += 1
             current_time = time_module.monotonic()
             gap_ms = (current_time - last_chunk_time) * 1000
-            
+
             if gap_ms > 500 and chunk_count > 1:
-                logger.warning(f"[LLM] ⚠️ Chunk #{chunk_count} gap: {gap_ms:.0f}ms (model={model_name})")
-            
+                logger.warning(
+                    f"[LLM] ⚠️ Chunk #{chunk_count} gap: {gap_ms:.0f}ms (model={model_name})"
+                )
+
             last_chunk_time = current_time
-            
+
             # Capture debug info
             if debug_chunks is not None:
                 try:
-                    if hasattr(chunk, 'choices') and chunk.choices:
+                    if hasattr(chunk, "choices") and chunk.choices:
                         choice = chunk.choices[0]
-                        delta = getattr(choice, 'delta', None)
+                        delta = getattr(choice, "delta", None)
                         if delta:
-                            if hasattr(delta, 'content') and delta.content:
+                            if hasattr(delta, "content") and delta.content:
                                 accumulated_content += delta.content
-                            if hasattr(delta, 'tool_calls') and delta.tool_calls:
+                            if hasattr(delta, "tool_calls") and delta.tool_calls:
                                 for tc in delta.tool_calls:
                                     tc_dict = {
-                                        "index": getattr(tc, 'index', 0),
-                                        "id": getattr(tc, 'id', None),
-                                        "type": getattr(tc, 'type', None),
+                                        "index": getattr(tc, "index", 0),
+                                        "id": getattr(tc, "id", None),
+                                        "type": getattr(tc, "type", None),
                                     }
-                                    if hasattr(tc, 'function') and tc.function:
+                                    if hasattr(tc, "function") and tc.function:
                                         tc_dict["function"] = {
-                                            "name": getattr(tc.function, 'name', None),
-                                            "arguments": getattr(tc.function, 'arguments', None),
+                                            "name": getattr(tc.function, "name", None),
+                                            "arguments": getattr(tc.function, "arguments", None),
                                         }
-                                    debug_chunks.append({"chunk": chunk_count, "tool_call_delta": tc_dict})
-                        fr = getattr(choice, 'finish_reason', None)
+                                    debug_chunks.append(
+                                        {"chunk": chunk_count, "tool_call_delta": tc_dict}
+                                    )
+                        fr = getattr(choice, "finish_reason", None)
                         if fr:
                             finish_reason = fr
                 except Exception:
                     pass
-            
+
             yield chunk
     except Exception as e:
         processed_error = ErrorProcessor.process_llm_error(e)
@@ -347,21 +374,30 @@ async def _wrap_streaming_response(response, start_time: float, model_name: str,
         duration = time_module.monotonic() - start_time if start_time else 0.0
         if duration > 0:
             logger.info(f"[LLM] {duration:.2f}s total, {chunk_count} chunks - {model_name}")
-        
+
         # Save debug output with correlation_id
         if debug_chunks is not None:
-            _save_debug_output(model_name, accumulated_content, accumulated_tool_calls, debug_chunks, finish_reason, chunk_count, duration, correlation_id)
+            _save_debug_output(
+                model_name,
+                accumulated_content,
+                accumulated_tool_calls,
+                debug_chunks,
+                finish_reason,
+                chunk_count,
+                duration,
+                correlation_id,
+            )
 
 
 def _save_debug_output(
-    model_name: str, 
-    content: str, 
-    tool_calls: list, 
-    chunks: list, 
-    finish_reason: str, 
-    chunk_count: int, 
+    model_name: str,
+    content: str,
+    tool_calls: list,
+    chunks: list,
+    finish_reason: str,
+    chunk_count: int,
     duration: float,
-    correlation_id: Optional[str] = None
+    correlation_id: Optional[str] = None,
 ) -> None:
     """Save LLM output stream for debugging."""
     llm_debug.log_output(
@@ -378,7 +414,9 @@ def _save_debug_output(
 
 
 setup_api_keys()
-logger.info(f"[LLM] Module initialized: retries={litellm.num_retries}, timeout={litellm.request_timeout}s, stream_timeout={litellm.stream_timeout}s")
+logger.info(
+    f"[LLM] Module initialized: retries={litellm.num_retries}, timeout={litellm.request_timeout}s, stream_timeout={litellm.stream_timeout}s"
+)
 
 
 _prewarm_cache: dict[str, float] = {}
@@ -387,20 +425,21 @@ _PREWARM_CACHE_TTL = 60.0
 
 async def prewarm_llm_connection(model_name: str) -> None:
     import time as time_module
-    
+
     cache_key = model_name
     now = time_module.monotonic()
     if cache_key in _prewarm_cache:
         if now - _prewarm_cache[cache_key] < _PREWARM_CACHE_TTL:
             logger.debug(f"[LLM] Connection already warm for {model_name}")
             return
-    
+
     try:
         from core.ai_models import model_manager
+
         resolved_model_name = model_manager.resolve_model_id(model_name) or model_name
-        
+
         start = time_module.monotonic()
-        
+
         params = model_manager.get_litellm_params(
             resolved_model_name,
             messages=[{"role": "user", "content": "hi"}],
@@ -408,21 +447,18 @@ async def prewarm_llm_connection(model_name: str) -> None:
             max_tokens=1,
             stream=False,
         )
-        
+
         try:
-            await asyncio.wait_for(
-                litellm.acompletion(**params),
-                timeout=5.0
-            )
+            await asyncio.wait_for(litellm.acompletion(**params), timeout=5.0)
         except TimeoutError:
             pass
         except Exception:
             pass
-        
+
         elapsed = (time_module.monotonic() - start) * 1000
         _prewarm_cache[cache_key] = now
         logger.info(f"[LLM] Connection pre-warmed for {model_name} in {elapsed:.0f}ms")
-        
+
     except Exception as e:
         logger.debug(f"[LLM] Connection pre-warm failed for {model_name}: {e}")
 
@@ -447,7 +483,5 @@ if __name__ == "__main__":
         model="bedrock/anthropic.claude-sonnet-4-20250115-v1:0",
         messages=[{"role": "user", "content": "Hello! Testing 1M context window."}],
         max_tokens=100,
-        extra_headers={
-            "anthropic-beta": "context-1m-2025-08-07"
-        }
+        extra_headers={"anthropic-beta": "context-1m-2025-08-07"},
     )

@@ -62,7 +62,9 @@ class ExecutionEngine:
             )
             prepared = validator.repair_tool_call_pairing(prepared)
 
-            is_valid_after, orphans_after, unanswered_after = validator.validate_tool_call_pairing(prepared)
+            is_valid_after, orphans_after, unanswered_after = validator.validate_tool_call_pairing(
+                prepared
+            )
             if not is_valid_after:
                 logger.error(
                     f"🚨 [ExecutionEngine] {log_prefix}: pairing repair failed - applying fallback "
@@ -82,7 +84,9 @@ class ExecutionEngine:
                 prepared = validator.remove_out_of_order_tool_pairs(prepared, out_of_order_call_ids)
 
                 # Ensure ordering repair didn't leave pairing issues.
-                valid_after_order, orphaned_after_order, unanswered_after_order = validator.validate_tool_call_pairing(prepared)
+                valid_after_order, orphaned_after_order, unanswered_after_order = (
+                    validator.validate_tool_call_pairing(prepared)
+                )
                 if not valid_after_order:
                     logger.warning(
                         f"⚠️ [ExecutionEngine] {log_prefix}: post-order pairing issues - repairing "
@@ -90,7 +94,9 @@ class ExecutionEngine:
                     )
                     prepared = validator.repair_tool_call_pairing(prepared)
 
-                    final_valid, final_orphaned, final_unanswered = validator.validate_tool_call_pairing(prepared)
+                    final_valid, final_orphaned, final_unanswered = (
+                        validator.validate_tool_call_pairing(prepared)
+                    )
                     if not final_valid:
                         logger.error(
                             f"🚨 [ExecutionEngine] {log_prefix}: final repair failed - applying fallback "
@@ -115,14 +121,16 @@ class ExecutionEngine:
 
         if tokens < safety_threshold:
             return messages, tokens, False
-        
-        logger.info(f"⚠️ [ExecutionEngine] Over threshold ({tokens} >= {safety_threshold}), summarizing...")
-        
+
+        logger.info(
+            f"⚠️ [ExecutionEngine] Over threshold ({tokens} >= {safety_threshold}), summarizing..."
+        )
+
         await stream_summarizing(
             self._state.stream_key,
             status="started",
         )
-        
+
         try:
             MIN_TO_COMPRESS = 3
             MAX_WORKING_MEMORY = 6
@@ -162,8 +170,7 @@ class ExecutionEngine:
 
                 if changed or reduced:
                     await self._archive_raw_messages_for_retrieval(
-                        messages,
-                        reason="low_message_threshold_fallback"
+                        messages, reason="low_message_threshold_fallback"
                     )
 
                     from core.cache.runtime_cache import set_cached_message_history
@@ -180,7 +187,7 @@ class ExecutionEngine:
                         tokens_before=tokens,
                         tokens_after=new_tokens,
                         messages_before=len(messages),
-                        messages_after=len(new_messages)
+                        messages_after=len(new_messages),
                     )
 
                     return new_messages, new_tokens, True
@@ -195,7 +202,7 @@ class ExecutionEngine:
                     tokens_before=tokens,
                     tokens_after=tokens,
                     messages_before=len(messages),
-                    messages_after=len(messages)
+                    messages_after=len(messages),
                 )
                 return messages, tokens, False
 
@@ -204,22 +211,28 @@ class ExecutionEngine:
 
             # Adjust split to avoid breaking assistant+tool pairs
             split_idx = total_messages - working_memory_size
-            while split_idx > MIN_TO_COMPRESS and messages[split_idx].get('role') == 'tool':
+            while split_idx > MIN_TO_COMPRESS and messages[split_idx].get("role") == "tool":
                 split_idx -= 1
 
             working_memory = messages[split_idx:]
             to_compress = messages[:split_idx]
 
-            logger.debug(f"[ExecutionEngine] Compression split: {len(to_compress)} to compress, {len(working_memory)} working memory")
+            logger.debug(
+                f"[ExecutionEngine] Compression split: {len(to_compress)} to compress, {len(working_memory)} working memory"
+            )
 
             # Extract previous summary before filtering it out
             previous_summary = None
             for m in to_compress:
-                if m.get('_is_summary_inline'):
-                    previous_summary = m.get('content', '')
+                if m.get("_is_summary_inline"):
+                    previous_summary = m.get("content", "")
 
             # Filter out previous archive summaries and already-archived working memory
-            to_compress = [m for m in to_compress if not m.get('_is_summary_inline') and not m.get('_already_archived')]
+            to_compress = [
+                m
+                for m in to_compress
+                if not m.get("_is_summary_inline") and not m.get("_already_archived")
+            ]
 
             if not to_compress:
                 logger.debug("[ExecutionEngine] Nothing to compress after filtering summaries")
@@ -227,18 +240,17 @@ class ExecutionEngine:
 
             # Archive messages to sandbox filesystem for on-demand retrieval
             from core.services.supabase import DBConnection
+
             db_client = await DBConnection().client
 
             archiver = ContextArchiver(
                 project_id=self._state.project_id,
                 account_id=self._state.account_id,
                 thread_id=self._state.thread_id,
-                db_client=db_client
+                db_client=db_client,
             )
             result = await archiver.archive_messages(
-                to_compress,
-                previous_summary=previous_summary,
-                working_memory=working_memory
+                to_compress, previous_summary=previous_summary, working_memory=working_memory
             )
 
             summary_msg = {
@@ -250,23 +262,29 @@ class ExecutionEngine:
             }
 
             # Persist the summary message to database so subsequent runs can load it
-            self._state.add_message(summary_msg, metadata={
-                "_is_summary_inline": True,
-                "_archive_batch": result.batch_number,
-                "archived_message_count": result.message_count,
-                "is_archived_summary": True,
-            })
+            self._state.add_message(
+                summary_msg,
+                metadata={
+                    "_is_summary_inline": True,
+                    "_archive_batch": result.batch_number,
+                    "archived_message_count": result.message_count,
+                    "is_archived_summary": True,
+                },
+            )
 
             # Mark working memory as already archived so the next compression skips them
             for m in working_memory:
-                m['_already_archived'] = True
+                m["_already_archived"] = True
 
             new_messages = [summary_msg] + working_memory
 
             # Update the Redis cache with the new compressed message list
             from core.cache.runtime_cache import set_cached_message_history
+
             await set_cached_message_history(self._state.thread_id, new_messages)
-            logger.debug(f"[ExecutionEngine] Updated message cache with {len(new_messages)} messages")
+            logger.debug(
+                f"[ExecutionEngine] Updated message cache with {len(new_messages)} messages"
+            )
 
             new_tokens = await self.fast_token_count(
                 [system_prompt] + new_messages,
@@ -274,7 +292,9 @@ class ExecutionEngine:
                 tools=tools,
                 tool_choice=tool_choice,
             )
-            logger.info(f"[ExecutionEngine] After archival: {new_tokens} tokens, {len(new_messages)} messages")
+            logger.info(
+                f"[ExecutionEngine] After archival: {new_tokens} tokens, {len(new_messages)} messages"
+            )
 
             # Always compress working memory to maximize headroom for new messages
             new_messages = self._compress_working_memory(new_messages, safety_threshold)
@@ -304,8 +324,10 @@ class ExecutionEngine:
             # Update cache with the compressed messages
             await set_cached_message_history(self._state.thread_id, new_messages)
 
-            logger.info(f"✨ [ExecutionEngine] Summarized: {tokens} -> {new_tokens} tokens "
-                       f"({len(messages)} -> {len(new_messages)} messages)")
+            logger.info(
+                f"✨ [ExecutionEngine] Summarized: {tokens} -> {new_tokens} tokens "
+                f"({len(messages)} -> {len(new_messages)} messages)"
+            )
 
             await stream_summarizing(
                 self._state.stream_key,
@@ -313,22 +335,22 @@ class ExecutionEngine:
                 tokens_before=tokens,
                 tokens_after=new_tokens,
                 messages_before=len(messages),
-                messages_after=len(new_messages)
+                messages_after=len(new_messages),
             )
-            
+
             return new_messages, new_tokens, True
-            
+
         except Exception as e:
             logger.error(f"[ExecutionEngine] Summarization failed: {e}")
-            
+
             await stream_summarizing(self._state.stream_key, status="failed")
-            
+
             latest_user_msg = None
             for msg in reversed(messages):
-                if msg.get('role') == 'user':
+                if msg.get("role") == "user":
                     latest_user_msg = msg
                     break
-            
+
             if latest_user_msg:
                 new_tokens = await self.fast_token_count(
                     [system_prompt, latest_user_msg],
@@ -336,9 +358,11 @@ class ExecutionEngine:
                     tools=tools,
                     tool_choice=tool_choice,
                 )
-                logger.warning(f"[ExecutionEngine] Fallback: keeping only latest user message ({new_tokens} tokens)")
+                logger.warning(
+                    f"[ExecutionEngine] Fallback: keeping only latest user message ({new_tokens} tokens)"
+                )
                 return [latest_user_msg], new_tokens, True
-            
+
             return messages, tokens, False
 
     @staticmethod
@@ -358,17 +382,18 @@ class ExecutionEngine:
     @staticmethod
     def _get_content_str(msg: Dict[str, Any]) -> str:
         """Extract content as a string from a message, handling list/dict forms."""
-        content = msg.get('content', '')
+        content = msg.get("content", "")
         if isinstance(content, list):
             parts = []
             for block in content:
                 if isinstance(block, dict):
-                    parts.append(block.get('text', '') or block.get('content', '') or str(block))
+                    parts.append(block.get("text", "") or block.get("content", "") or str(block))
                 else:
                     parts.append(str(block))
-            return '\n'.join(parts)
+            return "\n".join(parts)
         elif isinstance(content, dict):
             import json
+
             return json.dumps(content)
         return str(content)
 
@@ -376,7 +401,7 @@ class ExecutionEngine:
     def _set_content_str(msg: Dict[str, Any], new_content: str) -> Dict[str, Any]:
         """Return a copy of msg with content replaced by new_content string."""
         result = dict(msg)
-        result['content'] = new_content
+        result["content"] = new_content
         return result
 
     def _compress_working_memory(
@@ -394,39 +419,42 @@ class ExecutionEngine:
         result = list(messages)
 
         # --- Tier 1: Truncate tool result messages ---
-        tool_indices = [i for i, m in enumerate(result) if m.get('role') == 'tool']
+        tool_indices = [i for i, m in enumerate(result) if m.get("role") == "tool"]
         for idx, i in enumerate(tool_indices):
             content_str = self._get_content_str(result[i])
             # Last 2 tool outputs get slightly more room
             limit = 3000 if idx >= len(tool_indices) - 2 else 2000
             if len(content_str) > limit:
                 result[i] = self._set_content_str(
-                    result[i],
-                    self._safe_truncate_content(content_str, limit)
+                    result[i], self._safe_truncate_content(content_str, limit)
                 )
-                logger.debug(f"[ExecutionEngine] Tier 1: truncated tool message {i} from {len(content_str)} to ~{limit} chars")
+                logger.debug(
+                    f"[ExecutionEngine] Tier 1: truncated tool message {i} from {len(content_str)} to ~{limit} chars"
+                )
 
         # --- Tier 2: Truncate large user messages (skip summary) ---
         for i, msg in enumerate(result):
-            if msg.get('role') == 'user' and not msg.get('_is_summary_inline'):
+            if msg.get("role") == "user" and not msg.get("_is_summary_inline"):
                 content_str = self._get_content_str(msg)
                 if len(content_str) > 4000:
                     result[i] = self._set_content_str(
-                        msg,
-                        self._safe_truncate_content(content_str, 4000)
+                        msg, self._safe_truncate_content(content_str, 4000)
                     )
-                    logger.debug(f"[ExecutionEngine] Tier 2: truncated user message {i} from {len(content_str)} to ~4000 chars")
+                    logger.debug(
+                        f"[ExecutionEngine] Tier 2: truncated user message {i} from {len(content_str)} to ~4000 chars"
+                    )
 
         # --- Tier 3: Truncate large assistant messages ---
         for i, msg in enumerate(result):
-            if msg.get('role') == 'assistant':
+            if msg.get("role") == "assistant":
                 content_str = self._get_content_str(msg)
                 if len(content_str) > 2000:
                     result[i] = self._set_content_str(
-                        msg,
-                        self._safe_truncate_content(content_str, 2000)
+                        msg, self._safe_truncate_content(content_str, 2000)
                     )
-                    logger.debug(f"[ExecutionEngine] Tier 3: truncated assistant message {i} from {len(content_str)} to ~2000 chars")
+                    logger.debug(
+                        f"[ExecutionEngine] Tier 3: truncated assistant message {i} from {len(content_str)} to ~2000 chars"
+                    )
 
         return result
 
@@ -438,7 +466,7 @@ class ExecutionEngine:
         indexed = [
             (i, len(ExecutionEngine._get_content_str(m)))
             for i, m in enumerate(result)
-            if not m.get('_is_summary_inline')
+            if not m.get("_is_summary_inline")
         ]
         indexed.sort(key=lambda x: x[1], reverse=True)
 
@@ -448,9 +476,11 @@ class ExecutionEngine:
                     result[i],
                     ExecutionEngine._safe_truncate_content(
                         ExecutionEngine._get_content_str(result[i]), 1200
-                    )
+                    ),
                 )
-                logger.warning(f"[ExecutionEngine] Emergency truncate: message {i} from {length} to ~1200 chars")
+                logger.warning(
+                    f"[ExecutionEngine] Emergency truncate: message {i} from {length} to ~1200 chars"
+                )
         return result
 
     async def _archive_raw_messages_for_retrieval(
@@ -476,7 +506,9 @@ class ExecutionEngine:
                     f"batch {result.batch_number} at {result.summary_path}"
                 )
             else:
-                logger.info("[ExecutionEngine] Raw low-message context already archived (delta noop)")
+                logger.info(
+                    "[ExecutionEngine] Raw low-message context already archived (delta noop)"
+                )
         except Exception as e:
             logger.warning(f"[ExecutionEngine] Raw message archival failed (continuing): {e}")
 
@@ -491,7 +523,9 @@ class ExecutionEngine:
     ) -> Any:
         from core.ai_models import model_manager
 
-        logger.warning("[ExecutionEngine] Context window exceeded - attempting one-time forced compression retry")
+        logger.warning(
+            "[ExecutionEngine] Context window exceeded - attempting one-time forced compression retry"
+        )
 
         context_window = model_manager.get_context_window(self._state.model_name)
         safety_threshold = self.TEST_THRESHOLD_OVERRIDE or self.get_safety_threshold(context_window)
@@ -530,7 +564,9 @@ class ExecutionEngine:
 
         prepared_retry = [cached_system] + retry_messages
 
-        prepared_retry = self._repair_tool_message_structure(prepared_retry, log_prefix="Retry path")
+        prepared_retry = self._repair_tool_message_structure(
+            prepared_retry, log_prefix="Retry path"
+        )
 
         retry_messages = prepared_retry[1:]
         retry_tokens = await self.fast_token_count(
@@ -572,9 +608,12 @@ class ExecutionEngine:
     async def execute_step(self) -> AsyncGenerator[Dict[str, Any], None]:
         messages = self._state.get_messages()
 
-        system = self._state.system_prompt or {"role": "system", "content": "You are a helpful assistant."}
+        system = self._state.system_prompt or {
+            "role": "system",
+            "content": "You are a helpful assistant.",
+        }
 
-        has_archive = any(m.get('_is_summary_inline') for m in messages)
+        has_archive = any(m.get("_is_summary_inline") for m in messages)
         if has_archive:
             archive_preamble = (
                 "[ARCHIVED CONTEXT ACTIVE] Earlier messages were compressed into a summary. "
@@ -585,10 +624,10 @@ class ExecutionEngine:
             archive_hint = (
                 "\n\n## Archived Context — Retrieval Instructions\n"
                 "When the user asks for specific details from earlier work: "
-                "DO NOT respond first. DO NOT say \"I don't have access\". DO NOT ask permission. "
+                'DO NOT respond first. DO NOT say "I don\'t have access". DO NOT ask permission. '
                 "Your FIRST tool call must be read_file or grep on the archived files, THEN respond with results.\n"
                 "**For links/URLs:** read_file /workspace/.carbon-bim/context/messages/batch_NNN/links.md\n"
-                "**For specific data:** grep -ri \"keyword\" /workspace/.carbon-bim/context/messages/\n"
+                '**For specific data:** grep -ri "keyword" /workspace/.carbon-bim/context/messages/\n'
                 "**To see all files:** read_file /workspace/.carbon-bim/context/messages/batch_NNN/index.md\n"
                 "Do NOT use cat. Do NOT guess filenames. Read links.md or index.md first.\n"
                 "The files are in your sandbox. You have full access. Read them immediately."
@@ -598,7 +637,7 @@ class ExecutionEngine:
 
         layers = ContextManager.extract_layers(messages)
         processed_messages = layers.to_messages()
-        
+
         logger.debug(f"[ExecutionEngine] Context layers: {layers.total_messages} messages")
 
         processor_config = ProcessorConfig(
@@ -606,7 +645,7 @@ class ExecutionEngine:
             native_tool_calling=config.AGENT_NATIVE_TOOL_CALLING,
             execute_tools=True,
             execute_on_stream=config.AGENT_EXECUTE_ON_STREAM,
-            tool_execution_strategy=config.AGENT_TOOL_EXECUTION_STRATEGY
+            tool_execution_strategy=config.AGENT_TOOL_EXECUTION_STRATEGY,
         )
 
         tool_choice = "auto" if processor_config.native_tool_calling else "none"
@@ -621,14 +660,14 @@ class ExecutionEngine:
             tools=tools_for_count,
             tool_choice=tool_choice,
         )
-        
+
         await stream_context_usage(
             stream_key=self._state.stream_key,
             current_tokens=tokens,
             message_count=len(processed_messages),
-            compressed=False
+            compressed=False,
         )
-        
+
         processed_messages, tokens, did_compress = await self._check_and_compress_if_needed(
             processed_messages,
             tokens,
@@ -636,33 +675,43 @@ class ExecutionEngine:
             tools=tools_for_count,
             tool_choice=tool_choice,
         )
-        
+
         if did_compress:
             prepared = [cached_system] + processed_messages
             self._state._messages.clear()
             for msg in processed_messages:
                 self._state._messages.append(msg)
-            logger.debug(f"✅ [ExecutionEngine] State updated after compression: {len(self._state._messages)} messages")
-        
+            logger.debug(
+                f"✅ [ExecutionEngine] State updated after compression: {len(self._state._messages)} messages"
+            )
+
         # Pass config to response processor
         self._response_processor._config = processor_config
 
-        logger.info(f"📤 [ExecutionEngine] Sending {len(prepared)} messages, {tokens} tokens to {self._state.model_name}")
-        
+        logger.info(
+            f"📤 [ExecutionEngine] Sending {len(prepared)} messages, {tokens} tokens to {self._state.model_name}"
+        )
+
         if len(prepared) < 2:
-            logger.error(f"[ExecutionEngine] No valid messages to send (only {len(prepared)} messages after processing)")
+            logger.error(
+                f"[ExecutionEngine] No valid messages to send (only {len(prepared)} messages after processing)"
+            )
             self._state._terminate("error: no_valid_messages")
-            yield {"type": "error", "error": "No valid messages to send", "error_code": "NO_MESSAGES"}
+            yield {
+                "type": "error",
+                "error": "No valid messages to send",
+                "error_code": "NO_MESSAGES",
+            }
             return
-        
+
         prepared = self._repair_tool_message_structure(prepared, log_prefix="Main path")
-        
+
         if did_compress:
             await stream_context_usage(
                 stream_key=self._state.stream_key,
                 current_tokens=tokens,
                 message_count=len(processed_messages),
-                compressed=True
+                compressed=True,
             )
 
         executor = LLMExecutor()
@@ -676,7 +725,7 @@ class ExecutionEngine:
                 tool_choice=tool_choice,
                 native_tool_calling=processor_config.native_tool_calling,
                 xml_tool_calling=processor_config.xml_tool_calling,
-                stream=True
+                stream=True,
             )
         except Exception as e:
             error_msg = str(e)[:200]
@@ -705,7 +754,7 @@ class ExecutionEngine:
                 yield response
                 return
 
-        if hasattr(response, '__aiter__'):
+        if hasattr(response, "__aiter__"):
             async for chunk in self._response_processor.process_response(response):
                 yield chunk
         elif isinstance(response, dict):

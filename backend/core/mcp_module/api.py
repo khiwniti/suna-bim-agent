@@ -29,11 +29,15 @@ class CustomMCPDiscoverRequest(BaseModel):
     config: Dict[str, Any]
 
 
-@router.post("/mcp/discover-custom-tools", summary="Discover Custom MCP Tools", operation_id="discover_custom_mcp_tools")
+@router.post(
+    "/mcp/discover-custom-tools",
+    summary="Discover Custom MCP Tools",
+    operation_id="discover_custom_mcp_tools",
+)
 async def discover_custom_mcp_tools(request: CustomMCPDiscoverRequest):
     try:
         result = await mcp_service.discover_custom_tools(request.type, request.config)
-        
+
         return CustomMCPConnectionResponse(
             success=result.success,
             qualified_name=result.qualified_name,
@@ -41,9 +45,9 @@ async def discover_custom_mcp_tools(request: CustomMCPDiscoverRequest):
             tools=result.tools,
             config=result.config,
             url=result.url,
-            message=result.message
+            message=result.message,
         )
-        
+
     except MCPException as e:
         logger.error(f"Error discovering custom MCP tools: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))

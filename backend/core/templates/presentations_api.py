@@ -16,9 +16,7 @@ from core.utils.logger import logger
 router = APIRouter(tags=["presentations"])
 
 # Base path for presentation templates
-TEMPLATES_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "presentations")
-)
+TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "presentations"))
 
 
 class SlideInfo(BaseModel):
@@ -88,9 +86,7 @@ async def get_presentation_template_pdf(template_name: str):
         return FileResponse(
             pdf_path,
             media_type="application/pdf",
-            headers={
-                "Content-Disposition": f"inline; filename*=UTF-8''{encoded_filename}"
-            },
+            headers={"Content-Disposition": f"inline; filename*=UTF-8''{encoded_filename}"},
         )
     except HTTPException:
         raise
@@ -99,9 +95,7 @@ async def get_presentation_template_pdf(template_name: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get(
-    "/{template_name}/info", summary="Get Template Info", response_model=TemplateInfo
-)
+@router.get("/{template_name}/info", summary="Get Template Info", response_model=TemplateInfo)
 async def get_template_info(template_name: str):
     """Get template metadata including list of slides."""
     try:
@@ -138,9 +132,7 @@ async def get_template_info(template_name: str):
             except Exception:
                 pass
 
-        return TemplateInfo(
-            id=template_name, name=name, slide_count=len(slides), slides=slides
-        )
+        return TemplateInfo(id=template_name, name=name, slide_count=len(slides), slides=slides)
     except HTTPException:
         raise
     except Exception as e:

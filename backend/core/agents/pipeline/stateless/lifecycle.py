@@ -7,7 +7,7 @@ from core.utils.logger import logger
 
 class WorkerLifecycle:
     SHUTDOWN_TIMEOUT_SECONDS = 25
-    
+
     def __init__(self):
         self._shutdown_event: Optional[asyncio.Event] = None
         self._startup_hooks: List[Callable[[], Awaitable[None]]] = []
@@ -100,10 +100,7 @@ class WorkerLifecycle:
         result = {"status": "shutting_down", "steps": []}
 
         try:
-            await asyncio.wait_for(
-                self._do_shutdown(result),
-                timeout=self.SHUTDOWN_TIMEOUT_SECONDS
-            )
+            await asyncio.wait_for(self._do_shutdown(result), timeout=self.SHUTDOWN_TIMEOUT_SECONDS)
         except asyncio.TimeoutError:
             logger.error(f"[Lifecycle] Shutdown timed out after {self.SHUTDOWN_TIMEOUT_SECONDS}s")
             result["status"] = "shutdown_timeout"

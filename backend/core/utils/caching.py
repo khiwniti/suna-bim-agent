@@ -47,9 +47,7 @@ class CacheManager:
             logger.warning(f"Cache get error for key '{key}': {e}")
             return None
 
-    async def set(
-        self, key: str, value: str, ttl: Optional[int] = None
-    ) -> bool:
+    async def set(self, key: str, value: str, ttl: Optional[int] = None) -> bool:
         """Set cached value with optional TTL."""
         try:
             if ttl:
@@ -170,6 +168,7 @@ def cache_result(
             # Expensive computation
             return result
     """
+
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -232,6 +231,7 @@ def cache_result(
             return result
 
         return wrapper
+
     return decorator
 
 

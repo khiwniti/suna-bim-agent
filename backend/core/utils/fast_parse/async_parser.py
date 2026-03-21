@@ -23,7 +23,7 @@ class ImageAnalysisResult:
 
 class AsyncFastParse:
     __slots__ = ("_sync_parser", "_config", "_executor", "_image_analyzer")
-    
+
     def __init__(
         self,
         config: Optional[FastParseConfig] = None,
@@ -34,10 +34,10 @@ class AsyncFastParse:
         self._sync_parser = FastParse(self._config)
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._image_analyzer = image_analyzer
-    
+
     def set_image_analyzer(self, analyzer: Callable) -> None:
         self._image_analyzer = analyzer
-    
+
     async def parse(
         self,
         content: Union[bytes, BinaryIO, str],
@@ -47,10 +47,9 @@ class AsyncFastParse:
     ) -> ParseResult:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
-            self._executor,
-            lambda: self._sync_parser.parse(content, filename, mime_type)
+            self._executor, lambda: self._sync_parser.parse(content, filename, mime_type)
         )
-        
+
         if analyze_images and result.file_type == FileType.IMAGE and result.success:
             if self._image_analyzer:
                 try:
@@ -61,9 +60,9 @@ class AsyncFastParse:
                         image_bytes = content.read()
                     else:
                         image_bytes = content
-                    
+
                     analysis = await self._analyze_image(image_bytes, filename, result.mime_type)
-                    
+
                     if analysis.success:
                         result.content = f"[Image: {filename}]\n\n"
                         result.content += f"Description: {analysis.description}\n\n"
@@ -78,16 +77,16 @@ class AsyncFastParse:
                         }
                 except Exception as e:
                     result.warnings.append(f"Image analysis failed: {str(e)}")
-        
+
         return result
-    
+
     async def parse_file(
         self,
         file_path: Union[str, Path],
         analyze_images: bool = False,
     ) -> ParseResult:
         path = Path(file_path)
-        
+
         if not path.exists():
             return ParseResult(
                 success=False,
@@ -98,7 +97,7 @@ class AsyncFastParse:
                 file_size=0,
                 error=f"File not found: {file_path}",
             )
-        
+
         file_size = path.stat().st_size
         if file_size > self._config.max_file_size_bytes:
             return ParseResult(
@@ -108,17 +107,14 @@ class AsyncFastParse:
                 filename=path.name,
                 mime_type="application/octet-stream",
                 file_size=file_size,
-                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024*1024):.1f}MB",
+                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024 * 1024):.1f}MB",
             )
-        
+
         loop = asyncio.get_event_loop()
-        content = await loop.run_in_executor(
-            self._executor,
-            lambda: path.read_bytes()
-        )
-        
+        content = await loop.run_in_executor(self._executor, lambda: path.read_bytes())
+
         return await self.parse(content, path.name, analyze_images=analyze_images)
-    
+
     async def parse_multiple(
         self,
         files: List[Dict[str, Any]],
@@ -129,15 +125,17 @@ class AsyncFastParse:
             if "path" in file_info:
                 tasks.append(self.parse_file(file_info["path"], analyze_images))
             elif "content" in file_info and "filename" in file_info:
-                tasks.append(self.parse(
-                    file_info["content"],
-                    file_info["filename"],
-                    file_info.get("mime_type"),
-                    analyze_images,
-                ))
-        
+                tasks.append(
+                    self.parse(
+                        file_info["content"],
+                        file_info["filename"],
+                        file_info.get("mime_type"),
+                        analyze_images,
+                    )
+                )
+
         return await asyncio.gather(*tasks, return_exceptions=False)
-    
+
     async def _analyze_image(
         self,
         image_bytes: bytes,
@@ -150,17 +148,16 @@ class AsyncFastParse:
                 description="",
                 error="No image analyzer configured",
             )
-        
+
         try:
             if asyncio.iscoroutinefunction(self._image_analyzer):
                 result = await self._image_analyzer(image_bytes, filename, mime_type)
             else:
                 loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(
-                    self._executor,
-                    lambda: self._image_analyzer(image_bytes, filename, mime_type)
+                    self._executor, lambda: self._image_analyzer(image_bytes, filename, mime_type)
                 )
-            
+
             if isinstance(result, ImageAnalysisResult):
                 return result
             elif isinstance(result, dict):
@@ -194,16 +191,16 @@ class AsyncFastParse:
                 description="",
                 error=f"Image analysis failed: {str(e)}",
             )
-    
+
     def detect_file_type(self, filename: str, mime_type: Optional[str] = None) -> FileType:
         return self._sync_parser.detect_file_type(filename, mime_type)
-    
+
     async def close(self) -> None:
         self._executor.shutdown(wait=False)
-    
+
     async def __aenter__(self) -> "AsyncFastParse":
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.close()
 
@@ -239,4 +236,3 @@ async def async_parse_file(
     config: Optional[FastParseConfig] = None,
 ) -> ParseResult:
     return await get_async_parser(config).parse_file(file_path, analyze_images)
-

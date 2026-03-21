@@ -4,8 +4,8 @@ from .trial import TrialRepository
 from .commitment import CommitmentRepository
 
 __all__ = [
-    'CustomerRepository', 
-    'CreditAccountRepository',
-    'TrialRepository',
-    'CommitmentRepository'
+    "CustomerRepository",
+    "CreditAccountRepository",
+    "TrialRepository",
+    "CommitmentRepository",
 ]

@@ -1,4 +1,5 @@
 """BIM-specific API endpoints."""
+
 import base64
 import json
 import os
@@ -12,7 +13,9 @@ from fastapi.responses import JSONResponse
 from typing import List
 
 
-UUID_RE = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
+)
 _UPLOADS_DIR = "/tmp/bim-uploads"
 os.makedirs(_UPLOADS_DIR, exist_ok=True)
 
@@ -37,7 +40,7 @@ async def upload_ifc_file(
     file: UploadFile = File(...),
 ):
     """Upload IFC file for BIM analysis."""
-    if not file.filename or not file.filename.lower().endswith('.ifc'):
+    if not file.filename or not file.filename.lower().endswith(".ifc"):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
     MAX_MB = _get_max_file_size_mb()
@@ -53,7 +56,7 @@ async def upload_ifc_file(
     file_path = os.path.join(_UPLOADS_DIR, f"{file_id}.ifc")
 
     try:
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(content)
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {e}")
@@ -104,6 +107,7 @@ async def bim_health():
     """BIM service health check."""
     try:
         from core.tools.bim import IFCParserTool, CarbonCalculationTool  # noqa: F401
+
         return {"status": "ok", "bim_tools": "available"}
     except ImportError as e:
         return {"status": "degraded", "reason": str(e)}
@@ -171,10 +175,12 @@ async def analyze_boq(pageImages: List[str] = Form(...)):
         else:
             mime = "image/jpeg"
             b64 = img_data
-        content.append({
-            "type": "image_url",
-            "image_url": {"url": f"data:{mime};base64,{b64}"},
-        })
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime};base64,{b64}"},
+            }
+        )
 
     start = time.monotonic()
     try:
@@ -196,11 +202,13 @@ async def analyze_boq(pageImages: List[str] = Form(...)):
     duration_ms = int((time.monotonic() - start) * 1000)
     if "metadata" not in result:
         result["metadata"] = {}
-    result["metadata"].update({
-        "pageCount": len(pageImages),
-        "analyzedAt": __import__("datetime").datetime.utcnow().isoformat() + "Z",
-        "processingTime": duration_ms,
-        "modelUsed": model,
-    })
+    result["metadata"].update(
+        {
+            "pageCount": len(pageImages),
+            "analyzedAt": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+            "processingTime": duration_ms,
+            "modelUsed": model,
+        }
+    )
 
     return result

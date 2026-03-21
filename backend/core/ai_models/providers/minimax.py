@@ -65,9 +65,7 @@ class MiniMaxProvider(ProviderConfig):
 
 
 class OpenRouterProvider(ProviderConfig):
-    def __init__(
-        self, app_name: str = "Carbon BIM", site_url: str = "http://20.55.21.69:30"
-    ):
+    def __init__(self, app_name: str = "Carbon BIM", site_url: str = "http://20.55.21.69:30"):
         self._app_name = app_name
         self._site_url = site_url
 

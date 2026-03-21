@@ -26,12 +26,12 @@ async def get_all_user_triggers(user_id: str) -> List[Dict[str, Any]]:
     WHERE a.account_id = :user_id
     ORDER BY t.updated_at DESC
     """
-    
+
     rows = await execute(sql, {"user_id": user_id})
-    
+
     if not rows:
         return []
-    
+
     results = []
     for row in rows:
         config = row.get("config", {})
@@ -40,25 +40,26 @@ async def get_all_user_triggers(user_id: str) -> List[Dict[str, Any]]:
                 config = json.loads(config)
             except json.JSONDecodeError:
                 config = {}
-        
-        results.append({
-            "trigger_id": row["trigger_id"],
-            "agent_id": row["agent_id"],
-            "trigger_type": row["trigger_type"],
-            "provider_id": row.get("provider_id", ""),
-            "name": row["name"],
-            "description": row.get("description"),
-            "is_active": row.get("is_active", False),
-            "webhook_url": None,
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "config": config,
-            "agent_name": row.get("agent_name", "Untitled Agent"),
-            "agent_description": row.get("agent_description", ""),
-            "icon_name": row.get("icon_name"),
-            "icon_color": row.get("icon_color"),
-            "icon_background": row.get("icon_background"),
-        })
-    
-    return results
 
+        results.append(
+            {
+                "trigger_id": row["trigger_id"],
+                "agent_id": row["agent_id"],
+                "trigger_type": row["trigger_type"],
+                "provider_id": row.get("provider_id", ""),
+                "name": row["name"],
+                "description": row.get("description"),
+                "is_active": row.get("is_active", False),
+                "webhook_url": None,
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+                "config": config,
+                "agent_name": row.get("agent_name", "Untitled Agent"),
+                "agent_description": row.get("agent_description", ""),
+                "icon_name": row.get("icon_name"),
+                "icon_color": row.get("icon_color"),
+                "icon_background": row.get("icon_background"),
+            }
+        )
+
+    return results

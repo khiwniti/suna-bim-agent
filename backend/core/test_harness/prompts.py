@@ -12,6 +12,7 @@ from dataclasses import dataclass
 @dataclass
 class TestPrompt:
     """Represents a test prompt with expected behavior"""
+
     id: str
     text: str
     category: str
@@ -40,10 +41,15 @@ FILE_OPS_PROMPTS = [
 7) Tell me the final contents of all three files""",
         category="file_operations",
         expected_tools=["create_file", "str_replace", "edit_file", "full_file_rewrite"],
-        expected_tool_calls={"create_file": 3, "str_replace": 1, "edit_file": 1, "full_file_rewrite": 1},
+        expected_tool_calls={
+            "create_file": 3,
+            "str_replace": 1,
+            "edit_file": 1,
+            "full_file_rewrite": 1,
+        },
         min_tool_calls=6,
         max_duration_ms=45000,
-        description="Comprehensive test of create_file, str_replace, edit_file, and full_file_rewrite operations"
+        description="Comprehensive test of create_file, str_replace, edit_file, and full_file_rewrite operations",
     ),
 ]
 
@@ -68,7 +74,7 @@ SHELL_PROMPTS = [
         expected_tool_calls={"execute_command": 7},
         min_tool_calls=7,
         max_duration_ms=50000,
-        description="Comprehensive test of execute_command with blocking, chaining, piping, and directory operations"
+        description="Comprehensive test of execute_command with blocking, chaining, piping, and directory operations",
     ),
 ]
 
@@ -90,7 +96,7 @@ WEB_SEARCH_PROMPTS = [
         expected_tool_calls={"web_search": 3},
         min_tool_calls=3,
         max_duration_ms=60000,
-        description="Comprehensive test of single queries, batch queries, and different num_results values"
+        description="Comprehensive test of single queries, batch queries, and different num_results values",
     ),
 ]
 
@@ -112,7 +118,7 @@ IMAGE_SEARCH_PROMPTS = [
         expected_tool_calls={"image_search": 3},
         min_tool_calls=3,
         max_duration_ms=55000,
-        description="Comprehensive test of single and batch image searches with varying result counts"
+        description="Comprehensive test of single and batch image searches with varying result counts",
     ),
 ]
 
@@ -137,7 +143,7 @@ GIT_PROMPTS = [
         expected_tool_calls={"create_file": 3, "edit_file": 1, "git_commit": 3},
         min_tool_calls=9,
         max_duration_ms=60000,
-        description="Comprehensive test of multiple git commits with file creation and editing"
+        description="Comprehensive test of multiple git commits with file creation and editing",
     ),
 ]
 
@@ -158,10 +164,15 @@ KB_PROMPTS = [
 6) Tell me what files were indexed and what the search found""",
         category="knowledge_base",
         expected_tools=["create_file", "execute_command", "ls_kb", "semantic_search"],
-        expected_tool_calls={"create_file": 2, "execute_command": 1, "ls_kb": 1, "semantic_search": 1},
+        expected_tool_calls={
+            "create_file": 2,
+            "execute_command": 1,
+            "ls_kb": 1,
+            "semantic_search": 1,
+        },
         min_tool_calls=6,
         max_duration_ms=50000,
-        description="Comprehensive test of knowledge base indexing and semantic search"
+        description="Comprehensive test of knowledge base indexing and semantic search",
     ),
 ]
 
@@ -180,11 +191,21 @@ BROWSER_PROMPTS = [
 4) Use browser_extract_content to extract the main heading text
 5) Tell me what heading was extracted and confirm screenshot was taken""",
         category="browser_automation",
-        expected_tools=["browser_navigate_to", "browser_screenshot", "browser_act", "browser_extract_content"],
-        expected_tool_calls={"browser_navigate_to": 1, "browser_screenshot": 1, "browser_act": 1, "browser_extract_content": 1},
+        expected_tools=[
+            "browser_navigate_to",
+            "browser_screenshot",
+            "browser_act",
+            "browser_extract_content",
+        ],
+        expected_tool_calls={
+            "browser_navigate_to": 1,
+            "browser_screenshot": 1,
+            "browser_act": 1,
+            "browser_extract_content": 1,
+        },
         min_tool_calls=4,
         max_duration_ms=60000,
-        description="Comprehensive test of browser navigation, actions, extraction, and screenshots"
+        description="Comprehensive test of browser navigation, actions, extraction, and screenshots",
     ),
 ]
 
@@ -208,11 +229,23 @@ MULTI_TOOL_PROMPTS = [
 6) Execute 'cat research_report.md | wc -l' with blocking=true to count lines
 7) Tell me how many lines are in the report""",
         category="multi_tool",
-        expected_tools=["web_search", "image_search", "create_file", "git_commit", "execute_command"],
-        expected_tool_calls={"web_search": 1, "image_search": 1, "create_file": 2, "git_commit": 1, "execute_command": 1},
+        expected_tools=[
+            "web_search",
+            "image_search",
+            "create_file",
+            "git_commit",
+            "execute_command",
+        ],
+        expected_tool_calls={
+            "web_search": 1,
+            "image_search": 1,
+            "create_file": 2,
+            "git_commit": 1,
+            "execute_command": 1,
+        },
         min_tool_calls=7,
         max_duration_ms=80000,
-        description="Complex workflow combining web search, image search, file operations, git, and shell"
+        description="Complex workflow combining web search, image search, file operations, git, and shell",
     ),
     TestPrompt(
         id="multi_tool_python_project",
@@ -229,7 +262,7 @@ MULTI_TOOL_PROMPTS = [
         expected_tool_calls={"create_file": 3, "execute_command": 2, "git_commit": 1},
         min_tool_calls=7,
         max_duration_ms=70000,
-        description="Complete Python project creation, testing, and version control workflow"
+        description="Complete Python project creation, testing, and version control workflow",
     ),
 ]
 
@@ -246,7 +279,7 @@ EDGE_CASE_PROMPTS = [
         expected_tool_calls={},
         min_tool_calls=0,
         max_duration_ms=10000,
-        description="Conversational greeting - no tools needed"
+        description="Conversational greeting - no tools needed",
     ),
     TestPrompt(
         id="edge_knowledge",
@@ -256,7 +289,7 @@ EDGE_CASE_PROMPTS = [
         expected_tool_calls={},
         min_tool_calls=0,
         max_duration_ms=15000,
-        description="Knowledge question - no tools needed"
+        description="Knowledge question - no tools needed",
     ),
 ]
 
@@ -265,15 +298,15 @@ EDGE_CASE_PROMPTS = [
 # ============================================================================
 
 TEST_PROMPTS: List[TestPrompt] = (
-    FILE_OPS_PROMPTS +
-    SHELL_PROMPTS +
-    WEB_SEARCH_PROMPTS +
-    IMAGE_SEARCH_PROMPTS +
-    GIT_PROMPTS +
-    KB_PROMPTS +
-    BROWSER_PROMPTS +
-    MULTI_TOOL_PROMPTS +
-    EDGE_CASE_PROMPTS
+    FILE_OPS_PROMPTS
+    + SHELL_PROMPTS
+    + WEB_SEARCH_PROMPTS
+    + IMAGE_SEARCH_PROMPTS
+    + GIT_PROMPTS
+    + KB_PROMPTS
+    + BROWSER_PROMPTS
+    + MULTI_TOOL_PROMPTS
+    + EDGE_CASE_PROMPTS
 )
 
 # Create lookup dictionary
@@ -293,4 +326,3 @@ def get_prompts_by_category(category: str) -> List[TestPrompt]:
 def get_all_prompt_ids() -> List[str]:
     """Get all test prompt IDs"""
     return [p.id for p in TEST_PROMPTS]
-

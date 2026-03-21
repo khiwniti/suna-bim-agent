@@ -60,13 +60,14 @@ High-level rules:
    - Always provide a good commit message that summarizes the change at a high level.
 """
 
+
 @tool_metadata(
     display_name="Local Git Commit",
     description="Create a local git commit in the sandbox workspace (/workspace). No remotes or origins are used.",
     icon="GitCommit",
     color="bg-slate-100 dark:bg-slate-800/50",
     weight=240,
-    visible=True
+    visible=True,
 )
 class SandboxGitTool(SandboxToolsBase):
     """
@@ -81,6 +82,7 @@ class SandboxGitTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_manager: ThreadManager):
         super().__init__(project_id, thread_manager)
         from core.utils.db_helpers import get_initialized_db
+
         self.db = get_initialized_db()
         self._git_initialized = False
         self._log = structlog.get_logger(__name__).bind(tool="SandboxGitTool")
@@ -116,42 +118,40 @@ class SandboxGitTool(SandboxToolsBase):
             logger.error(f"Failed to initialize local git repo in sandbox: {str(e)}")
             raise
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "git_commit",
-            "description": (
-                "Create a local git commit for all current changes in the sandbox workspace (/workspace). "
-                "Automatically initializes git if needed. Does not push to any remote."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "description": (
-                            "Concise, meaningful commit message summarizing the completed unit of work. "
-                            "Example: 'Fix crash when saving empty document'."
-                        )
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "git_commit",
+                "description": (
+                    "Create a local git commit for all current changes in the sandbox workspace (/workspace). "
+                    "Automatically initializes git if needed. Does not push to any remote."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": (
+                                "Concise, meaningful commit message summarizing the completed unit of work. "
+                                "Example: 'Fix crash when saving empty document'."
+                            ),
+                        },
+                        "allow_empty": {
+                            "type": "boolean",
+                            "description": (
+                                "If true, allow creating an empty commit even when there are no changes. "
+                                "Use rarely (e.g., to mark checkpoints)."
+                            ),
+                            "default": False,
+                        },
                     },
-                    "allow_empty": {
-                        "type": "boolean",
-                        "description": (
-                            "If true, allow creating an empty commit even when there are no changes. "
-                            "Use rarely (e.g., to mark checkpoints)."
-                        ),
-                        "default": False
-                    }
+                    "required": ["message"],
                 },
-                "required": ["message"]
-            }
+            },
         }
-    })
-    async def git_commit(
-        self,
-        message: str,
-        allow_empty: bool = False
-    ) -> ToolResult:
+    )
+    async def git_commit(self, message: str, allow_empty: bool = False) -> ToolResult:
         """
         Commit all current changes in /workspace to the local git repository.
         No remotes or origins are used.
@@ -164,8 +164,7 @@ class SandboxGitTool(SandboxToolsBase):
             # 1) Capture git status to see what will be committed
             status_tmp = f"/tmp/git_status_{uuid.uuid4().hex}"
             status_cmd = (
-                f"cd {shlex.quote(workspace)} && "
-                f"git status --porcelain > {shlex.quote(status_tmp)}"
+                f"cd {shlex.quote(workspace)} && git status --porcelain > {shlex.quote(status_tmp)}"
             )
 
             try:
@@ -178,10 +177,7 @@ class SandboxGitTool(SandboxToolsBase):
                     pass
 
             status_text = status_bytes.decode("utf-8", errors="ignore")
-            changed_lines = [
-                line for line in status_text.splitlines()
-                if line.strip()
-            ]
+            changed_lines = [line for line in status_text.splitlines() if line.strip()]
 
             if not changed_lines and not allow_empty:
                 return self.fail_response(
@@ -200,7 +196,7 @@ class SandboxGitTool(SandboxToolsBase):
                 "Creating local git commit",
                 workspace=workspace,
                 allow_empty=allow_empty,
-                changed_files=len(changed_lines)
+                changed_files=len(changed_lines),
             )
 
             try:
@@ -212,8 +208,7 @@ class SandboxGitTool(SandboxToolsBase):
             # 3) Get new commit hash
             hash_tmp = f"/tmp/git_hash_{uuid.uuid4().hex}"
             hash_cmd = (
-                f"cd {shlex.quote(workspace)} && "
-                f"git rev-parse HEAD > {shlex.quote(hash_tmp)}"
+                f"cd {shlex.quote(workspace)} && git rev-parse HEAD > {shlex.quote(hash_tmp)}"
             )
 
             try:
@@ -265,7 +260,9 @@ class SandboxGitTool(SandboxToolsBase):
         try:
             result = await self.sandbox.commands.run(f"bash -lc {shlex.quote(cmd)}")
             if result.exit_code != 0:
-                raise RuntimeError(f"Command failed with exit code {result.exit_code}: {result.stderr}")
+                raise RuntimeError(
+                    f"Command failed with exit code {result.exit_code}: {result.stderr}"
+                )
         except Exception as e:
             logger.error(f"Error executing shell command in sandbox: {str(e)}")
             raise

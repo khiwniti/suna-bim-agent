@@ -27,8 +27,7 @@ async def get_pooled_sandboxes(limit: int = 100) -> List[Dict[str, Any]]:
 
 
 async def create_pooled_sandbox(
-    external_id: str,
-    config: Dict[str, Any]
+    external_id: str, config: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
     now = datetime.now(timezone.utc).isoformat()
     sql = """
@@ -36,20 +35,13 @@ async def create_pooled_sandbox(
     VALUES (NULL, 'sandbox', :external_id, 'pooled', :config, :now, :now, :now)
     RETURNING id, external_id, config, pooled_at
     """
-    rows = await execute_mutate(sql, {
-        "external_id": external_id,
-        "config": config,
-        "now": now
-    })
+    rows = await execute_mutate(sql, {"external_id": external_id, "config": config, "now": now})
     return rows[0] if rows else None
 
 
-async def claim_pooled_sandbox(
-    account_id: str,
-    project_id: str
-) -> Optional[Dict[str, Any]]:
+async def claim_pooled_sandbox(account_id: str, project_id: str) -> Optional[Dict[str, Any]]:
     now = datetime.now(timezone.utc).isoformat()
-    
+
     sql = """
     WITH claimed AS (
         SELECT id, external_id, config
@@ -68,28 +60,22 @@ async def claim_pooled_sandbox(
     WHERE r.id = c.id
     RETURNING r.id, r.external_id, r.config
     """
-    rows = await execute_mutate(sql, {
-        "account_id": account_id,
-        "now": now
-    })
-    
+    rows = await execute_mutate(sql, {"account_id": account_id, "now": now})
+
     if not rows:
         return None
-    
+
     claimed = rows[0]
     resource_id = claimed["id"]
-    
+
     # Link to project
     link_sql = """
     UPDATE projects
     SET sandbox_resource_id = :resource_id
     WHERE project_id = :project_id
     """
-    await execute_mutate(link_sql, {
-        "resource_id": resource_id,
-        "project_id": project_id
-    })
-    
+    await execute_mutate(link_sql, {"resource_id": resource_id, "project_id": project_id})
+
     return claimed
 
 
@@ -114,10 +100,7 @@ async def mark_sandbox_deleted(resource_id: str) -> bool:
     WHERE id = :resource_id
     RETURNING id
     """
-    rows = await execute_mutate(sql, {
-        "resource_id": resource_id,
-        "now": now
-    })
+    rows = await execute_mutate(sql, {"resource_id": resource_id, "now": now})
     return len(rows) > 0
 
 

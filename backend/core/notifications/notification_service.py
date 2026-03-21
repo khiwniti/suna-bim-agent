@@ -48,9 +48,7 @@ class NotificationService:
                 )
                 return {"success": True}
             else:
-                logger.error(
-                    f"Failed to send referral email to {recipient_email_clean}"
-                )
+                logger.error(f"Failed to send referral email to {recipient_email_clean}")
                 return {"success": False, "error": "Failed to send email"}
 
         except Exception as e:
@@ -117,9 +115,7 @@ class NotificationService:
                 subscriber_name=account_info.get("name"),
             )
 
-            logger.info(
-                f"Task completion workflow triggered for account {account_id}: {result}"
-            )
+            logger.info(f"Task completion workflow triggered for account {account_id}: {result}")
             return {"success": True, "result": result}
 
         except Exception as e:
@@ -169,9 +165,7 @@ class NotificationService:
                 subscriber_name=account_info.get("name"),
             )
 
-            logger.info(
-                f"Task failed workflow triggered for account {account_id}: {result}"
-            )
+            logger.info(f"Task failed workflow triggered for account {account_id}: {result}")
             return {"success": True, "result": result}
 
         except Exception as e:
@@ -529,17 +523,11 @@ class NotificationService:
                         or (email.split("@")[0] if email else None)
                     )
 
-                    phone = user_metadata.get("phone") or user_metadata.get(
-                        "phone_number"
-                    )
-                    avatar = user_metadata.get("avatar_url") or user_metadata.get(
-                        "picture"
-                    )
+                    phone = user_metadata.get("phone") or user_metadata.get("phone_number")
+                    avatar = user_metadata.get("avatar_url") or user_metadata.get("picture")
 
             except Exception as e:
-                logger.error(
-                    f"Error getting user details for account_id {account_id}: {str(e)}"
-                )
+                logger.error(f"Error getting user details for account_id {account_id}: {str(e)}")
 
             if not email:
                 logger.warning(f"No email found for account_id: {account_id}")
@@ -554,9 +542,7 @@ class NotificationService:
             }
 
         except Exception as e:
-            logger.error(
-                f"Error getting account info for account_id: {account_id}: {str(e)}"
-            )
+            logger.error(f"Error getting account info for account_id: {account_id}: {str(e)}")
             return {}
 
     async def register_device_token(
@@ -603,9 +589,7 @@ class NotificationService:
     ) -> bool:
         """Unregister a device token for push notifications."""
         try:
-            result = await self.novu.unregister_push_token(
-                user_id=account_id, provider_id=provider
-            )
+            result = await self.novu.unregister_push_token(user_id=account_id, provider_id=provider)
 
             if result:
                 if account_id in self._device_tokens:
@@ -638,9 +622,7 @@ class NotificationService:
             logger.error(f"Error getting notification settings: {str(e)}")
             return None
 
-    async def create_default_settings(
-        self, account_id: str
-    ) -> UserNotificationSettings:
+    async def create_default_settings(self, account_id: str) -> UserNotificationSettings:
         """Create default notification settings for an account."""
         try:
             settings = UserNotificationSettings(
@@ -650,9 +632,7 @@ class NotificationService:
                 in_app_enabled=True,
             )
             self._notification_settings[account_id] = settings
-            logger.info(
-                f"Created default notification settings for account {account_id}"
-            )
+            logger.info(f"Created default notification settings for account {account_id}")
             return settings
         except Exception as e:
             logger.error(f"Error creating default settings: {str(e)}")

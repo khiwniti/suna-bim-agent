@@ -25,12 +25,7 @@ async def test_resolver_consistency():
         await db.initialize()
         client = await db.client
 
-        result = (
-            await client.table("projects")
-            .select("project_id, account_id")
-            .limit(1)
-            .execute()
-        )
+        result = await client.table("projects").select("project_id, account_id").limit(1).execute()
     except Exception as e:
         pytest.skip(f"Database connection failed: {e}")
 
@@ -69,17 +64,12 @@ async def test_resolver_consistency():
     sandbox_ids = [r.sandbox_id for r in results if r]
     print(f" Sandbox IDs: {sandbox_ids}")
 
-    all_same = (
-        len(set(sandbox_ids + [sandbox_info_1.sandbox_id, sandbox_info_2.sandbox_id]))
-        == 1
-    )
+    all_same = len(set(sandbox_ids + [sandbox_info_1.sandbox_id, sandbox_info_2.sandbox_id])) == 1
 
     assert all_same, (
         f"Different sandbox IDs: {sandbox_info_1.sandbox_id}, {sandbox_info_2.sandbox_id}, {sandbox_ids}"
     )
-    print(
-        f"All resolve calls returned the SAME sandbox ID: {sandbox_info_1.sandbox_id}"
-    )
+    print(f"All resolve calls returned the SAME sandbox ID: {sandbox_info_1.sandbox_id}")
 
     await db.disconnect()
 
@@ -94,12 +84,7 @@ async def test_resolver_vs_upload_handler():
         await db.initialize()
         client = await db.client
 
-        result = (
-            await client.table("projects")
-            .select("project_id, account_id")
-            .limit(1)
-            .execute()
-        )
+        result = await client.table("projects").select("project_id, account_id").limit(1).execute()
     except Exception as e:
         pytest.skip(f"Database connection failed: {e}")
 

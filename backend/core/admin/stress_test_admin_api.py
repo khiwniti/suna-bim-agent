@@ -99,9 +99,7 @@ async def run_single_request_via_http(
     start_time = time.time()
 
     try:
-        async with httpx.AsyncClient(
-            timeout=60.0, verify=not skip_ssl_verify
-        ) as client:
+        async with httpx.AsyncClient(timeout=60.0, verify=not skip_ssl_verify) as client:
             # Build headers
             headers = {
                 "Authorization": f"Bearer {auth_token}",
@@ -170,9 +168,7 @@ async def run_stress_test(
     # Extract auth token from the incoming request
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401, detail="Missing or invalid Authorization header"
-        )
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
     auth_token = auth_header.split(" ", 1)[1]
 
     # Determine target URL and mode
@@ -288,9 +284,7 @@ async def run_stress_test(
         successful = [r for r in all_results if r["status"] == "done"]
         failed = [r for r in all_results if r["status"] == "error"]
 
-        request_times = [
-            r["request_time"] for r in all_results if r["request_time"] > 0
-        ]
+        request_times = [r["request_time"] for r in all_results if r["request_time"] > 0]
 
         error_breakdown = {}
         for r in failed:
@@ -311,8 +305,7 @@ async def run_stress_test(
             values = [
                 r["timing_breakdown"][key]
                 for r in all_results
-                if r.get("timing_breakdown")
-                and r["timing_breakdown"].get(key) is not None
+                if r.get("timing_breakdown") and r["timing_breakdown"].get(key) is not None
             ]
             if values:
                 breakdown_stats[key] = {

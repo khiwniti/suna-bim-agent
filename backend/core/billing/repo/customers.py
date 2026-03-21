@@ -30,11 +30,9 @@ async def create_billing_customer(customer_id: str, account_id: str, email: str)
     INSERT INTO basejump.billing_customers (id, account_id, email)
     VALUES (:customer_id, :account_id, :email)
     """
-    await execute_mutate(sql, {
-        "customer_id": customer_id,
-        "account_id": account_id,
-        "email": email
-    })
+    await execute_mutate(
+        sql, {"customer_id": customer_id, "account_id": account_id, "email": email}
+    )
 
 
 async def get_user_email(user_id: str) -> Optional[str]:
@@ -55,14 +53,14 @@ async def get_billing_customer_by_stripe_id(customer_id: str) -> Optional[Dict[s
 async def update_billing_customer(account_id: str, update_data: Dict[str, Any]) -> None:
     if not update_data:
         return
-    
+
     set_parts = []
     params = {"account_id": account_id}
-    
+
     for key, value in update_data.items():
         set_parts.append(f"{key} = :{key}")
         params[key] = value
-    
+
     set_sql = ", ".join(set_parts)
     sql = f"UPDATE basejump.billing_customers SET {set_sql} WHERE account_id = :account_id"
     await execute_mutate(sql, params)

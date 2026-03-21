@@ -22,7 +22,7 @@ _DEFAULTS = {
         "batch_delay": 5,
     },
     EnvMode.PRODUCTION: {
-        "min_size": 100, 
+        "min_size": 100,
         "max_size": 300,
         "check_interval": 15,
         "parallel_create_limit": 10,
@@ -47,20 +47,32 @@ class SandboxPoolConfig:
     enabled: bool = True
     parallel_create_limit: int = 3
     batch_delay: int = 10  # seconds to wait between batches to avoid rate limits
-    
+
     @classmethod
     def from_env(cls) -> "SandboxPoolConfig":
         return cls(
             min_size=int(os.getenv("SANDBOX_POOL_MIN_SIZE", str(_get_default("min_size")))),
             max_size=int(os.getenv("SANDBOX_POOL_MAX_SIZE", str(_get_default("max_size")))),
-            replenish_threshold=float(os.getenv("SANDBOX_POOL_REPLENISH_THRESHOLD", str(_get_default("replenish_threshold")))),
-            check_interval=int(os.getenv("SANDBOX_POOL_CHECK_INTERVAL", str(_get_default("check_interval")))),
+            replenish_threshold=float(
+                os.getenv(
+                    "SANDBOX_POOL_REPLENISH_THRESHOLD", str(_get_default("replenish_threshold"))
+                )
+            ),
+            check_interval=int(
+                os.getenv("SANDBOX_POOL_CHECK_INTERVAL", str(_get_default("check_interval")))
+            ),
             max_age=int(os.getenv("SANDBOX_POOL_MAX_AGE", "3600")),
             enabled=os.getenv("SANDBOX_POOL_ENABLED", "false").lower() in ("true", "1", "yes"),
-            parallel_create_limit=int(os.getenv("SANDBOX_POOL_PARALLEL_CREATE", str(_get_default("parallel_create_limit")))),
-            batch_delay=int(os.getenv("SANDBOX_POOL_BATCH_DELAY", str(_get_default("batch_delay")))),
+            parallel_create_limit=int(
+                os.getenv(
+                    "SANDBOX_POOL_PARALLEL_CREATE", str(_get_default("parallel_create_limit"))
+                )
+            ),
+            batch_delay=int(
+                os.getenv("SANDBOX_POOL_BATCH_DELAY", str(_get_default("batch_delay")))
+            ),
         )
-    
+
     @property
     def replenish_below(self) -> int:
         return max(1, int(self.min_size * self.replenish_threshold))

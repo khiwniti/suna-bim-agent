@@ -16,22 +16,22 @@ class NotificationEvent(str, Enum):
     TASK_FAILED = "task_failed"
     AGENT_RUN_COMPLETED = "agent_run_completed"
     AGENT_RUN_FAILED = "agent_run_failed"
-    
+
     SUBSCRIPTION_CREATED = "subscription_created"
     SUBSCRIPTION_RENEWED = "subscription_renewed"
     SUBSCRIPTION_CANCELLED = "subscription_cancelled"
     SUBSCRIPTION_EXPIRING_SOON = "subscription_expiring_soon"
     PAYMENT_SUCCEEDED = "payment_succeeded"
     PAYMENT_FAILED = "payment_failed"
-    
+
     CREDITS_LOW = "credits_low"
     CREDITS_DEPLETED = "credits_depleted"
     CREDITS_REFILLED = "credits_refilled"
-    
+
     WELCOME = "welcome"
     PROMOTIONAL = "promotional"
     SYSTEM_ALERT = "system_alert"
-    
+
     TRIGGER_EXECUTED = "trigger_executed"
     TRIGGER_FAILED = "trigger_failed"
 

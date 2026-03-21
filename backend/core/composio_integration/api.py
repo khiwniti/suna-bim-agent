@@ -3,7 +3,10 @@ from fastapi.responses import JSONResponse
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from uuid import uuid4, UUID
-from core.utils.auth_utils import verify_and_get_user_id_from_jwt, get_optional_current_user_id_from_jwt
+from core.utils.auth_utils import (
+    verify_and_get_user_id_from_jwt,
+    get_optional_current_user_id_from_jwt,
+)
 from core.utils.logger import logger
 from core.utils.config import config, EnvMode
 from core.services.supabase import DBConnection
@@ -35,13 +38,18 @@ router = APIRouter(prefix="/composio", tags=["composio"])
 
 db: Optional[DBConnection] = None
 
+
 def initialize(database: DBConnection):
     global db
     db = database
-    
+
+
 COMPOSIO_API_BASE = os.getenv("COMPOSIO_API_BASE", "https://backend.composio.dev")
 
-def verify_std_webhook(wid: str, wts: str, wsig: str, raw: bytes, hex_secret: str, max_skew: int = 300) -> bool:
+
+def verify_std_webhook(
+    wid: str, wts: str, wsig: str, raw: bytes, hex_secret: str, max_skew: int = 300
+) -> bool:
     if not (wid and wts and wsig and hex_secret):
         return False
     try:
@@ -95,7 +103,9 @@ def _b64(d: bytes) -> str:
     return base64.b64encode(d).decode()
 
 
-async def verify_composio(request: Request, secret_env: str = "COMPOSIO_WEBHOOK_SECRET", max_skew: int = 300) -> bool:
+async def verify_composio(
+    request: Request, secret_env: str = "COMPOSIO_WEBHOOK_SECRET", max_skew: int = 300
+) -> bool:
     secret = os.getenv(secret_env, "")
     if not secret:
         raise HTTPException(status_code=500, detail="Webhook secret not configured")
@@ -149,12 +159,14 @@ async def verify_composio(request: Request, secret_env: str = "COMPOSIO_WEBHOOK_
     request.state._sig_match = ("none", "none", "none")
     raise HTTPException(status_code=401, detail="Invalid signature")
 
+
 class IntegrateToolkitRequest(BaseModel):
     toolkit_slug: str
     profile_name: Optional[str] = None
     display_name: Optional[str] = None
     mcp_server_name: Optional[str] = None
     save_as_profile: bool = True
+
 
 class IntegrationStatusResponse(BaseModel):
     status: str
@@ -166,6 +178,7 @@ class IntegrationStatusResponse(BaseModel):
     profile_id: Optional[str] = None
     redirect_url: Optional[str] = None
 
+
 class CreateProfileRequest(BaseModel):
     toolkit_slug: str
     profile_name: str
@@ -176,10 +189,12 @@ class CreateProfileRequest(BaseModel):
     custom_auth_config: Optional[Dict[str, str]] = None
     use_custom_auth: bool = False
 
+
 class ToolsListRequest(BaseModel):
     toolkit_slug: str
     limit: int = 50
     cursor: Optional[str] = None
+
 
 class ProfileResponse(BaseModel):
     profile_id: str
@@ -204,29 +219,31 @@ class ProfileResponse(BaseModel):
             toolkit_name=profile.toolkit_name,
             mcp_url=profile.mcp_url,
             redirect_url=profile.redirect_url,
-            connected_account_id=getattr(profile, 'connected_account_id', None),
+            connected_account_id=getattr(profile, "connected_account_id", None),
             is_connected=profile.is_connected,
             is_default=profile.is_default,
-            created_at=profile.created_at.isoformat() if profile.created_at else datetime.now().isoformat()
+            created_at=profile.created_at.isoformat()
+            if profile.created_at
+            else datetime.now().isoformat(),
         )
 
 
 @router.get("/categories")
 async def list_categories(
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ) -> Dict[str, Any]:
     try:
         logger.debug("Fetching Composio categories")
-        
+
         toolkit_service = ToolkitService()
         categories = await toolkit_service.list_categories()
-        
+
         return {
             "success": True,
             "categories": [cat.dict() for cat in categories],
-            "total": len(categories)
+            "total": len(categories),
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to fetch categories: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch categories: {str(e)}")
@@ -238,28 +255,32 @@ async def list_toolkits(
     cursor: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ) -> Dict[str, Any]:
     try:
-        logger.debug(f"Fetching Composio toolkits with limit: {limit}, cursor: {cursor}, search: {search}, category: {category}")
-        
+        logger.debug(
+            f"Fetching Composio toolkits with limit: {limit}, cursor: {cursor}, search: {search}, category: {category}"
+        )
+
         service = get_integration_service()
-        
+
         if search:
-            result = await service.search_toolkits(search, category=category, limit=limit, cursor=cursor)
+            result = await service.search_toolkits(
+                search, category=category, limit=limit, cursor=cursor
+            )
         else:
             result = await service.list_available_toolkits(limit, cursor=cursor, category=category)
-        
+
         return {
             "success": True,
-            "toolkits": [toolkit.dict() for toolkit in result.get('items', [])],
-            "total_items": result.get('total_items', 0),
-            "total_pages": result.get('total_pages', 0),
-            "current_page": result.get('current_page', 1),
-            "next_cursor": result.get('next_cursor'),
-            "has_more": result.get('next_cursor') is not None
+            "toolkits": [toolkit.dict() for toolkit in result.get("items", [])],
+            "total_items": result.get("total_items", 0),
+            "total_pages": result.get("total_pages", 0),
+            "current_page": result.get("current_page", 1),
+            "next_cursor": result.get("next_cursor"),
+            "has_more": result.get("next_cursor") is not None,
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to fetch toolkits: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch toolkits: {str(e)}")
@@ -267,23 +288,19 @@ async def list_toolkits(
 
 @router.get("/toolkits/{toolkit_slug}/details")
 async def get_toolkit_details(
-    toolkit_slug: str,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    toolkit_slug: str, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     try:
         logger.debug(f"Fetching detailed toolkit info for: {toolkit_slug}")
-        
+
         toolkit_service = ToolkitService()
         detailed_toolkit = await toolkit_service.get_detailed_toolkit_info(toolkit_slug)
-        
+
         if not detailed_toolkit:
             raise HTTPException(status_code=404, detail=f"Toolkit {toolkit_slug} not found")
-        
-        return {
-            "success": True,
-            "toolkit": detailed_toolkit.dict()
-        }
-        
+
+        return {"success": True, "toolkit": detailed_toolkit.dict()}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -294,12 +311,14 @@ async def get_toolkit_details(
 @router.post("/integrate", response_model=IntegrationStatusResponse)
 async def integrate_toolkit(
     request: IntegrateToolkitRequest,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    current_user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ) -> IntegrationStatusResponse:
     try:
         integration_user_id = str(uuid4())
-        logger.debug(f"Generated integration user_id: {integration_user_id} for account: {current_user_id}")
-        
+        logger.debug(
+            f"Generated integration user_id: {integration_user_id} for account: {current_user_id}"
+        )
+
         service = get_integration_service(db_connection=db)
         result = await service.integrate_toolkit(
             toolkit_slug=request.toolkit_slug,
@@ -308,9 +327,9 @@ async def integrate_toolkit(
             profile_name=request.profile_name,
             display_name=request.display_name,
             mcp_server_name=request.mcp_server_name,
-            save_as_profile=request.save_as_profile
+            save_as_profile=request.save_as_profile,
         )
-        
+
         return IntegrationStatusResponse(
             status="integrated",
             toolkit=result.toolkit.name,
@@ -319,7 +338,7 @@ async def integrate_toolkit(
             mcp_server_id=result.mcp_server.id,
             final_mcp_url=result.final_mcp_url,
             profile_id=result.profile_id,
-            redirect_url=result.connected_account.redirect_url
+            redirect_url=result.connected_account.redirect_url,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -330,8 +349,7 @@ async def integrate_toolkit(
 
 @router.post("/profiles", response_model=ProfileResponse)
 async def create_profile(
-    request: CreateProfileRequest,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: CreateProfileRequest, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> ProfileResponse:
     try:
         # For Zendesk, we need a unique user_id for each connection
@@ -339,12 +357,16 @@ async def create_profile(
         if request.toolkit_slug.lower() == "zendesk":
             # Create a unique user_id by combining current_user_id with a UUID
             integration_user_id = f"{current_user_id}-{str(uuid4())[:8]}"
-            logger.debug(f"Generated unique Zendesk user_id: {integration_user_id} for account: {current_user_id}")
+            logger.debug(
+                f"Generated unique Zendesk user_id: {integration_user_id} for account: {current_user_id}"
+            )
         else:
             # For other toolkits, use a standard UUID
             integration_user_id = str(uuid4())
-            logger.debug(f"Generated integration user_id: {integration_user_id} for account: {current_user_id}")
-        
+            logger.debug(
+                f"Generated integration user_id: {integration_user_id} for account: {current_user_id}"
+            )
+
         service = get_integration_service(db_connection=db)
         result = await service.integrate_toolkit(
             toolkit_slug=request.toolkit_slug,
@@ -356,10 +378,12 @@ async def create_profile(
             save_as_profile=True,
             initiation_fields=request.initiation_fields,
             custom_auth_config=request.custom_auth_config,
-            use_custom_auth=request.use_custom_auth
+            use_custom_auth=request.use_custom_auth,
         )
-        
-        logger.debug(f"Integration result for {request.toolkit_slug}: redirect_url = {result.connected_account.redirect_url}")
+
+        logger.debug(
+            f"Integration result for {request.toolkit_slug}: redirect_url = {result.connected_account.redirect_url}"
+        )
         profile_service = ComposioProfileService(db)
         profiles = await profile_service.get_profiles(current_user_id, request.toolkit_slug)
 
@@ -368,14 +392,16 @@ async def create_profile(
             if profile.profile_name == request.profile_name:
                 created_profile = profile
                 break
-        
+
         if not created_profile:
             raise HTTPException(status_code=500, detail="Profile created but not found")
-        
-        logger.debug(f"Returning profile response with redirect_url: {created_profile.redirect_url}")
-        
+
+        logger.debug(
+            f"Returning profile response with redirect_url: {created_profile.redirect_url}"
+        )
+
         return ProfileResponse.from_composio_profile(created_profile)
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -387,34 +413,35 @@ async def create_profile(
 async def check_profile_name_availability(
     toolkit_slug: str = Query(..., description="The toolkit slug to check against"),
     profile_name: str = Query(..., description="The profile name to check"),
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    current_user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ) -> Dict[str, Any]:
     try:
         profile_service = ComposioProfileService(db)
         profiles = await profile_service.get_profiles(current_user_id, toolkit_slug)
-        
+
         name_exists = any(
-            profile.profile_name.lower() == profile_name.lower() 
-            for profile in profiles
+            profile.profile_name.lower() == profile_name.lower() for profile in profiles
         )
         suggestions = []
         if name_exists:
-            base_name = profile_name.rstrip('0123456789').rstrip()
+            base_name = profile_name.rstrip("0123456789").rstrip()
             counter = 1
             existing_names = {p.profile_name.lower() for p in profiles}
-            
+
             while len(suggestions) < 3:
                 suggested_name = f"{base_name} {counter}"
                 if suggested_name.lower() not in existing_names:
                     suggestions.append(suggested_name)
                 counter += 1
-        
+
         return {
             "available": not name_exists,
-            "message": "Profile name is available" if not name_exists else "Profile name already exists",
-            "suggestions": suggestions
+            "message": "Profile name is available"
+            if not name_exists
+            else "Profile name already exists",
+            "suggestions": suggestions,
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to check profile name availability: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -423,43 +450,33 @@ async def check_profile_name_availability(
 @router.get("/profiles")
 async def get_profiles(
     toolkit_slug: Optional[str] = Query(None),
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    current_user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ) -> Dict[str, Any]:
     try:
         profile_service = ComposioProfileService(db)
         profiles = await profile_service.get_profiles(current_user_id, toolkit_slug)
-        
+
         profile_responses = [ProfileResponse.from_composio_profile(profile) for profile in profiles]
-        
-        return {
-            "success": True,
-            "profiles": profile_responses
-        }
-        
+
+        return {"success": True, "profiles": profile_responses}
+
     except Exception as e:
         logger.error(f"Failed to get profiles: {e}", exc_info=True)
-        return {
-            "success": False,
-            "profiles": [],
-            "error": str(e)
-        }
+        return {"success": False, "profiles": [], "error": str(e)}
 
 
 @router.get("/profiles/{profile_id}/mcp-config")
 async def get_profile_mcp_config(
-    profile_id: str,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    profile_id: str, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     try:
         profile_service = ComposioProfileService(db)
-        mcp_config = await profile_service.get_mcp_config_for_agent(profile_id, account_id=current_user_id)
-        
-        return {
-            "success": True,
-            "mcp_config": mcp_config,
-            "profile_id": profile_id
-        }
-        
+        mcp_config = await profile_service.get_mcp_config_for_agent(
+            profile_id, account_id=current_user_id
+        )
+
+        return {"success": True, "mcp_config": mcp_config, "profile_id": profile_id}
+
     except Exception as e:
         logger.error(f"Failed to get MCP config for profile {profile_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get MCP config: {str(e)}")
@@ -467,16 +484,15 @@ async def get_profile_mcp_config(
 
 @router.get("/profiles/{profile_id}")
 async def get_profile_info(
-    profile_id: str,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    profile_id: str, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     try:
         profile_service = ComposioProfileService(db)
         profile = await profile_service.get_profile(profile_id, current_user_id)
-        
+
         if not profile:
             raise HTTPException(status_code=404, detail="Profile not found")
-        
+
         return {
             "success": True,
             "profile": {
@@ -484,8 +500,8 @@ async def get_profile_info(
                 "profile_name": profile.profile_name,
                 "toolkit_name": profile.toolkit_name,
                 "toolkit_slug": profile.toolkit_slug,
-                "created_at": profile.created_at.isoformat() if profile.created_at else None
-            }
+                "created_at": profile.created_at.isoformat() if profile.created_at else None,
+            },
         }
     except HTTPException:
         raise
@@ -496,8 +512,7 @@ async def get_profile_info(
 
 @router.get("/integration/{connected_account_id}/status")
 async def get_integration_status(
-    connected_account_id: str,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    connected_account_id: str, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     try:
         service = get_integration_service()
@@ -510,40 +525,40 @@ async def get_integration_status(
 
 @router.post("/profiles/{profile_id}/discover-tools")
 async def discover_composio_tools(
-    profile_id: str,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    profile_id: str, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     try:
         profile_service = ComposioProfileService(db)
         config = await profile_service.get_profile_config(profile_id, account_id=current_user_id)
-        
-        if config.get('type') != 'composio':
+
+        if config.get("type") != "composio":
             raise HTTPException(status_code=400, detail="Not a Composio profile")
-        
-        mcp_url = config.get('mcp_url')
+
+        mcp_url = config.get("mcp_url")
         if not mcp_url:
             raise HTTPException(status_code=400, detail="Profile has no MCP URL")
-        
+
         from core.mcp_module.mcp_service import mcp_service
-        
+
         result = await mcp_service.discover_custom_tools(
-            request_type="http",
-            config={"url": mcp_url}
+            request_type="http", config={"url": mcp_url}
         )
-        
+
         if not result.success:
-            raise HTTPException(status_code=500, detail=f"Failed to discover tools: {result.message}")
-        
+            raise HTTPException(
+                status_code=500, detail=f"Failed to discover tools: {result.message}"
+            )
+
         # logger.debug(f"Discovered {len(result.tools)} tools from Composio profile {profile_id}")
-        
+
         return {
             "success": True,
             "profile_id": profile_id,
-            "toolkit_name": config.get('toolkit_name', 'Unknown'),
+            "toolkit_name": config.get("toolkit_name", "Unknown"),
             "tools": result.tools,
-            "total_tools": len(result.tools)
+            "total_tools": len(result.tools),
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -553,34 +568,30 @@ async def discover_composio_tools(
 
 @router.post("/discover-tools/{profile_id}")
 async def discover_tools_post(
-    profile_id: str,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    profile_id: str, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ) -> Dict[str, Any]:
     return await discover_composio_tools(profile_id, current_user_id)
+
 
 @router.get("/toolkits/{toolkit_slug}/icon")
 async def get_toolkit_icon(
     toolkit_slug: str,
-    current_user_id: Optional[str] = Depends(get_optional_current_user_id_from_jwt)
+    current_user_id: Optional[str] = Depends(get_optional_current_user_id_from_jwt),
 ):
     try:
         toolkit_service = ToolkitService()
         icon_url = await toolkit_service.get_toolkit_icon(toolkit_slug)
-        
+
         if icon_url:
-            return {
-                "success": True,
-                "toolkit_slug": toolkit_slug,
-                "icon_url": icon_url
-            }
+            return {"success": True, "toolkit_slug": toolkit_slug, "icon_url": icon_url}
         else:
             return {
                 "success": False,
                 "toolkit_slug": toolkit_slug,
                 "icon_url": None,
-                "message": "Icon not found"
+                "message": "Icon not found",
             }
-    
+
     except Exception as e:
         logger.error(f"Error getting toolkit icon: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -589,35 +600,32 @@ async def get_toolkit_icon(
 @router.post("/toolkits/icons/batch")
 async def get_toolkit_icons_batch(
     request: Request,
-    current_user_id: Optional[str] = Depends(get_optional_current_user_id_from_jwt)
+    current_user_id: Optional[str] = Depends(get_optional_current_user_id_from_jwt),
 ):
     import asyncio
-    
+
     try:
         body = await request.json()
         toolkit_slugs = body.get("toolkit_slugs", [])
-        
+
         if not toolkit_slugs or not isinstance(toolkit_slugs, list):
             raise HTTPException(status_code=400, detail="toolkit_slugs must be a non-empty list")
-        
+
         if len(toolkit_slugs) > 50:
             toolkit_slugs = toolkit_slugs[:50]
-        
+
         toolkit_service = ToolkitService()
-        
+
         async def fetch_icon(slug: str):
             icon_url = await toolkit_service.get_toolkit_icon(slug)
             return (slug, icon_url)
-        
+
         results = await asyncio.gather(*[fetch_icon(slug) for slug in toolkit_slugs])
-        
+
         icons = {slug: icon_url for slug, icon_url in results if icon_url}
-        
-        return {
-            "success": True,
-            "icons": icons
-        }
-    
+
+        return {"success": True, "icons": icons}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -627,28 +635,25 @@ async def get_toolkit_icons_batch(
 
 @router.post("/tools/list")
 async def list_toolkit_tools(
-    request: ToolsListRequest,
-    current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: ToolsListRequest, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     try:
         logger.debug(f"User {current_user_id} requesting tools for toolkit: {request.toolkit_slug}")
-        
+
         toolkit_service = ToolkitService()
         tools_response = await toolkit_service.get_toolkit_tools(
-            toolkit_slug=request.toolkit_slug,
-            limit=request.limit,
-            cursor=request.cursor
+            toolkit_slug=request.toolkit_slug, limit=request.limit, cursor=request.cursor
         )
-        
+
         return {
             "success": True,
             "tools": [tool.dict() for tool in tools_response.items],
             "total_items": tools_response.total_items,
             "current_page": tools_response.current_page,
             "total_pages": tools_response.total_pages,
-            "next_cursor": tools_response.next_cursor
+            "next_cursor": tools_response.next_cursor,
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list toolkit tools for {request.toolkit_slug}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get toolkit tools: {str(e)}")
@@ -716,36 +721,50 @@ class CreateComposioTriggerRequest(BaseModel):
 
 
 @router.post("/triggers/create")
-async def create_composio_trigger(req: CreateComposioTriggerRequest, current_user_id: str = Depends(verify_and_get_user_id_from_jwt)) -> Dict[str, Any]:
+async def create_composio_trigger(
+    req: CreateComposioTriggerRequest,
+    current_user_id: str = Depends(verify_and_get_user_id_from_jwt),
+) -> Dict[str, Any]:
     try:
         client_db = await db.client
-        agent_check = await client_db.table('agents').select('agent_id').eq('agent_id', req.agent_id).eq('account_id', current_user_id).execute()
+        agent_check = (
+            await client_db.table("agents")
+            .select("agent_id")
+            .eq("agent_id", req.agent_id)
+            .eq("account_id", current_user_id)
+            .execute()
+        )
         if not agent_check.data:
             raise HTTPException(status_code=404, detail="Worker not found or access denied")
 
         if config.ENV_MODE != EnvMode.LOCAL:
             from core.utils.limits_checker import check_trigger_limit
+
             limit_check = await check_trigger_limit(
                 account_id=current_user_id,
                 agent_id=req.agent_id,
-                trigger_type='app',
+                trigger_type="app",
                 client=client_db,
             )
-            
-            if not limit_check['can_create']:
+
+            if not limit_check["can_create"]:
                 error_detail = {
                     "message": f"Maximum of {limit_check['limit']} app triggers allowed for your current plan. You have {limit_check['current_count']} app triggers.",
-                    "current_count": limit_check['current_count'],
-                    "limit": limit_check['limit'],
-                    "tier_name": limit_check['tier_name'],
+                    "current_count": limit_check["current_count"],
+                    "limit": limit_check["limit"],
+                    "tier_name": limit_check["tier_name"],
                     "trigger_type": "app",
-                    "error_code": "TRIGGER_LIMIT_EXCEEDED"
+                    "error_code": "TRIGGER_LIMIT_EXCEEDED",
                 }
-                logger.warning(f"Trigger limit exceeded for account {current_user_id}: {limit_check['current_count']}/{limit_check['limit']} app triggers")
+                logger.warning(
+                    f"Trigger limit exceeded for account {current_user_id}: {limit_check['current_count']}/{limit_check['limit']} app triggers"
+                )
                 raise HTTPException(status_code=402, detail=error_detail)
 
         profile_service = ComposioProfileService(db)
-        profile_config = await profile_service.get_profile_config(req.profile_id, account_id=current_user_id)
+        profile_config = await profile_service.get_profile_config(
+            req.profile_id, account_id=current_user_id
+        )
         composio_user_id = profile_config.get("user_id")
         if not composio_user_id:
             raise HTTPException(status_code=400, detail="Composio profile is missing user_id")
@@ -778,15 +797,19 @@ async def create_composio_trigger(req: CreateComposioTriggerRequest, current_use
                 status_code=400,
                 detail="Connected account is missing for this profile. Reconnect the integration and try again.",
             )
-        
+
         toolkit_slug = req.toolkit_slug
         if not toolkit_slug:
             toolkit_slug = profile_config.get("toolkit_slug")
 
         if not toolkit_slug and req.slug:
-            toolkit_slug = req.slug.split('_')[0].lower() if '_' in req.slug else 'composio'
+            toolkit_slug = req.slug.split("_")[0].lower() if "_" in req.slug else "composio"
 
-        qualified_name = f'composio.{toolkit_slug}' if toolkit_slug and toolkit_slug != 'composio' else 'composio'
+        qualified_name = (
+            f"composio.{toolkit_slug}"
+            if toolkit_slug and toolkit_slug != "composio"
+            else "composio"
+        )
 
         api_key = os.getenv("COMPOSIO_API_KEY")
         if not api_key:
@@ -869,6 +892,7 @@ async def create_composio_trigger(req: CreateComposioTriggerRequest, current_use
                 pass
 
         composio_trigger_id = None
+
         def _extract_id(obj: Dict[str, Any]) -> Optional[str]:
             if not isinstance(obj, dict):
                 return None
@@ -907,7 +931,9 @@ async def create_composio_trigger(req: CreateComposioTriggerRequest, current_use
                 pass
 
         if not composio_trigger_id:
-            raise HTTPException(status_code=500, detail="Failed to get Composio trigger id from response")
+            raise HTTPException(
+                status_code=500, detail="Failed to get Composio trigger id from response"
+            )
 
         suna_config: Dict[str, Any] = {
             "provider_id": "composio",
@@ -928,7 +954,7 @@ async def create_composio_trigger(req: CreateComposioTriggerRequest, current_use
             provider_id="composio",
             name=req.name or f"{req.slug}",
             config=suna_config,
-            description=f"Composio event: {req.slug}"
+            description=f"Composio event: {req.slug}",
         )
 
         # Immediately sync triggers to the current version config
@@ -955,16 +981,17 @@ async def create_composio_trigger(req: CreateComposioTriggerRequest, current_use
 async def composio_webhook(request: Request):
     """Shared Composio webhook endpoint. Verifies secret, matches triggers, and enqueues execution."""
     try:
-     
         # Read raw body first (can only be done once)
         try:
             body = await request.body()
-            body_str = body.decode('utf-8') if body else ""
-            logger.info("Composio webhook raw body", body=body_str, body_length=len(body) if body else 0)
+            body_str = body.decode("utf-8") if body else ""
+            logger.info(
+                "Composio webhook raw body", body=body_str, body_length=len(body) if body else 0
+            )
         except Exception as e:
             logger.info("Composio webhook body read failed", error=str(e))
             body_str = ""
-        
+
         # Get webhook ID early for logging
         wid = request.headers.get("webhook-id", "")
 
@@ -973,9 +1000,13 @@ async def composio_webhook(request: Request):
             client_ip = request.client.host if request.client else None
             header_names = list(request.headers.keys())
             has_auth = bool(request.headers.get("authorization"))
-            has_x_secret = bool(request.headers.get("x-composio-secret") or request.headers.get("X-Composio-Secret"))
-            has_x_trigger = bool(request.headers.get("x-trigger-secret") or request.headers.get("X-Trigger-Secret"))
-            
+            has_x_secret = bool(
+                request.headers.get("x-composio-secret") or request.headers.get("X-Composio-Secret")
+            )
+            has_x_trigger = bool(
+                request.headers.get("x-trigger-secret") or request.headers.get("X-Trigger-Secret")
+            )
+
             # Parse payload for logging
             payload_preview = {"keys": []}
             try:
@@ -1007,9 +1038,7 @@ async def composio_webhook(request: Request):
             payload = {}
 
         # Look for trigger_nano_id in data.trigger_nano_id (the actual Composio trigger instance ID)
-        composio_trigger_id = (
-            (payload.get("data", {}) or {}).get("trigger_nano_id")
-        )
+        composio_trigger_id = (payload.get("data", {}) or {}).get("trigger_nano_id")
         provider_event_id = (
             payload.get("eventId")
             or payload.get("payload", {}).get("id")
@@ -1046,32 +1075,40 @@ async def composio_webhook(request: Request):
             return JSONResponse(content={"success": True, "matched_triggers": 0})
 
         try:
-            res = await client.table("agent_triggers").select("*").eq("trigger_type", "webhook").eq("is_active", True).execute()
+            res = (
+                await client.table("agent_triggers")
+                .select("*")
+                .eq("trigger_type", "webhook")
+                .eq("is_active", True)
+                .execute()
+            )
             rows = res.data or []
         except Exception as e:
             logger.error(f"Error fetching agent_triggers: {e}")
             rows = []
 
         matched = []
-        
+
         for row in rows:
             cfg = row.get("config") or {}
             if not isinstance(cfg, dict):
                 continue
             prov = cfg.get("provider_id") or row.get("provider_id")
             if prov != "composio":
-                logger.debug("Composio skip non-provider", trigger_id=row.get("trigger_id"), provider_id=prov)
+                logger.debug(
+                    "Composio skip non-provider", trigger_id=row.get("trigger_id"), provider_id=prov
+                )
                 continue
-            
+
             # ONLY match by exact composio_trigger_id - no slug fallback
             cfg_tid = cfg.get("composio_trigger_id")
             if composio_trigger_id and cfg_tid == composio_trigger_id:
                 logger.info(
-                    "Composio EXACT ID MATCH", 
-                    trigger_id=row.get("trigger_id"), 
+                    "Composio EXACT ID MATCH",
+                    trigger_id=row.get("trigger_id"),
                     cfg_composio_trigger_id=cfg_tid,
                     payload_composio_trigger_id=composio_trigger_id,
-                    is_active=row.get("is_active")
+                    is_active=row.get("is_active"),
                 )
                 matched.append(row)
                 continue
@@ -1082,7 +1119,7 @@ async def composio_webhook(request: Request):
                     cfg_composio_trigger_id=cfg_tid,
                     payload_composio_trigger_id=composio_trigger_id,
                     match_found=False,
-                    is_active=row.get("is_active")
+                    is_active=row.get("is_active"),
                 )
 
         if not matched:
@@ -1090,7 +1127,7 @@ async def composio_webhook(request: Request):
                 f"No exact ID match found for Composio trigger {composio_trigger_id}",
                 payload_id=composio_trigger_id,
                 total_triggers=len(rows),
-                matched_count=len(matched)
+                matched_count=len(matched),
             )
             return JSONResponse(content={"success": True, "matched_triggers": 0})
 
@@ -1126,23 +1163,28 @@ async def composio_webhook(request: Request):
                 )
                 executed += 1
 
-        return JSONResponse(content={
-            "success": True,
-            "matched_triggers": len(matched),
-            "executed": executed,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "matched_triggers": len(matched),
+                "executed": executed,
+            }
+        )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error handling Composio webhook: {e}")
-        return JSONResponse(status_code=500, content={"success": False, "error": "Internal server error"})
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": "Internal server error"}
+        )
 
 
 @router.get("/health")
 async def health_check() -> Dict[str, str]:
     try:
         from .client import ComposioClient
+
         ComposioClient.get_client()
         return {"status": "healthy"}
     except Exception as e:

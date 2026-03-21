@@ -24,7 +24,12 @@ class FileType(Enum):
 
 
 class ParseError(Exception):
-    def __init__(self, message: str, error_code: str = "PARSE_ERROR", details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        message: str,
+        error_code: str = "PARSE_ERROR",
+        details: Optional[Dict[str, Any]] = None,
+    ):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
@@ -42,19 +47,19 @@ class ParseResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
     error: Optional[str] = None
-    
+
     @property
     def is_empty(self) -> bool:
         return not self.content or not self.content.strip()
-    
+
     @property
     def char_count(self) -> int:
         return len(self.content) if self.content else 0
-    
+
     @property
     def line_count(self) -> int:
         return len(self.content.splitlines()) if self.content else 0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "success": self.success,
@@ -73,11 +78,11 @@ class ParseResult:
 
 class FastParse:
     __slots__ = ("_config", "_extension_map")
-    
+
     def __init__(self, config: Optional[FastParseConfig] = None):
         self._config = config or DEFAULT_CONFIG
         self._extension_map = self._build_extension_map()
-    
+
     def _build_extension_map(self) -> Dict[str, FileType]:
         ext_map: Dict[str, FileType] = {}
         for ext in self._config.text_extensions:
@@ -95,29 +100,35 @@ class FastParse:
         for ext in self._config.binary_extensions:
             ext_map[ext.lower()] = FileType.BINARY
         return ext_map
-    
+
     def detect_file_type(self, filename: str, mime_type: Optional[str] = None) -> FileType:
         ext = Path(filename).suffix.lower()
         if ext in self._extension_map:
             return self._extension_map[ext]
-        
+
         if mime_type:
             mime_lower = mime_type.lower()
             if mime_lower.startswith("text/"):
                 return FileType.TEXT
             if mime_lower == "application/pdf":
                 return FileType.PDF
-            if mime_lower in ("application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+            if mime_lower in (
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ):
                 return FileType.WORD
-            if mime_lower in ("application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):
+            if mime_lower in (
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ):
                 return FileType.EXCEL
             if mime_lower.startswith("image/"):
                 return FileType.IMAGE
             if mime_lower == "application/octet-stream":
                 return FileType.BINARY
-        
+
         return FileType.UNKNOWN
-    
+
     def parse(
         self,
         content: Union[bytes, BinaryIO, str],
@@ -130,9 +141,9 @@ class FastParse:
             file_bytes = content.read()
         else:
             file_bytes = content
-        
+
         file_size = len(file_bytes)
-        
+
         if file_size > self._config.max_file_size_bytes:
             return ParseResult(
                 success=False,
@@ -141,15 +152,15 @@ class FastParse:
                 filename=filename,
                 mime_type=mime_type or "application/octet-stream",
                 file_size=file_size,
-                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024*1024):.1f}MB",
+                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024 * 1024):.1f}MB",
             )
-        
+
         if not mime_type:
             mime_type, _ = mimetypes.guess_type(filename)
             mime_type = mime_type or "application/octet-stream"
-        
+
         file_type = self.detect_file_type(filename, mime_type)
-        
+
         try:
             if file_type == FileType.TEXT:
                 return self._parse_text(file_bytes, filename, mime_type, file_size)
@@ -187,7 +198,7 @@ class FastParse:
                 file_size=file_size,
                 error=f"Parsing failed: {str(e)}",
             )
-    
+
     def parse_file(self, file_path: Union[str, Path]) -> ParseResult:
         path = Path(file_path)
         if not path.exists():
@@ -200,7 +211,7 @@ class FastParse:
                 file_size=0,
                 error=f"File not found: {file_path}",
             )
-        
+
         file_size = path.stat().st_size
         if file_size > self._config.max_file_size_bytes:
             return ParseResult(
@@ -210,34 +221,36 @@ class FastParse:
                 filename=path.name,
                 mime_type="application/octet-stream",
                 file_size=file_size,
-                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024*1024):.1f}MB",
+                error=f"File exceeds maximum size limit of {self._config.max_file_size_bytes / (1024 * 1024):.1f}MB",
             )
-        
+
         with open(path, "rb") as f:
             content = f.read()
-        
+
         return self.parse(content, path.name)
-    
+
     def _check_script_injection(self, content: str) -> List[str]:
         if not self._config.enable_script_detection:
             return []
-        
+
         warnings = []
         content_lower = content.lower()
         for pattern in self._config.dangerous_patterns:
             if pattern.lower() in content_lower:
                 warnings.append(f"Potentially dangerous pattern detected: {pattern}")
         return warnings
-    
-    def _parse_text(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_text(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         try:
-            detected = chardet.detect(data[:min(len(data), 10000)])
+            detected = chardet.detect(data[: min(len(data), 10000)])
             encoding = detected.get("encoding") or "utf-8"
             confidence = detected.get("confidence", 0)
         except Exception:
             encoding = "utf-8"
             confidence = 0.5
-        
+
         try:
             content = data.decode(encoding)
         except (UnicodeDecodeError, LookupError):
@@ -247,28 +260,28 @@ class FastParse:
             except Exception:
                 content = data.decode("latin-1", errors="replace")
                 encoding = "latin-1 (fallback)"
-        
+
         if len(content) > self._config.max_text_chars:
-            content = content[:self._config.max_text_chars]
+            content = content[: self._config.max_text_chars]
             truncated = True
         else:
             truncated = False
-        
+
         warnings = self._check_script_injection(content)
-        
+
         ext = Path(filename).suffix.lower()
         language = self._detect_language(ext)
-        
+
         metadata = {
             "encoding": encoding,
             "encoding_confidence": confidence,
             "language": language,
             "truncated": truncated,
         }
-        
+
         if truncated:
             warnings.append(f"Content truncated to {self._config.max_text_chars:,} characters")
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -279,42 +292,70 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
+
     def _detect_language(self, ext: str) -> str:
         language_map = {
-            ".py": "python", ".pyw": "python", ".pyi": "python",
-            ".js": "javascript", ".jsx": "javascript", ".mjs": "javascript",
-            ".ts": "typescript", ".tsx": "typescript",
-            ".java": "java", ".kt": "kotlin", ".scala": "scala",
-            ".c": "c", ".h": "c", ".cpp": "cpp", ".hpp": "cpp",
-            ".cs": "csharp", ".fs": "fsharp",
-            ".go": "go", ".rs": "rust", ".swift": "swift",
-            ".rb": "ruby", ".php": "php", ".pl": "perl",
-            ".lua": "lua", ".r": "r", ".jl": "julia",
-            ".sh": "bash", ".bash": "bash", ".zsh": "zsh",
-            ".sql": "sql", ".graphql": "graphql",
-            ".html": "html", ".htm": "html",
-            ".css": "css", ".scss": "scss", ".sass": "sass",
-            ".json": "json", ".yaml": "yaml", ".yml": "yaml",
-            ".xml": "xml", ".md": "markdown", ".rst": "rst",
-            ".vue": "vue", ".svelte": "svelte",
+            ".py": "python",
+            ".pyw": "python",
+            ".pyi": "python",
+            ".js": "javascript",
+            ".jsx": "javascript",
+            ".mjs": "javascript",
+            ".ts": "typescript",
+            ".tsx": "typescript",
+            ".java": "java",
+            ".kt": "kotlin",
+            ".scala": "scala",
+            ".c": "c",
+            ".h": "c",
+            ".cpp": "cpp",
+            ".hpp": "cpp",
+            ".cs": "csharp",
+            ".fs": "fsharp",
+            ".go": "go",
+            ".rs": "rust",
+            ".swift": "swift",
+            ".rb": "ruby",
+            ".php": "php",
+            ".pl": "perl",
+            ".lua": "lua",
+            ".r": "r",
+            ".jl": "julia",
+            ".sh": "bash",
+            ".bash": "bash",
+            ".zsh": "zsh",
+            ".sql": "sql",
+            ".graphql": "graphql",
+            ".html": "html",
+            ".htm": "html",
+            ".css": "css",
+            ".scss": "scss",
+            ".sass": "sass",
+            ".json": "json",
+            ".yaml": "yaml",
+            ".yml": "yaml",
+            ".xml": "xml",
+            ".md": "markdown",
+            ".rst": "rst",
+            ".vue": "vue",
+            ".svelte": "svelte",
         }
         return language_map.get(ext, "text")
-    
+
     def _parse_pdf(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             import PyPDF2
         except ImportError:
             raise ParseError("PyPDF2 not installed", "MISSING_DEPENDENCY")
-        
+
         try:
             reader = PyPDF2.PdfReader(io.BytesIO(data))
         except Exception as e:
             raise ParseError(f"Invalid or corrupted PDF: {str(e)}", "INVALID_PDF")
-        
+
         total_pages = len(reader.pages)
         pages_to_process = min(total_pages, self._config.max_pdf_pages)
-        
+
         text_parts: List[str] = []
         for i in range(pages_to_process):
             try:
@@ -324,28 +365,28 @@ class FastParse:
                     text_parts.append(f"--- Page {i + 1} ---\n{page_text}")
             except Exception:
                 text_parts.append(f"--- Page {i + 1} ---\n[Error extracting text from this page]")
-        
+
         content = "\n\n".join(text_parts)
-        
+
         warnings = self._check_script_injection(content)
-        
+
         pdf_metadata = {}
         if reader.metadata:
             for key in ["/Title", "/Author", "/Subject", "/Creator", "/Producer", "/CreationDate"]:
                 val = reader.metadata.get(key)
                 if val:
                     pdf_metadata[key.lstrip("/")] = str(val)
-        
+
         metadata = {
             "total_pages": total_pages,
             "pages_processed": pages_to_process,
             "pdf_metadata": pdf_metadata,
             "truncated": pages_to_process < total_pages,
         }
-        
+
         if pages_to_process < total_pages:
             warnings.append(f"Only processed {pages_to_process} of {total_pages} pages")
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -356,10 +397,12 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
-    def _parse_word(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_word(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         ext = Path(filename).suffix.lower()
-        
+
         if ext == ".docx":
             return self._parse_docx(data, filename, mime_type, file_size)
         elif ext == ".doc":
@@ -370,20 +413,22 @@ class FastParse:
             return self._parse_odt(data, filename, mime_type, file_size)
         else:
             raise ParseError(f"Unsupported Word format: {ext}", "UNSUPPORTED_FORMAT")
-    
-    def _parse_docx(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_docx(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         try:
             import docx
         except ImportError:
             raise ParseError("python-docx not installed", "MISSING_DEPENDENCY")
-        
+
         try:
             doc = docx.Document(io.BytesIO(data))
         except Exception as e:
             raise ParseError(f"Invalid or corrupted DOCX: {str(e)}", "INVALID_DOCX")
-        
+
         paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-        
+
         tables_text: List[str] = []
         for i, table in enumerate(doc.tables):
             table_rows: List[str] = []
@@ -392,14 +437,14 @@ class FastParse:
                 table_rows.append(" | ".join(cells))
             if table_rows:
                 tables_text.append(f"[Table {i + 1}]\n" + "\n".join(table_rows))
-        
+
         content_parts = paragraphs
         if tables_text:
             content_parts.extend(["", "--- Tables ---"] + tables_text)
-        
+
         content = "\n".join(content_parts)
         warnings = self._check_script_injection(content)
-        
+
         core_props = doc.core_properties
         metadata = {
             "title": core_props.title or "",
@@ -410,7 +455,7 @@ class FastParse:
             "paragraph_count": len(paragraphs),
             "table_count": len(doc.tables),
         }
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -421,8 +466,10 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
-    def _parse_doc_legacy(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_doc_legacy(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         return ParseResult(
             success=True,
             content="[Legacy .doc format - conversion required for full text extraction]",
@@ -433,7 +480,7 @@ class FastParse:
             metadata={"format": "legacy_doc", "requires_conversion": True},
             warnings=["Legacy .doc format has limited support. Consider converting to .docx"],
         )
-    
+
     def _parse_rtf(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             text = data.decode("utf-8", errors="replace")
@@ -444,9 +491,9 @@ class FastParse:
             content = text.strip()
         except Exception as e:
             raise ParseError(f"Failed to parse RTF: {str(e)}", "RTF_PARSE_ERROR")
-        
+
         warnings = self._check_script_injection(content)
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -457,34 +504,34 @@ class FastParse:
             metadata={"format": "rtf"},
             warnings=warnings,
         )
-    
+
     def _parse_odt(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             import zipfile
             from xml.etree import ElementTree
         except ImportError:
             raise ParseError("Required libraries not available", "MISSING_DEPENDENCY")
-        
+
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
                 content_xml = zf.read("content.xml")
                 tree = ElementTree.fromstring(content_xml)
-                
+
                 ns = {"text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0"}
                 paragraphs = tree.findall(".//text:p", ns)
-                
+
                 text_parts = []
                 for p in paragraphs:
                     text = "".join(p.itertext())
                     if text.strip():
                         text_parts.append(text)
-                
+
                 content = "\n".join(text_parts)
         except Exception as e:
             raise ParseError(f"Failed to parse ODT: {str(e)}", "ODT_PARSE_ERROR")
-        
+
         warnings = self._check_script_injection(content)
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -495,10 +542,12 @@ class FastParse:
             metadata={"format": "odt"},
             warnings=warnings,
         )
-    
-    def _parse_excel(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_excel(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         ext = Path(filename).suffix.lower()
-        
+
         if ext == ".csv":
             return self._parse_csv(data, filename, mime_type, file_size)
         elif ext in (".xlsx", ".xlsm", ".xlsb"):
@@ -509,7 +558,7 @@ class FastParse:
             return self._parse_ods(data, filename, mime_type, file_size)
         else:
             raise ParseError(f"Unsupported Excel format: {ext}", "UNSUPPORTED_FORMAT")
-    
+
     def _parse_csv(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             detected = chardet.detect(data[:10000])
@@ -517,26 +566,26 @@ class FastParse:
             content = data.decode(encoding, errors="replace")
         except Exception:
             content = data.decode("utf-8", errors="replace")
-        
+
         lines = content.splitlines()
         if len(lines) > self._config.max_excel_rows:
-            lines = lines[:self._config.max_excel_rows]
+            lines = lines[: self._config.max_excel_rows]
             truncated = True
         else:
             truncated = False
-        
+
         content = "\n".join(lines)
         warnings = self._check_script_injection(content)
-        
+
         metadata = {
             "format": "csv",
             "row_count": len(lines),
             "truncated": truncated,
         }
-        
+
         if truncated:
             warnings.append(f"Rows limited to {self._config.max_excel_rows:,}")
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -547,27 +596,29 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
-    def _parse_xlsx(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_xlsx(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         try:
             import openpyxl
         except ImportError:
             raise ParseError("openpyxl not installed", "MISSING_DEPENDENCY")
-        
+
         try:
             wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
         except Exception as e:
             raise ParseError(f"Invalid or corrupted Excel file: {str(e)}", "INVALID_EXCEL")
-        
-        sheets_to_process = wb.sheetnames[:self._config.max_excel_sheets]
+
+        sheets_to_process = wb.sheetnames[: self._config.max_excel_sheets]
         content_parts: List[str] = []
         total_rows = 0
-        
+
         for sheet_name in sheets_to_process:
             ws = wb[sheet_name]
             sheet_content = [f"=== Sheet: {sheet_name} ==="]
             row_count = 0
-            
+
             for row in ws.iter_rows(values_only=True):
                 if total_rows >= self._config.max_excel_rows:
                     break
@@ -576,16 +627,16 @@ class FastParse:
                     sheet_content.append(" | ".join(cells))
                     row_count += 1
                     total_rows += 1
-            
+
             if row_count > 0:
                 content_parts.extend(sheet_content)
                 content_parts.append("")
-        
+
         wb.close()
-        
+
         content = "\n".join(content_parts)
         warnings = self._check_script_injection(content)
-        
+
         metadata = {
             "format": "xlsx",
             "sheet_count": len(wb.sheetnames),
@@ -593,10 +644,10 @@ class FastParse:
             "total_rows": total_rows,
             "truncated": total_rows >= self._config.max_excel_rows,
         }
-        
+
         if total_rows >= self._config.max_excel_rows:
             warnings.append(f"Rows limited to {self._config.max_excel_rows:,}")
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -607,8 +658,10 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
-    def _parse_xls_legacy(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_xls_legacy(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         return ParseResult(
             success=True,
             content="[Legacy .xls format - conversion required for full data extraction]",
@@ -619,33 +672,35 @@ class FastParse:
             metadata={"format": "legacy_xls", "requires_conversion": True},
             warnings=["Legacy .xls format has limited support. Consider converting to .xlsx"],
         )
-    
+
     def _parse_ods(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             import zipfile
             from xml.etree import ElementTree
         except ImportError:
             raise ParseError("Required libraries not available", "MISSING_DEPENDENCY")
-        
+
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
                 content_xml = zf.read("content.xml")
                 tree = ElementTree.fromstring(content_xml)
-                
+
                 ns = {
                     "table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
                     "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
                 }
-                
+
                 tables = tree.findall(".//table:table", ns)
                 content_parts: List[str] = []
-                
-                for table in tables[:self._config.max_excel_sheets]:
-                    name = table.get("{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name", "Sheet")
+
+                for table in tables[: self._config.max_excel_sheets]:
+                    name = table.get(
+                        "{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name", "Sheet"
+                    )
                     content_parts.append(f"=== Sheet: {name} ===")
-                    
+
                     rows = table.findall(".//table:table-row", ns)
-                    for row in rows[:self._config.max_excel_rows]:
+                    for row in rows[: self._config.max_excel_rows]:
                         cells = row.findall("table:table-cell", ns)
                         cell_texts = []
                         for cell in cells:
@@ -653,15 +708,15 @@ class FastParse:
                             cell_texts.append(text.strip())
                         if any(cell_texts):
                             content_parts.append(" | ".join(cell_texts))
-                    
+
                     content_parts.append("")
-                
+
                 content = "\n".join(content_parts)
         except Exception as e:
             raise ParseError(f"Failed to parse ODS: {str(e)}", "ODS_PARSE_ERROR")
-        
+
         warnings = self._check_script_injection(content)
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -672,10 +727,12 @@ class FastParse:
             metadata={"format": "ods"},
             warnings=warnings,
         )
-    
-    def _parse_presentation(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_presentation(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         ext = Path(filename).suffix.lower()
-        
+
         if ext == ".pptx":
             return self._parse_pptx(data, filename, mime_type, file_size)
         elif ext == ".ppt":
@@ -684,27 +741,29 @@ class FastParse:
             return self._parse_odp(data, filename, mime_type, file_size)
         else:
             raise ParseError(f"Unsupported presentation format: {ext}", "UNSUPPORTED_FORMAT")
-    
-    def _parse_pptx(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_pptx(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         try:
             from pptx import Presentation
         except ImportError:
             raise ParseError("python-pptx not installed", "MISSING_DEPENDENCY")
-        
+
         try:
             prs = Presentation(io.BytesIO(data))
         except Exception as e:
             raise ParseError(f"Invalid or corrupted PPTX: {str(e)}", "INVALID_PPTX")
-        
+
         slides_content: List[str] = []
-        
+
         for i, slide in enumerate(prs.slides):
             slide_text: List[str] = [f"--- Slide {i + 1} ---"]
-            
+
             for shape in slide.shapes:
                 if hasattr(shape, "text") and shape.text.strip():
                     slide_text.append(shape.text.strip())
-                
+
                 if shape.has_table:
                     table_rows: List[str] = []
                     for row in shape.table.rows:
@@ -712,18 +771,18 @@ class FastParse:
                         table_rows.append(" | ".join(cells))
                     if table_rows:
                         slide_text.append("[Table]\n" + "\n".join(table_rows))
-            
+
             if len(slide_text) > 1:
                 slides_content.append("\n".join(slide_text))
-        
+
         content = "\n\n".join(slides_content)
         warnings = self._check_script_injection(content)
-        
+
         metadata = {
             "format": "pptx",
             "slide_count": len(prs.slides),
         }
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -734,8 +793,10 @@ class FastParse:
             metadata=metadata,
             warnings=warnings,
         )
-    
-    def _parse_ppt_legacy(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_ppt_legacy(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         return ParseResult(
             success=True,
             content="[Legacy .ppt format - conversion required for full text extraction]",
@@ -746,44 +807,44 @@ class FastParse:
             metadata={"format": "legacy_ppt", "requires_conversion": True},
             warnings=["Legacy .ppt format has limited support. Consider converting to .pptx"],
         )
-    
+
     def _parse_odp(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
         try:
             import zipfile
             from xml.etree import ElementTree
         except ImportError:
             raise ParseError("Required libraries not available", "MISSING_DEPENDENCY")
-        
+
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
                 content_xml = zf.read("content.xml")
                 tree = ElementTree.fromstring(content_xml)
-                
+
                 ns = {
                     "draw": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
                     "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
                 }
-                
+
                 pages = tree.findall(".//draw:page", ns)
                 slides_content: List[str] = []
-                
+
                 for i, page in enumerate(pages):
                     slide_text: List[str] = [f"--- Slide {i + 1} ---"]
-                    
+
                     for text_elem in page.findall(".//text:p", ns):
                         text = "".join(text_elem.itertext())
                         if text.strip():
                             slide_text.append(text.strip())
-                    
+
                     if len(slide_text) > 1:
                         slides_content.append("\n".join(slide_text))
-                
+
                 content = "\n\n".join(slides_content)
         except Exception as e:
             raise ParseError(f"Failed to parse ODP: {str(e)}", "ODP_PARSE_ERROR")
-        
+
         warnings = self._check_script_injection(content)
-        
+
         return ParseResult(
             success=True,
             content=content,
@@ -794,27 +855,32 @@ class FastParse:
             metadata={"format": "odp"},
             warnings=warnings,
         )
-    
-    def _parse_image(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_image(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         metadata: Dict[str, Any] = {
             "format": Path(filename).suffix.lower().lstrip("."),
             "is_image": True,
         }
-        
+
         try:
             from PIL import Image
+
             img = Image.open(io.BytesIO(data))
-            metadata.update({
-                "width": img.width,
-                "height": img.height,
-                "mode": img.mode,
-                "format_detail": img.format,
-            })
+            metadata.update(
+                {
+                    "width": img.width,
+                    "height": img.height,
+                    "mode": img.mode,
+                    "format_detail": img.format,
+                }
+            )
         except ImportError:
             pass
         except Exception:
             pass
-        
+
         return ParseResult(
             success=True,
             content="",
@@ -825,8 +891,10 @@ class FastParse:
             metadata=metadata,
             warnings=[],
         )
-    
-    def _parse_binary(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
+
+    def _parse_binary(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
         return ParseResult(
             success=True,
             content=f"[Binary file: {filename}]\nSize: {file_size:,} bytes\nType: {mime_type}\n\n[Binary content cannot be displayed as text]",
@@ -837,19 +905,21 @@ class FastParse:
             metadata={"format": "binary"},
             warnings=[],
         )
-    
-    def _parse_unknown(self, data: bytes, filename: str, mime_type: str, file_size: int) -> ParseResult:
-        is_text = self._detect_text_content(data[:min(len(data), 8192)])
-        
+
+    def _parse_unknown(
+        self, data: bytes, filename: str, mime_type: str, file_size: int
+    ) -> ParseResult:
+        is_text = self._detect_text_content(data[: min(len(data), 8192)])
+
         if is_text:
             return self._parse_text(data, filename, mime_type, file_size)
         else:
             return self._parse_binary(data, filename, mime_type, file_size)
-    
+
     def _detect_text_content(self, sample: bytes) -> bool:
         if not sample:
             return False
-        
+
         try:
             detected = chardet.detect(sample)
             if detected.get("confidence", 0) > 0.7:
@@ -858,7 +928,7 @@ class FastParse:
                 return printable_count / len(decoded) > 0.85
         except Exception:
             pass
-        
+
         return False
 
 
@@ -888,4 +958,3 @@ def parse_file(
     config: Optional[FastParseConfig] = None,
 ) -> ParseResult:
     return get_parser(config).parse_file(file_path)
-

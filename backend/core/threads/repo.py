@@ -6,17 +6,16 @@ from core.utils.llm_debugger import llm_debug
 
 def _sanitize_null_bytes(value: Any) -> Any:
     if isinstance(value, str):
-        return value.replace('\u0000', '')
+        return value.replace("\u0000", "")
     elif isinstance(value, dict):
         return {k: _sanitize_null_bytes(v) for k, v in value.items()}
     elif isinstance(value, list):
         return [_sanitize_null_bytes(item) for item in value]
     return value
 
+
 async def list_user_threads(
-    account_id: str,
-    limit: int = 100,
-    offset: int = 0
+    account_id: str, limit: int = 100, offset: int = 0
 ) -> Tuple[List[Dict[str, Any]], int]:
     sql = """
     SELECT 
@@ -45,18 +44,14 @@ async def list_user_threads(
     ORDER BY t.created_at DESC
     LIMIT :limit OFFSET :offset
     """
-    
-    rows = await execute(sql, {
-        "account_id": account_id,
-        "limit": limit,
-        "offset": offset
-    })
-    
+
+    rows = await execute(sql, {"account_id": account_id, "limit": limit, "offset": offset})
+
     if not rows:
         return [], 0
-    
+
     total_count = rows[0]["total_count"] if rows else 0
-    
+
     # Map to expected response format
     threads = []
     for row in rows:
@@ -65,11 +60,8 @@ async def list_user_threads(
             # Build sandbox info if available
             sandbox_info = None
             if row.get("sandbox_id"):
-                sandbox_info = {
-                    "id": row["sandbox_id"],
-                    **(row.get("sandbox_config") or {})
-                }
-            
+                sandbox_info = {"id": row["sandbox_id"], **(row.get("sandbox_config") or {})}
+
             project_data = {
                 "project_id": row["project_id"],
                 "name": row["project_name"] or "",
@@ -77,20 +69,22 @@ async def list_user_threads(
                 "is_public": row["project_is_public"] or False,
                 "created_at": row["project_created_at"],
                 "updated_at": row["project_updated_at"],
-                "sandbox": sandbox_info
+                "sandbox": sandbox_info,
             }
-        
-        threads.append({
-            "thread_id": row["thread_id"],
-            "project_id": row["project_id"],
-            "name": row["name"] or "New Chat",
-            "metadata": row["metadata"] or {},
-            "is_public": row["is_public"] or False,
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "project": project_data
-        })
-    
+
+        threads.append(
+            {
+                "thread_id": row["thread_id"],
+                "project_id": row["project_id"],
+                "name": row["name"] or "New Chat",
+                "metadata": row["metadata"] or {},
+                "is_public": row["is_public"] or False,
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+                "project": project_data,
+            }
+        )
+
     return threads, total_count
 
 
@@ -136,22 +130,20 @@ async def get_thread_project_id(thread_id: str) -> Optional[str]:
 
 async def delete_thread_data(thread_id: str) -> bool:
     from core.services.db import execute_mutate
-    
+
     await execute_mutate(
-        "DELETE FROM agent_runs WHERE thread_id = :thread_id",
-        {"thread_id": thread_id}
+        "DELETE FROM agent_runs WHERE thread_id = :thread_id", {"thread_id": thread_id}
     )
-    
+
     await execute_mutate(
-        "DELETE FROM messages WHERE thread_id = :thread_id",
-        {"thread_id": thread_id}
+        "DELETE FROM messages WHERE thread_id = :thread_id", {"thread_id": thread_id}
     )
-    
+
     result = await execute_mutate(
         "DELETE FROM threads WHERE thread_id = :thread_id RETURNING thread_id",
-        {"thread_id": thread_id}
+        {"thread_id": thread_id},
     )
-    
+
     return len(result) > 0
 
 
@@ -163,37 +155,38 @@ async def count_project_threads(project_id: str) -> int:
 
 async def delete_project(project_id: str) -> bool:
     from core.services.db import execute_mutate
-    
+
     result = await execute_mutate(
         "DELETE FROM projects WHERE project_id = :project_id RETURNING project_id",
-        {"project_id": project_id}
+        {"project_id": project_id},
     )
     return len(result) > 0
 
 
 async def create_thread(
-    thread_id: str,
-    project_id: str,
-    account_id: str,
-    name: str = "New Chat"
+    thread_id: str, project_id: str, account_id: str, name: str = "New Chat"
 ) -> Dict[str, Any]:
     from core.services.db import execute_one
     from datetime import datetime, timezone
-    
+
     sql = """
     INSERT INTO threads (thread_id, project_id, account_id, name, created_at)
     VALUES (:thread_id, :project_id, :account_id, :name, :created_at)
     RETURNING thread_id, project_id, account_id, name, created_at, updated_at
     """
-    
-    result = await execute_one(sql, {
-        "thread_id": thread_id,
-        "project_id": project_id,
-        "account_id": account_id,
-        "name": name,
-        "created_at": datetime.now(timezone.utc)
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "thread_id": thread_id,
+            "project_id": project_id,
+            "account_id": account_id,
+            "name": name,
+            "created_at": datetime.now(timezone.utc),
+        },
+        commit=True,
+    )
+
     return dict(result) if result else None
 
 
@@ -214,16 +207,13 @@ async def get_project_access(project_id: str, user_id: str) -> Optional[Dict[str
 
 
 async def get_thread_messages(
-    thread_id: str,
-    order: str = "desc",
-    optimized: bool = True,
-    allowed_types: List[str] = None
+    thread_id: str, order: str = "desc", optimized: bool = True, allowed_types: List[str] = None
 ) -> List[Dict[str, Any]]:
     if allowed_types is None:
-        allowed_types = ['user', 'tool', 'assistant']
-    
+        allowed_types = ["user", "tool", "assistant"]
+
     order_direction = "DESC" if order == "desc" else "ASC"
-    
+
     if optimized:
         sql = f"""
         SELECT 
@@ -241,12 +231,9 @@ async def get_thread_messages(
         WHERE thread_id = :thread_id
         ORDER BY created_at {order_direction}
         """
-    
-    rows = await execute(sql, {
-        "thread_id": thread_id,
-        "allowed_types": allowed_types
-    })
-    
+
+    rows = await execute(sql, {"thread_id": thread_id, "allowed_types": allowed_types})
+
     return [dict(row) for row in rows] if rows else []
 
 
@@ -261,50 +248,52 @@ async def create_message(
     message_type: str,
     content: Dict[str, Any],
     is_llm_message: bool = True,
-    message_id: str = None
+    message_id: str = None,
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
     from core.services.db import execute_one
     import uuid
-    
+
     if message_id is None:
         message_id = str(uuid.uuid4())
-    
+
     sql = """
     INSERT INTO messages (message_id, thread_id, type, is_llm_message, content, created_at)
     VALUES (:message_id, :thread_id, :type, :is_llm_message, :content, :created_at)
     ON CONFLICT (message_id) DO NOTHING
     RETURNING *
     """
-    
-    result = await execute_one(sql, {
-        "message_id": message_id,
-        "thread_id": thread_id,
-        "type": message_type,
-        "is_llm_message": is_llm_message,
-        "content": _sanitize_null_bytes(content),
-        "created_at": datetime.now(timezone.utc)
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "message_id": message_id,
+            "thread_id": thread_id,
+            "type": message_type,
+            "is_llm_message": is_llm_message,
+            "content": _sanitize_null_bytes(content),
+            "created_at": datetime.now(timezone.utc),
+        },
+        commit=True,
+    )
+
     return dict(result) if result else {"message_id": message_id, "thread_id": thread_id}
 
 
 async def delete_message(thread_id: str, message_id: str, is_llm_message: bool = True) -> bool:
     from core.services.db import execute_mutate
-    
+
     sql = """
     DELETE FROM messages 
     WHERE message_id = :message_id 
       AND thread_id = :thread_id 
       AND is_llm_message = :is_llm_message
     """
-    
-    result = await execute_mutate(sql, {
-        "message_id": message_id,
-        "thread_id": thread_id,
-        "is_llm_message": is_llm_message
-    })
-    
+
+    result = await execute_mutate(
+        sql, {"message_id": message_id, "thread_id": thread_id, "is_llm_message": is_llm_message}
+    )
+
     return len(result) > 0
 
 
@@ -327,30 +316,28 @@ async def get_thread_with_project(thread_id: str) -> Optional[Dict[str, Any]]:
 
 
 async def update_thread(
-    thread_id: str,
-    metadata: Optional[Dict[str, Any]] = None,
-    is_public: Optional[bool] = None
+    thread_id: str, metadata: Optional[Dict[str, Any]] = None, is_public: Optional[bool] = None
 ) -> Optional[Dict[str, Any]]:
     from core.services.db import execute_one
     from datetime import datetime, timezone
-    
+
     updates = []
     params = {"thread_id": thread_id}
-    
+
     if metadata is not None:
         updates.append("metadata = :metadata")
         params["metadata"] = metadata
-    
+
     if is_public is not None:
         updates.append("is_public = :is_public")
         params["is_public"] = is_public
-    
+
     if not updates:
         return await get_thread_with_project(thread_id)
-    
+
     updates.append("updated_at = :updated_at")
     params["updated_at"] = datetime.now(timezone.utc)
-    
+
     set_sql = ", ".join(updates)
     sql = f"""
     UPDATE threads
@@ -358,7 +345,7 @@ async def update_thread(
     WHERE thread_id = :thread_id
     RETURNING *
     """
-    
+
     result = await execute_one(sql, params, commit=True)
     return serialize_row(dict(result)) if result else None
 
@@ -366,34 +353,35 @@ async def update_thread(
 async def update_project_name(project_id: str, name: str) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE projects
     SET name = :name, updated_at = :updated_at
     WHERE project_id = :project_id
     """
-    result = await execute_mutate(sql, {
-        "project_id": project_id,
-        "name": name,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    result = await execute_mutate(
+        sql, {"project_id": project_id, "name": name, "updated_at": datetime.now(timezone.utc)}
+    )
     return len(result) > 0
 
 
 async def update_project_visibility(project_id: str, is_public: bool) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE projects
     SET is_public = :is_public, updated_at = :updated_at
     WHERE project_id = :project_id
     """
-    result = await execute_mutate(sql, {
-        "project_id": project_id,
-        "is_public": is_public,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    result = await execute_mutate(
+        sql,
+        {
+            "project_id": project_id,
+            "is_public": is_public,
+            "updated_at": datetime.now(timezone.utc),
+        },
+    )
     return len(result) > 0
 
 
@@ -408,26 +396,26 @@ async def get_project_by_id(project_id: str) -> Optional[Dict[str, Any]]:
     return serialize_row(dict(result)) if result else None
 
 
-async def create_project(
-    project_id: str,
-    account_id: str,
-    name: str
-) -> Dict[str, Any]:
+async def create_project(project_id: str, account_id: str, name: str) -> Dict[str, Any]:
     from datetime import datetime, timezone
-    
+
     sql = """
     INSERT INTO projects (project_id, account_id, name, created_at)
     VALUES (:project_id, :account_id, :name, :created_at)
     RETURNING project_id, account_id, name, created_at
     """
-    
-    result = await execute_one(sql, {
-        "project_id": project_id,
-        "account_id": account_id,
-        "name": name,
-        "created_at": datetime.now(timezone.utc)
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "project_id": project_id,
+            "account_id": account_id,
+            "name": name,
+            "created_at": datetime.now(timezone.utc),
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
@@ -437,29 +425,33 @@ async def create_thread_full(
     account_id: str,
     name: str = "New Chat",
     status: str = "pending",
-    memory_enabled: Optional[bool] = None
+    memory_enabled: Optional[bool] = None,
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
-    
+
     sql = """
     INSERT INTO threads (thread_id, project_id, account_id, name, status, memory_enabled, created_at, updated_at)
     VALUES (:thread_id, :project_id, :account_id, :name, :status, :memory_enabled, :created_at, :updated_at)
     RETURNING *
     """
-    
+
     now = datetime.now(timezone.utc)
-    
-    result = await execute_one(sql, {
-        "thread_id": thread_id,
-        "project_id": project_id,
-        "account_id": account_id,
-        "name": name,
-        "status": status,
-        "memory_enabled": memory_enabled,
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "thread_id": thread_id,
+            "project_id": project_id,
+            "account_id": account_id,
+            "name": name,
+            "status": status,
+            "memory_enabled": memory_enabled,
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
@@ -470,11 +462,11 @@ async def create_project_and_thread(
     project_name: str,
     thread_name: str = "New Chat",
     status: str = "pending",
-    memory_enabled: Optional[bool] = None
+    memory_enabled: Optional[bool] = None,
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
     from core.services.db import execute_one
-    
+
     sql = """
     WITH new_project AS (
         INSERT INTO projects (project_id, account_id, name, created_at)
@@ -486,21 +478,25 @@ async def create_project_and_thread(
     FROM new_project
     RETURNING thread_id, project_id
     """
-    
+
     now = datetime.now(timezone.utc)
-    
-    result = await execute_one(sql, {
-        "project_id": project_id,
-        "thread_id": thread_id,
-        "account_id": account_id,
-        "project_name": project_name,
-        "thread_name": thread_name,
-        "status": status,
-        "memory_enabled": memory_enabled,
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "project_id": project_id,
+            "thread_id": thread_id,
+            "account_id": account_id,
+            "project_name": project_name,
+            "thread_name": thread_name,
+            "status": status,
+            "memory_enabled": memory_enabled,
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
@@ -515,16 +511,16 @@ async def create_thread_with_message_and_run(
     agent_id: Optional[str] = None,
     agent_version_id: Optional[str] = None,
     run_metadata: Optional[Dict[str, Any]] = None,
-    memory_enabled: Optional[bool] = None
+    memory_enabled: Optional[bool] = None,
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
     from core.services.db import execute_one
     import uuid
-    
+
     now = datetime.now(timezone.utc)
     has_message = bool(message_content and message_content.strip())
     message_id = str(uuid.uuid4()) if has_message else None
-    
+
     sql = """
     WITH new_project AS (
         INSERT INTO projects (project_id, account_id, name, created_at)
@@ -557,30 +553,36 @@ async def create_thread_with_message_and_run(
         (SELECT message_id FROM new_message) as message_id,
         (SELECT id FROM new_run) as agent_run_id
     """
-    
-    result = await execute_one(sql, {
-        "project_id": project_id,
-        "thread_id": thread_id,
-        "account_id": account_id,
-        "project_name": project_name,
-        "thread_name": thread_name,
-        "memory_enabled": memory_enabled,
-        "message_id": message_id,
-        "message_content": {"role": "user", "content": message_content} if has_message else None,
-        "has_message": has_message,
-        "agent_run_id": agent_run_id,
-        "agent_id": agent_id,
-        "agent_version_id": agent_version_id,
-        "run_metadata": run_metadata or {},
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "project_id": project_id,
+            "thread_id": thread_id,
+            "account_id": account_id,
+            "project_name": project_name,
+            "thread_name": thread_name,
+            "memory_enabled": memory_enabled,
+            "message_id": message_id,
+            "message_content": {"role": "user", "content": message_content}
+            if has_message
+            else None,
+            "has_message": has_message,
+            "agent_run_id": agent_run_id,
+            "agent_id": agent_id,
+            "agent_version_id": agent_version_id,
+            "run_metadata": run_metadata or {},
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     return {
         "project_id": result["project_id"] if result else project_id,
         "thread_id": result["thread_id"] if result else thread_id,
         "message_id": result["message_id"] if result else message_id,
-        "agent_run_id": result["agent_run_id"] if result else agent_run_id
+        "agent_run_id": result["agent_run_id"] if result else agent_run_id,
     }
 
 
@@ -588,38 +590,38 @@ async def update_thread_status(
     thread_id: str,
     status: str,
     initialization_started_at: Optional[Any] = None,
-    initialization_completed_at: Optional[Any] = None
+    initialization_completed_at: Optional[Any] = None,
 ) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     updates = ["status = :status", "updated_at = :updated_at"]
     now = datetime.now(timezone.utc)
-    params = {
-        "thread_id": thread_id,
-        "status": status,
-        "updated_at": now
-    }
-    
+    params = {"thread_id": thread_id, "status": status, "updated_at": now}
+
     if initialization_started_at:
         updates.append("initialization_started_at = :init_started")
         if isinstance(initialization_started_at, str):
-            params["init_started"] = datetime.fromisoformat(initialization_started_at.replace('Z', '+00:00'))
+            params["init_started"] = datetime.fromisoformat(
+                initialization_started_at.replace("Z", "+00:00")
+            )
         else:
             params["init_started"] = initialization_started_at
-    
+
     if initialization_completed_at:
         updates.append("initialization_completed_at = :init_completed")
         if isinstance(initialization_completed_at, str):
-            params["init_completed"] = datetime.fromisoformat(initialization_completed_at.replace('Z', '+00:00'))
+            params["init_completed"] = datetime.fromisoformat(
+                initialization_completed_at.replace("Z", "+00:00")
+            )
         else:
             params["init_completed"] = initialization_completed_at
-    
+
     set_sql = ", ".join(updates)
     sql = f"""
     UPDATE threads SET {set_sql} WHERE thread_id = :thread_id
     """
-    
+
     await execute_mutate(sql, params)
     return True
 
@@ -627,17 +629,15 @@ async def update_thread_status(
 async def update_thread_name(thread_id: str, name: str) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE threads
     SET name = :name, updated_at = :updated_at
     WHERE thread_id = :thread_id
     """
-    await execute_mutate(sql, {
-        "thread_id": thread_id,
-        "name": name,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(
+        sql, {"thread_id": thread_id, "name": name, "updated_at": datetime.now(timezone.utc)}
+    )
     return True
 
 
@@ -647,27 +647,31 @@ async def create_message_full(
     message_type: str,
     content: Dict[str, Any],
     is_llm_message: bool = True,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
-    
+
     sql = """
     INSERT INTO messages (message_id, thread_id, type, is_llm_message, content, metadata, created_at)
     VALUES (:message_id, :thread_id, :type, :is_llm_message, :content, :metadata, :created_at)
     ON CONFLICT (message_id) DO NOTHING
     RETURNING *
     """
-    
-    result = await execute_one(sql, {
-        "message_id": message_id,
-        "thread_id": thread_id,
-        "type": message_type,
-        "is_llm_message": is_llm_message,
-        "content": _sanitize_null_bytes(content),
-        "metadata": _sanitize_null_bytes(metadata),
-        "created_at": datetime.now(timezone.utc)
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "message_id": message_id,
+            "thread_id": thread_id,
+            "type": message_type,
+            "is_llm_message": is_llm_message,
+            "content": _sanitize_null_bytes(content),
+            "metadata": _sanitize_null_bytes(metadata),
+            "created_at": datetime.now(timezone.utc),
+        },
+        commit=True,
+    )
+
     # If ON CONFLICT triggered, result will be None but the message exists
     return dict(result) if result else {"message_id": message_id, "thread_id": thread_id}
 
@@ -685,17 +689,20 @@ async def get_project_for_sandbox(project_id: str) -> Optional[Dict[str, Any]]:
 async def update_project_sandbox_resource(project_id: str, sandbox_resource_id: str) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE projects
     SET sandbox_resource_id = :sandbox_resource_id, updated_at = :updated_at
     WHERE project_id = :project_id
     """
-    await execute_mutate(sql, {
-        "project_id": project_id,
-        "sandbox_resource_id": sandbox_resource_id,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(
+        sql,
+        {
+            "project_id": project_id,
+            "sandbox_resource_id": sandbox_resource_id,
+            "updated_at": datetime.now(timezone.utc),
+        },
+    )
     return True
 
 
@@ -708,17 +715,14 @@ async def get_thread_messages_ids(thread_id: str) -> List[str]:
 async def set_thread_has_images(thread_id: str) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE threads
     SET metadata = COALESCE(metadata, '{}'::jsonb) || '{"has_images": true}'::jsonb,
         updated_at = :updated_at
     WHERE thread_id = :thread_id
     """
-    await execute_mutate(sql, {
-        "thread_id": thread_id,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(sql, {"thread_id": thread_id, "updated_at": datetime.now(timezone.utc)})
     return True
 
 
@@ -753,9 +757,7 @@ async def get_project_and_thread_info(thread_id: str) -> Optional[Dict[str, Any]
 
 
 async def get_llm_messages(
-    thread_id: str,
-    lightweight: bool = False,
-    limit: Optional[int] = None
+    thread_id: str, lightweight: bool = False, limit: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     if lightweight:
         sql = """
@@ -780,14 +782,12 @@ async def get_llm_messages(
         LIMIT :limit
         """
         rows = await execute(sql, {"thread_id": thread_id, "limit": limit or 10000})
-    
+
     return [dict(row) for row in rows] if rows else []
 
 
 async def get_llm_messages_paginated(
-    thread_id: str,
-    offset: int = 0,
-    batch_size: int = 1000
+    thread_id: str, offset: int = 0, batch_size: int = 1000
 ) -> List[Dict[str, Any]]:
     sql = """
     SELECT message_id, type, content, metadata
@@ -800,11 +800,7 @@ async def get_llm_messages_paginated(
     LIMIT :limit
     OFFSET :offset
     """
-    rows = await execute(sql, {
-        "thread_id": thread_id,
-        "limit": batch_size,
-        "offset": offset
-    })
+    rows = await execute(sql, {"thread_id": thread_id, "limit": batch_size, "offset": offset})
     return [dict(row) for row in rows] if rows else []
 
 
@@ -869,6 +865,7 @@ async def get_image_context_messages(thread_id: str) -> List[Dict[str, Any]]:
 
 async def get_thread_metadata(thread_id: str) -> Optional[Dict[str, Any]]:
     from core.services.db import execute_one_read
+
     sql = "SELECT metadata FROM threads WHERE thread_id = :thread_id"
     result = await execute_one_read(sql, {"thread_id": thread_id})
     return result["metadata"] if result else None
@@ -877,17 +874,16 @@ async def get_thread_metadata(thread_id: str) -> Optional[Dict[str, Any]]:
 async def update_thread_metadata(thread_id: str, metadata: Dict[str, Any]) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE threads
     SET metadata = :metadata, updated_at = :updated_at
     WHERE thread_id = :thread_id
     """
-    await execute_mutate(sql, {
-        "thread_id": thread_id,
-        "metadata": metadata,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(
+        sql,
+        {"thread_id": thread_id, "metadata": metadata, "updated_at": datetime.now(timezone.utc)},
+    )
     return True
 
 
@@ -926,7 +922,7 @@ async def check_thread_has_images(thread_id: str) -> bool:
 async def set_cache_needs_rebuild(thread_id: str, needs_rebuild: bool = True) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     if needs_rebuild:
         sql = """
         UPDATE threads
@@ -941,11 +937,8 @@ async def set_cache_needs_rebuild(thread_id: str, needs_rebuild: bool = True) ->
             updated_at = :updated_at
         WHERE thread_id = :thread_id
         """
-    
-    await execute_mutate(sql, {
-        "thread_id": thread_id,
-        "updated_at": datetime.now(timezone.utc)
-    })
+
+    await execute_mutate(sql, {"thread_id": thread_id, "updated_at": datetime.now(timezone.utc)})
     return True
 
 
@@ -957,13 +950,11 @@ async def get_cache_needs_rebuild(thread_id: str) -> bool:
 
 
 async def update_message_content(
-    message_id: str,
-    content: Dict[str, Any],
-    metadata: Optional[Dict[str, Any]] = None
+    message_id: str, content: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None
 ) -> Optional[Dict[str, Any]]:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     if metadata is not None:
         sql = """
         UPDATE messages
@@ -971,12 +962,15 @@ async def update_message_content(
         WHERE message_id = :message_id
         RETURNING *
         """
-        result = await execute_mutate(sql, {
-            "message_id": message_id,
-            "content": content,
-            "metadata": metadata,
-            "updated_at": datetime.now(timezone.utc)
-        })
+        result = await execute_mutate(
+            sql,
+            {
+                "message_id": message_id,
+                "content": content,
+                "metadata": metadata,
+                "updated_at": datetime.now(timezone.utc),
+            },
+        )
     else:
         sql = """
         UPDATE messages
@@ -984,12 +978,15 @@ async def update_message_content(
         WHERE message_id = :message_id
         RETURNING *
         """
-        result = await execute_mutate(sql, {
-            "message_id": message_id,
-            "content": content,
-            "updated_at": datetime.now(timezone.utc)
-        })
-    
+        result = await execute_mutate(
+            sql,
+            {
+                "message_id": message_id,
+                "content": content,
+                "updated_at": datetime.now(timezone.utc),
+            },
+        )
+
     # Log DB write for debugging
     content_str = str(content) if content else ""
     llm_debug.log_db_write(
@@ -998,7 +995,7 @@ async def update_message_content(
         record_id=message_id,
         content_preview=content_str[:500] if content_str else None,
     )
-    
+
     return dict(result[0]) if result else None
 
 
@@ -1026,50 +1023,54 @@ async def get_tool_results_by_thread(thread_id: str) -> List[Dict[str, Any]]:
 async def update_message_metadata(message_id: str, metadata: Dict[str, Any]) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     sql = """
     UPDATE messages
     SET metadata = :metadata, updated_at = :updated_at
     WHERE message_id = :message_id
     """
-    await execute_mutate(sql, {
-        "message_id": message_id,
-        "metadata": metadata,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(
+        sql,
+        {"message_id": message_id, "metadata": metadata, "updated_at": datetime.now(timezone.utc)},
+    )
     return True
 
 
 async def delete_message_by_id(message_id: str, thread_id: Optional[str] = None) -> bool:
     from core.services.db import execute_mutate
-    
+
     if thread_id:
         sql = "DELETE FROM messages WHERE message_id = :message_id AND thread_id = :thread_id"
         result = await execute_mutate(sql, {"message_id": message_id, "thread_id": thread_id})
     else:
         sql = "DELETE FROM messages WHERE message_id = :message_id"
         result = await execute_mutate(sql, {"message_id": message_id})
-    
+
     return len(result) > 0 if result else False
 
 
-async def update_messages_is_llm_message(message_ids: List[str], is_llm_message: bool = True) -> int:
+async def update_messages_is_llm_message(
+    message_ids: List[str], is_llm_message: bool = True
+) -> int:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     if not message_ids:
         return 0
-    
+
     sql = """
     UPDATE messages
     SET is_llm_message = :is_llm_message, updated_at = :updated_at
     WHERE message_id = ANY(:message_ids)
     """
-    result = await execute_mutate(sql, {
-        "message_ids": message_ids,
-        "is_llm_message": is_llm_message,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    result = await execute_mutate(
+        sql,
+        {
+            "message_ids": message_ids,
+            "is_llm_message": is_llm_message,
+            "updated_at": datetime.now(timezone.utc),
+        },
+    )
     return len(result) if result else 0
 
 
@@ -1080,71 +1081,67 @@ async def get_message_metadata_by_id(message_id: str) -> Optional[Dict[str, Any]
 
 
 async def save_compressed_message(
-    message_id: str,
-    compressed_content: str,
-    is_omission: bool = False
+    message_id: str, compressed_content: str, is_omission: bool = False
 ) -> bool:
     from core.services.db import execute_mutate
     from datetime import datetime, timezone
-    
+
     existing_metadata = await get_message_metadata_by_id(message_id)
     metadata = existing_metadata or {}
-    
+
     metadata["compressed"] = True
     metadata["compressed_content"] = compressed_content
     if is_omission:
         metadata["omitted"] = True
-    
+
     sql = """
     UPDATE messages
     SET metadata = :metadata, updated_at = :updated_at
     WHERE message_id = :message_id
     """
-    await execute_mutate(sql, {
-        "message_id": message_id,
-        "metadata": metadata,
-        "updated_at": datetime.now(timezone.utc)
-    })
+    await execute_mutate(
+        sql,
+        {"message_id": message_id, "metadata": metadata, "updated_at": datetime.now(timezone.utc)},
+    )
     return True
 
 
 async def save_compressed_messages_batch(
-    compressed_messages: List[Dict[str, Any]],
-    batch_size: int = 500
+    compressed_messages: List[Dict[str, Any]], batch_size: int = 500
 ) -> int:
     """Save compressed message content to database metadata in batch.
-    
+
     Uses a single SQL UPDATE with VALUES clause for efficiency.
     For 400 messages, this is 1 DB call instead of 800 (2 per message).
-    
+
     Args:
         compressed_messages: List of dicts with 'message_id', 'compressed_content', and optional 'is_omission'
         batch_size: Max messages per SQL statement (default 500 to avoid very long queries)
-        
+
     Returns:
         Number of messages successfully saved
     """
     from core.services.db import execute_mutate
-    
+
     if not compressed_messages:
         return 0
-    
+
     # Filter valid entries
     valid = [
-        (m['message_id'], m['compressed_content'], m.get('is_omission', False)) 
-        for m in compressed_messages 
-        if m.get('message_id') and m.get('compressed_content')
+        (m["message_id"], m["compressed_content"], m.get("is_omission", False))
+        for m in compressed_messages
+        if m.get("message_id") and m.get("compressed_content")
     ]
-    
+
     if not valid:
         return 0
-    
+
     total_saved = 0
-    
+
     # Process in batches to avoid very long SQL statements
     for batch_start in range(0, len(valid), batch_size):
-        batch = valid[batch_start:batch_start + batch_size]
-        
+        batch = valid[batch_start : batch_start + batch_size]
+
         # Build VALUES clause dynamically
         # Note: Can't use ::uuid cast in VALUES because SQLAlchemy confuses :: with param syntax
         # Instead, cast in the WHERE clause comparison
@@ -1152,10 +1149,10 @@ async def save_compressed_messages_batch(
         params = {}
         for i, (msg_id, content, is_omit) in enumerate(batch):
             values_parts.append(f"(:id_{i}, :content_{i}, :omit_{i})")
-            params[f'id_{i}'] = msg_id
-            params[f'content_{i}'] = content
-            params[f'omit_{i}'] = is_omit
-        
+            params[f"id_{i}"] = msg_id
+            params[f"content_{i}"] = content
+            params[f"omit_{i}"] = is_omit
+
         # Single UPDATE with all values - merges into existing metadata
         # Cast data.id to uuid in WHERE clause to avoid SQLAlchemy param parsing issues
         sql = f"""
@@ -1168,10 +1165,10 @@ async def save_compressed_messages_batch(
                     'omitted', data.is_omission
                 ),
             updated_at = NOW()
-        FROM (VALUES {', '.join(values_parts)}) AS data(id, compressed_content, is_omission)
+        FROM (VALUES {", ".join(values_parts)}) AS data(id, compressed_content, is_omission)
         WHERE m.message_id = data.id::uuid  -- Cast string to uuid for comparison
         """
-        
+
         try:
             await execute_mutate(sql, params)
             total_saved += len(batch)
@@ -1184,35 +1181,35 @@ async def save_compressed_messages_batch(
                     total_saved += 1
                 except Exception as e2:
                     logger.warning(f"Failed to save compressed message {msg_id}: {e2}")
-    
+
     return total_saved
 
 
 async def mark_tool_results_as_omitted(thread_id: str, tool_call_ids: List[str]) -> int:
     """Mark tool result messages as omitted when their parent assistant message is omitted.
-    
+
     This handles the case where tool results were compressed separately from their
     parent assistant message, and the assistant was later omitted.
-    
+
     Args:
         thread_id: The thread ID
         tool_call_ids: List of tool_call_ids whose tool results should be marked as omitted
-        
+
     Returns:
         Number of messages marked as omitted
     """
     from core.services.db import execute_mutate
-    
+
     if not tool_call_ids:
         return 0
-    
+
     # Build the SQL to find and update tool results with matching tool_call_ids
     # Tool results have content->'tool_call_id' matching one of the IDs
-    placeholders = ', '.join([f':id_{i}' for i in range(len(tool_call_ids))])
-    params = {'thread_id': thread_id}
+    placeholders = ", ".join([f":id_{i}" for i in range(len(tool_call_ids))])
+    params = {"thread_id": thread_id}
     for i, tc_id in enumerate(tool_call_ids):
-        params[f'id_{i}'] = tc_id
-    
+        params[f"id_{i}"] = tc_id
+
     sql = f"""
     UPDATE messages
     SET 
@@ -1224,7 +1221,7 @@ async def mark_tool_results_as_omitted(thread_id: str, tool_call_ids: List[str])
       AND (metadata->>'omitted' IS NULL OR metadata->>'omitted' != 'true')
     RETURNING message_id
     """
-    
+
     try:
         result = await execute_mutate(sql, params)
         return len(result) if result else 0
@@ -1265,41 +1262,41 @@ async def remove_tool_calls_from_assistants(thread_id: str, tool_call_ids: List[
     AND (metadata->>'omitted' IS NULL OR metadata->>'omitted' != 'true')
     ORDER BY created_at ASC
     """
-    messages = await execute(sql, {'thread_id': thread_id})
+    messages = await execute(sql, {"thread_id": thread_id})
 
     for msg in messages:
-        content = msg['content']
+        content = msg["content"]
         if isinstance(content, str):
             content = json.loads(content)
 
-        tool_calls = content.get('tool_calls', [])
+        tool_calls = content.get("tool_calls", [])
         if not tool_calls:
             continue
 
         # Check if any tool_calls match
-        matching = [tc for tc in tool_calls if tc.get('id') in tool_call_id_set]
+        matching = [tc for tc in tool_calls if tc.get("id") in tool_call_id_set]
         if not matching:
             continue
 
         # Remove the matching tool_calls
-        new_tool_calls = [tc for tc in tool_calls if tc.get('id') not in tool_call_id_set]
+        new_tool_calls = [tc for tc in tool_calls if tc.get("id") not in tool_call_id_set]
 
         # Update the content
         new_content = content.copy()
         if new_tool_calls:
-            new_content['tool_calls'] = new_tool_calls
+            new_content["tool_calls"] = new_tool_calls
         else:
             # Remove tool_calls key entirely if empty
-            new_content.pop('tool_calls', None)
+            new_content.pop("tool_calls", None)
 
         # Check if message still has meaningful content
-        has_content = new_content.get('content') and new_content['content'] != ''
-        has_tool_calls = 'tool_calls' in new_content and new_content['tool_calls']
+        has_content = new_content.get("content") and new_content["content"] != ""
+        has_tool_calls = "tool_calls" in new_content and new_content["tool_calls"]
 
         if not has_content and not has_tool_calls:
             # Mark as omitted since it's now empty
-            metadata = msg.get('metadata') or {}
-            metadata['omitted'] = True
+            metadata = msg.get("metadata") or {}
+            metadata["omitted"] = True
 
             await execute_mutate(
                 """
@@ -1307,7 +1304,7 @@ async def remove_tool_calls_from_assistants(thread_id: str, tool_call_ids: List[
                 SET metadata = :metadata, updated_at = NOW()
                 WHERE message_id = :message_id
                 """,
-                {'message_id': msg['message_id'], 'metadata': metadata}
+                {"message_id": msg["message_id"], "metadata": metadata},
             )
         else:
             # Update content to remove tool_calls
@@ -1317,7 +1314,7 @@ async def remove_tool_calls_from_assistants(thread_id: str, tool_call_ids: List[
                 SET content = :content, updated_at = NOW()
                 WHERE message_id = :message_id
                 """,
-                {'message_id': msg['message_id'], 'content': new_content}
+                {"message_id": msg["message_id"], "content": new_content},
             )
 
         updated_count += 1
@@ -1370,30 +1367,34 @@ async def insert_thread(
     account_id: Optional[str] = None,
     project_id: Optional[str] = None,
     is_public: bool = False,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Optional[str]:
     from datetime import datetime, timezone
     import uuid
-    
+
     thread_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
-    
+
     sql = """
     INSERT INTO threads (thread_id, account_id, project_id, is_public, metadata, created_at, updated_at)
     VALUES (:thread_id, :account_id, :project_id, :is_public, :metadata, :created_at, :updated_at)
     RETURNING thread_id
     """
-    
-    result = await execute_one(sql, {
-        "thread_id": thread_id,
-        "account_id": account_id,
-        "project_id": project_id,
-        "is_public": is_public,
-        "metadata": metadata or {},
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "thread_id": thread_id,
+            "account_id": account_id,
+            "project_id": project_id,
+            "is_public": is_public,
+            "metadata": metadata or {},
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     return result["thread_id"] if result else None
 
 
@@ -1406,21 +1407,21 @@ async def insert_message(
     agent_id: Optional[str] = None,
     agent_version_id: Optional[str] = None,
     message_id: Optional[str] = None,
-    created_at: Optional[Any] = None
+    created_at: Optional[Any] = None,
 ) -> Optional[Dict[str, Any]]:
     from datetime import datetime, timezone
     import uuid
-    
+
     if message_id is None:
         message_id = str(uuid.uuid4())
-    
+
     if created_at is None:
         now = datetime.now(timezone.utc)
     elif isinstance(created_at, (int, float)):
         now = datetime.fromtimestamp(created_at, tz=timezone.utc)
     else:
         now = created_at
-    
+
     sql = """
     INSERT INTO messages (
         message_id, thread_id, type, content, is_llm_message, 
@@ -1437,19 +1438,23 @@ async def insert_message(
         agent_version_id = EXCLUDED.agent_version_id
     RETURNING *
     """
-    
-    result = await execute_one(sql, {
-        "message_id": message_id,
-        "thread_id": thread_id,
-        "type": message_type,
-        "content": _sanitize_null_bytes(content),
-        "is_llm_message": is_llm_message,
-        "metadata": _sanitize_null_bytes(metadata or {}),
-        "agent_id": agent_id,
-        "agent_version_id": agent_version_id,
-        "created_at": now
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "message_id": message_id,
+            "thread_id": thread_id,
+            "type": message_type,
+            "content": _sanitize_null_bytes(content),
+            "is_llm_message": is_llm_message,
+            "metadata": _sanitize_null_bytes(metadata or {}),
+            "agent_id": agent_id,
+            "agent_version_id": agent_version_id,
+            "created_at": now,
+        },
+        commit=True,
+    )
+
     # Log DB write for debugging
     content_str = str(content) if content else ""
     llm_debug.log_db_write(
@@ -1461,7 +1466,7 @@ async def insert_message(
         content_preview=content_str[:500] if content_str else None,
         is_llm_message=is_llm_message,
     )
-    
+
     return dict(result) if result else {"message_id": message_id, "thread_id": thread_id}
 
 
@@ -1511,17 +1516,15 @@ async def check_account_user_access(user_id: str, account_id: str) -> bool:
 
 
 async def get_project_threads_paginated(
-    project_id: str,
-    limit: int = 100,
-    offset: int = 0
+    project_id: str, limit: int = 100, offset: int = 0
 ) -> Tuple[List[Dict[str, Any]], int]:
     count_sql = "SELECT COUNT(*) as count FROM threads WHERE project_id = :project_id"
     count_result = await execute_one(count_sql, {"project_id": project_id})
     total_count = count_result["count"] if count_result else 0
-    
+
     if total_count == 0:
         return [], 0
-    
+
     sql = """
     SELECT 
         t.thread_id,
@@ -1539,26 +1542,24 @@ async def get_project_threads_paginated(
     ORDER BY t.created_at DESC
     LIMIT :limit OFFSET :offset
     """
-    
-    rows = await execute(sql, {
-        "project_id": project_id,
-        "limit": limit,
-        "offset": offset
-    })
-    
+
+    rows = await execute(sql, {"project_id": project_id, "limit": limit, "offset": offset})
+
     threads = []
     for row in rows:
-        threads.append({
-            "thread_id": row["thread_id"],
-            "project_id": row["project_id"],
-            "name": row["name"] or "New Chat",
-            "metadata": row["metadata"] or {},
-            "is_public": row["is_public"] or False,
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "message_count": row["message_count"] or 0
-        })
-    
+        threads.append(
+            {
+                "thread_id": row["thread_id"],
+                "project_id": row["project_id"],
+                "name": row["name"] or "New Chat",
+                "metadata": row["metadata"] or {},
+                "is_public": row["is_public"] or False,
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+                "message_count": row["message_count"] or 0,
+            }
+        )
+
     return threads, total_count
 
 
@@ -1601,54 +1602,61 @@ async def get_thread_agent_runs(thread_id: str) -> List[Dict[str, Any]]:
 
 
 async def create_new_thread_with_project(
-    account_id: str,
-    thread_name: str = "New Project"
+    account_id: str, thread_name: str = "New Project"
 ) -> Dict[str, Any]:
     from datetime import datetime, timezone
     import uuid
-    
+
     project_id = str(uuid.uuid4())
     thread_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
-    
+
     project_sql = """
     INSERT INTO projects (project_id, account_id, name, created_at, updated_at)
     VALUES (:project_id, :account_id, :name, :created_at, :updated_at)
     RETURNING *
     """
-    
-    project_result = await execute_one(project_sql, {
-        "project_id": project_id,
-        "account_id": account_id,
-        "name": thread_name,
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    project_result = await execute_one(
+        project_sql,
+        {
+            "project_id": project_id,
+            "account_id": account_id,
+            "name": thread_name,
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     thread_sql = """
     INSERT INTO threads (thread_id, project_id, account_id, name, created_at, updated_at)
     VALUES (:thread_id, :project_id, :account_id, :name, :created_at, :updated_at)
     RETURNING *
     """
-    
-    thread_result = await execute_one(thread_sql, {
-        "thread_id": thread_id,
-        "project_id": project_id,
-        "account_id": account_id,
-        "name": thread_name,
-        "created_at": now,
-        "updated_at": now
-    }, commit=True)
-    
+
+    thread_result = await execute_one(
+        thread_sql,
+        {
+            "thread_id": thread_id,
+            "project_id": project_id,
+            "account_id": account_id,
+            "name": thread_name,
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     if not project_result or not thread_result:
         raise Exception("Failed to create thread and project")
-    
+
     return {
         "thread_id": thread_id,
         "project_id": project_id,
         "name": thread_name,
         "project": serialize_row(dict(project_result)),
-        "thread": serialize_row(dict(thread_result))
+        "thread": serialize_row(dict(thread_result)),
     }
 
 
@@ -1660,25 +1668,24 @@ async def get_project_thread_ids(project_id: str) -> List[str]:
 
 async def delete_project_and_threads(project_id: str) -> bool:
     from core.services.db import execute_mutate
-    
+
     await execute_mutate(
         "DELETE FROM agent_runs WHERE thread_id IN (SELECT thread_id FROM threads WHERE project_id = :project_id)",
-        {"project_id": project_id}
+        {"project_id": project_id},
     )
-    
+
     await execute_mutate(
         "DELETE FROM messages WHERE thread_id IN (SELECT thread_id FROM threads WHERE project_id = :project_id)",
-        {"project_id": project_id}
+        {"project_id": project_id},
     )
-    
+
     await execute_mutate(
-        "DELETE FROM threads WHERE project_id = :project_id",
-        {"project_id": project_id}
+        "DELETE FROM threads WHERE project_id = :project_id", {"project_id": project_id}
     )
-    
+
     result = await execute_mutate(
         "DELETE FROM projects WHERE project_id = :project_id RETURNING project_id",
-        {"project_id": project_id}
+        {"project_id": project_id},
     )
-    
+
     return len(result) > 0 if result else False

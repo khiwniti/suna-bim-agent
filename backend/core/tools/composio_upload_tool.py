@@ -19,7 +19,7 @@ from core.utils.logger import logger
     usage_guide="""### COMPOSIO FILE UPLOAD (for email attachments)
 **PURPOSE:** Upload files from sandbox to Composio S3 storage for attachment with Gmail/email tools.
 **WHEN TO USE:** Before sending emails with attachments via Composio Gmail tools (GMAIL_SEND_EMAIL, GMAIL_CREATE_EMAIL_DRAFT, GMAIL_REPLY_TO_THREAD).
-**WORKFLOW:** 1. Create/prepare file in sandbox. ALWAYS export presentations as .pptx when sending over email. -> 2. Call composio_upload -> 3. Use returned {s3key, mimetype, name} in the email tool's attachment parameter."""
+**WORKFLOW:** 1. Create/prepare file in sandbox. ALWAYS export presentations as .pptx when sending over email. -> 2. Call composio_upload -> 3. Use returned {s3key, mimetype, name} in the email tool's attachment parameter.""",
 )
 class ComposioUploadTool(SandboxToolsBase):
     """Uploads files from the agent sandbox to Composio's S3 storage.
@@ -31,35 +31,37 @@ class ComposioUploadTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_manager: ThreadManager):
         super().__init__(project_id, thread_manager)
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "composio_upload",
-            "description": (
-                "Upload a file from the sandbox to Composio storage for use as an email attachment. "
-                "Returns s3key, mimetype, and name to pass to email tools like GMAIL_SEND_EMAIL."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "Path to the file in the sandbox, relative to /workspace."
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "composio_upload",
+                "description": (
+                    "Upload a file from the sandbox to Composio storage for use as an email attachment. "
+                    "Returns s3key, mimetype, and name to pass to email tools like GMAIL_SEND_EMAIL."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file in the sandbox, relative to /workspace.",
+                        },
+                        "tool_slug": {
+                            "type": "string",
+                            "description": "Target Composio tool slug. Default: GMAIL_SEND_EMAIL",
+                        },
+                        "toolkit_slug": {
+                            "type": "string",
+                            "description": "Target Composio toolkit slug. Default: gmail",
+                        },
                     },
-                    "tool_slug": {
-                        "type": "string",
-                        "description": "Target Composio tool slug. Default: GMAIL_SEND_EMAIL"
-                    },
-                    "toolkit_slug": {
-                        "type": "string",
-                        "description": "Target Composio toolkit slug. Default: gmail"
-                    }
+                    "required": ["file_path"],
+                    "additionalProperties": False,
                 },
-                "required": ["file_path"],
-                "additionalProperties": False
-            }
+            },
         }
-    })
+    )
     async def composio_upload(
         self,
         file_path: str,

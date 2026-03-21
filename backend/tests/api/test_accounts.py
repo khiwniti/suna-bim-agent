@@ -12,9 +12,7 @@ async def test_get_accounts(client: httpx.AsyncClient):
     """GET /accounts returns user accounts"""
     response = await client.get("/accounts")
 
-    assert response.status_code == 200, (
-        f"Expected 200, got {response.status_code}: {response.text}"
-    )
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     data = response.json()
     assert isinstance(data, list), f"Expected list, got {type(data)}"
     # Accounts list can be empty for new users
@@ -26,9 +24,7 @@ async def test_get_account_state(client: httpx.AsyncClient):
     """GET /billing/account-state returns billing information"""
     response = await client.get("/billing/account-state")
 
-    assert response.status_code == 200, (
-        f"Expected 200, got {response.status_code}: {response.text}"
-    )
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
     data = response.json()
 
     # Verify required fields

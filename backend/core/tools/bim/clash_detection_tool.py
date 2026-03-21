@@ -1,4 +1,5 @@
 """Clash detection tool — geometric AABB clash detection between building elements."""
+
 import asyncio
 from typing import Optional
 
@@ -8,14 +9,14 @@ from .base import BIMToolBase, HAS_IFC
 
 # Default half-extents (m) per element type for AABB estimation
 DEFAULT_HALF_EXTENTS = {
-    'IfcWall':   (0.15, 2.0, 3.0),
-    'IfcSlab':   (3.0,  0.2, 3.0),
-    'IfcBeam':   (0.15, 0.3, 2.0),
-    'IfcColumn': (0.3,  3.0, 0.3),
-    'IfcDoor':   (0.05, 1.0, 0.45),
-    'IfcWindow': (0.05, 0.75, 0.6),
-    'IfcPipeSegment': (0.05, 1.0, 0.05),
-    'IfcDuctSegment': (0.2,  1.0, 0.2),
+    "IfcWall": (0.15, 2.0, 3.0),
+    "IfcSlab": (3.0, 0.2, 3.0),
+    "IfcBeam": (0.15, 0.3, 2.0),
+    "IfcColumn": (0.3, 3.0, 0.3),
+    "IfcDoor": (0.05, 1.0, 0.45),
+    "IfcWindow": (0.05, 0.75, 0.6),
+    "IfcPipeSegment": (0.05, 1.0, 0.05),
+    "IfcDuctSegment": (0.2, 1.0, 0.2),
 }
 DEFAULT_HALF_EXTENT = (0.5, 0.5, 0.5)
 
@@ -28,7 +29,7 @@ def _get_location(element) -> Optional[tuple]:
         placement = element.ObjectPlacement
         if placement and placement.RelativePlacement:
             loc = placement.RelativePlacement.Location
-            if loc and hasattr(loc, 'Coordinates'):
+            if loc and hasattr(loc, "Coordinates"):
                 coords = loc.Coordinates
                 return (coords[0], coords[1], coords[2] if len(coords) > 2 else 0.0)
     except Exception:
@@ -55,10 +56,10 @@ def _overlap_volume(c1, h1, c2, h2) -> float:
 
 def _severity(overlap_vol: float) -> str:
     if overlap_vol > 0.1:
-        return 'critical'
+        return "critical"
     if overlap_vol > 0.01:
-        return 'major'
-    return 'minor'
+        return "major"
+    return "minor"
 
 
 @tool_metadata(
@@ -88,30 +89,31 @@ detect_clashes(file_path="/workspace/model.ifc", tolerance=0.01)
 """,
 )
 class ClashDetectionTool(BIMToolBase):
-
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "detect_clashes",
-            "description": "Detect geometric clashes between building elements using bounding-box intersection.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "**REQUIRED** Path to the IFC file in the sandbox",
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "detect_clashes",
+                "description": "Detect geometric clashes between building elements using bounding-box intersection.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "**REQUIRED** Path to the IFC file in the sandbox",
+                        },
+                        "tolerance": {
+                            "type": "number",
+                            "description": "**OPTIONAL** Minimum overlap distance (m) to report as a clash (default 0.01)",
+                            "default": 0.01,
+                        },
                     },
-                    "tolerance": {
-                        "type": "number",
-                        "description": "**OPTIONAL** Minimum overlap distance (m) to report as a clash (default 0.01)",
-                        "default": 0.01,
-                    },
+                    "required": ["file_path"],
+                    "additionalProperties": False,
                 },
-                "required": ["file_path"],
-                "additionalProperties": False,
             },
-        },
-    })
+        }
+    )
     async def detect_clashes(self, file_path: str, tolerance: float = 0.01) -> ToolResult:
         try:
             if not HAS_IFC:
@@ -128,84 +130,90 @@ class ClashDetectionTool(BIMToolBase):
                     loc = _get_location(el)
                     if loc is None:
                         continue
-                    candidates.append({
-                        'info': {
-                            'express_id': el.id(),
-                            'type': ifc_type,
-                            'name': getattr(el, 'Name', None),
-                        },
-                        'center': loc,
-                        'half': half,
-                    })
+                    candidates.append(
+                        {
+                            "info": {
+                                "express_id": el.id(),
+                                "type": ifc_type,
+                                "name": getattr(el, "Name", None),
+                            },
+                            "center": loc,
+                            "half": half,
+                        }
+                    )
 
             # Run the O(n²) AABB loop in a thread so it doesn't block the event loop
             def _run_clash_detection():
                 clashes = []
-                severity_summary = {'critical': 0, 'major': 0, 'minor': 0}
+                severity_summary = {"critical": 0, "major": 0, "minor": 0}
                 clash_id = 0
 
                 for i in range(len(candidates)):
                     for j in range(i + 1, len(candidates)):
                         a, b = candidates[i], candidates[j]
-                        if _aabb_overlap(a['center'], a['half'], b['center'], b['half']):
-                            ovol = _overlap_volume(a['center'], a['half'], b['center'], b['half'])
+                        if _aabb_overlap(a["center"], a["half"], b["center"], b["half"]):
+                            ovol = _overlap_volume(a["center"], a["half"], b["center"], b["half"])
                             if ovol < tolerance:
                                 continue
                             sev = _severity(ovol)
                             severity_summary[sev] += 1
                             clash_id += 1
-                            clashes.append({
-                                'id': f'clash_{clash_id}',
-                                'element1': a['info'],
-                                'element2': b['info'],
-                                'type': 'hard',
-                                'severity': sev,
-                                'overlap_volume_m3': round(ovol, 4),
-                            })
+                            clashes.append(
+                                {
+                                    "id": f"clash_{clash_id}",
+                                    "element1": a["info"],
+                                    "element2": b["info"],
+                                    "type": "hard",
+                                    "severity": sev,
+                                    "overlap_volume_m3": round(ovol, 4),
+                                }
+                            )
                 return clashes, severity_summary
 
             clashes, severity_summary = await asyncio.to_thread(_run_clash_detection)
 
-            return self.success_response({
-                'clash_count': len(clashes),
-                'severity_summary': severity_summary,
-                'clashes': clashes[:200],  # cap output
-                'total_elements_checked': len(candidates),
-            })
+            return self.success_response(
+                {
+                    "clash_count": len(clashes),
+                    "severity_summary": severity_summary,
+                    "clashes": clashes[:200],  # cap output
+                    "total_elements_checked": len(candidates),
+                }
+            )
         except Exception as e:
             logger.error(f"detect_clashes error: {e}")
             return self.fail_response(f"Clash detection failed: {e}")
 
     def _mock_clash_result(self) -> dict:
         return {
-            'note': 'ifcopenshell not installed — returning mock data',
-            'clash_count': 3,
-            'severity_summary': {'critical': 1, 'major': 2, 'minor': 0},
-            'clashes': [
+            "note": "ifcopenshell not installed — returning mock data",
+            "clash_count": 3,
+            "severity_summary": {"critical": 1, "major": 2, "minor": 0},
+            "clashes": [
                 {
-                    'id': 'clash_1',
-                    'element1': {'express_id': 101, 'type': 'IfcBeam',        'name': 'Beam-01'},
-                    'element2': {'express_id': 202, 'type': 'IfcPipeSegment', 'name': 'Pipe-01'},
-                    'type': 'hard',
-                    'severity': 'critical',
-                    'overlap_volume_m3': 0.25,
+                    "id": "clash_1",
+                    "element1": {"express_id": 101, "type": "IfcBeam", "name": "Beam-01"},
+                    "element2": {"express_id": 202, "type": "IfcPipeSegment", "name": "Pipe-01"},
+                    "type": "hard",
+                    "severity": "critical",
+                    "overlap_volume_m3": 0.25,
                 },
                 {
-                    'id': 'clash_2',
-                    'element1': {'express_id': 103, 'type': 'IfcColumn',      'name': 'Col-01'},
-                    'element2': {'express_id': 205, 'type': 'IfcDuctSegment', 'name': 'Duct-02'},
-                    'type': 'hard',
-                    'severity': 'major',
-                    'overlap_volume_m3': 0.05,
+                    "id": "clash_2",
+                    "element1": {"express_id": 103, "type": "IfcColumn", "name": "Col-01"},
+                    "element2": {"express_id": 205, "type": "IfcDuctSegment", "name": "Duct-02"},
+                    "type": "hard",
+                    "severity": "major",
+                    "overlap_volume_m3": 0.05,
                 },
                 {
-                    'id': 'clash_3',
-                    'element1': {'express_id': 150, 'type': 'IfcWall',        'name': 'Wall-05'},
-                    'element2': {'express_id': 210, 'type': 'IfcPipeSegment', 'name': 'Pipe-03'},
-                    'type': 'hard',
-                    'severity': 'major',
-                    'overlap_volume_m3': 0.02,
+                    "id": "clash_3",
+                    "element1": {"express_id": 150, "type": "IfcWall", "name": "Wall-05"},
+                    "element2": {"express_id": 210, "type": "IfcPipeSegment", "name": "Pipe-03"},
+                    "type": "hard",
+                    "severity": "major",
+                    "overlap_volume_m3": 0.02,
                 },
             ],
-            'total_elements_checked': 45,
+            "total_elements_checked": 45,
         }

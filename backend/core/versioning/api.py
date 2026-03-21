@@ -13,10 +13,11 @@ from .version_service import (
     AgentNotFoundError,
     UnauthorizedError,
     InvalidVersionError,
-    VersionConflictError
+    VersionConflictError,
 )
 
 router = APIRouter(tags=["agent-versions"])
+
 
 class CreateVersionRequest(BaseModel):
     system_prompt: str
@@ -58,11 +59,16 @@ class VersionComparisonResponse(BaseModel):
     differences: List[Dict[str, Any]]
 
 
-@router.get("/agents/{agent_id}/versions", response_model=List[VersionResponse], summary="List Agent Versions", operation_id="list_agent_versions")
+@router.get(
+    "/agents/{agent_id}/versions",
+    response_model=List[VersionResponse],
+    summary="List Agent Versions",
+    operation_id="list_agent_versions",
+)
 async def get_versions(
     agent_id: str,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         versions = await version_service.get_all_versions(agent_id, user_id)
@@ -76,12 +82,17 @@ async def get_versions(
         raise HTTPException(status_code=500, detail="Failed to fetch versions")
 
 
-@router.post("/agents/{agent_id}/versions", response_model=VersionResponse, summary="Create Agent Version", operation_id="create_agent_version")
+@router.post(
+    "/agents/{agent_id}/versions",
+    response_model=VersionResponse,
+    summary="Create Agent Version",
+    operation_id="create_agent_version",
+)
 async def create_version(
     agent_id: str,
     request: CreateVersionRequest,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         version = await version_service.create_version(
@@ -93,9 +104,9 @@ async def create_version(
             agentpress_tools=request.agentpress_tools,
             model=request.model,  # Pass model to service
             version_name=request.version_name,
-            change_description=request.description
+            change_description=request.description,
         )
-        
+
         return VersionResponse(**version.to_dict())
     except UnauthorizedError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -108,12 +119,17 @@ async def create_version(
         raise HTTPException(status_code=500, detail=f"Failed to create version: {str(e)}")
 
 
-@router.get("/agents/{agent_id}/versions/{version_id}", response_model=VersionResponse, summary="Get Agent Version", operation_id="get_agent_version")
+@router.get(
+    "/agents/{agent_id}/versions/{version_id}",
+    response_model=VersionResponse,
+    summary="Get Agent Version",
+    operation_id="get_agent_version",
+)
 async def get_version(
     agent_id: str,
     version_id: str,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         version = await version_service.get_version(agent_id, version_id, user_id)
@@ -127,12 +143,16 @@ async def get_version(
         raise HTTPException(status_code=500, detail="Failed to get version")
 
 
-@router.put("/agents/{agent_id}/versions/{version_id}/activate", summary="Activate Agent Version", operation_id="activate_agent_version")
+@router.put(
+    "/agents/{agent_id}/versions/{version_id}/activate",
+    summary="Activate Agent Version",
+    operation_id="activate_agent_version",
+)
 async def activate_version(
     agent_id: str,
     version_id: str,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         await version_service.activate_version(agent_id, version_id, user_id)
@@ -148,23 +168,28 @@ async def activate_version(
         raise HTTPException(status_code=500, detail="Failed to activate version")
 
 
-@router.get("/agents/{agent_id}/versions/{version1_id}/compare/{version2_id}", response_model=VersionComparisonResponse, summary="Compare Agent Versions", operation_id="compare_agent_versions")
+@router.get(
+    "/agents/{agent_id}/versions/{version1_id}/compare/{version2_id}",
+    response_model=VersionComparisonResponse,
+    summary="Compare Agent Versions",
+    operation_id="compare_agent_versions",
+)
 async def compare_versions(
     agent_id: str,
     version1_id: str,
     version2_id: str,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         comparison = await version_service.compare_versions(
             agent_id, version1_id, version2_id, user_id
         )
-        
+
         return VersionComparisonResponse(
-            version1=VersionResponse(**comparison['version1']),
-            version2=VersionResponse(**comparison['version2']),
-            differences=comparison['differences']
+            version1=VersionResponse(**comparison["version1"]),
+            version2=VersionResponse(**comparison["version2"]),
+            differences=comparison["differences"],
         )
     except UnauthorizedError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -175,18 +200,21 @@ async def compare_versions(
         raise HTTPException(status_code=500, detail="Failed to compare versions")
 
 
-@router.post("/agents/{agent_id}/versions/{version_id}/rollback", response_model=VersionResponse, summary="Rollback to Agent Version", operation_id="rollback_to_agent_version")
+@router.post(
+    "/agents/{agent_id}/versions/{version_id}/rollback",
+    response_model=VersionResponse,
+    summary="Rollback to Agent Version",
+    operation_id="rollback_to_agent_version",
+)
 async def rollback_to_version(
     agent_id: str,
     version_id: str,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
-        new_version = await version_service.rollback_to_version(
-            agent_id, version_id, user_id
-        )
-        
+        new_version = await version_service.rollback_to_version(agent_id, version_id, user_id)
+
         return VersionResponse(**new_version.to_dict())
     except UnauthorizedError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -197,13 +225,18 @@ async def rollback_to_version(
         raise HTTPException(status_code=500, detail="Failed to rollback version")
 
 
-@router.put("/agents/{agent_id}/versions/{version_id}/details", response_model=VersionResponse, summary="Update Agent Version Details", operation_id="update_agent_version_details")
+@router.put(
+    "/agents/{agent_id}/versions/{version_id}/details",
+    response_model=VersionResponse,
+    summary="Update Agent Version Details",
+    operation_id="update_agent_version_details",
+)
 async def update_version_details(
     agent_id: str,
     version_id: str,
     request: UpdateVersionDetailsRequest,
     user_id: str = Depends(verify_and_get_user_id_from_jwt),
-    version_service: VersionService = Depends(get_version_service)
+    version_service: VersionService = Depends(get_version_service),
 ):
     try:
         updated_version = await version_service.update_version_details(
@@ -211,9 +244,9 @@ async def update_version_details(
             version_id=version_id,
             user_id=user_id,
             version_name=request.version_name,
-            change_description=request.change_description
+            change_description=request.change_description,
         )
-        
+
         return VersionResponse(**updated_version.to_dict())
     except UnauthorizedError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -226,4 +259,4 @@ async def update_version_details(
 
 def initialize(db_connection=None):
     logger.debug("Versioning API initialized")
-    return router 
+    return router

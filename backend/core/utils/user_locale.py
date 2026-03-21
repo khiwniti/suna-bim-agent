@@ -38,9 +38,7 @@ async def get_user_locale(user_id: str, client=None) -> str:
 
         # Log the full result object for debugging
         logger.debug(f"🔍 RPC result for user {user_id}: {result}")
-        logger.debug(
-            f"🔍 RPC result.data type: {type(result.data)}, value: {result.data}"
-        )
+        logger.debug(f"🔍 RPC result.data type: {type(result.data)}, value: {result.data}")
 
         # Handle the response - result.data should be a dict (JSONB from PostgreSQL)
         # But handle edge cases where it might be a list or other type
@@ -67,9 +65,7 @@ async def get_user_locale(user_id: str, client=None) -> str:
             logger.debug(f"🔍 Extracted locale value: {locale}")
 
             if locale and locale in SUPPORTED_LOCALES:
-                logger.debug(
-                    f"✅ Found user locale preference: {locale} for user {user_id}"
-                )
+                logger.debug(f"✅ Found user locale preference: {locale} for user {user_id}")
                 return locale
             elif locale:
                 logger.warning(

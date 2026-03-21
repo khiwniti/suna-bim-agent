@@ -16,6 +16,5 @@ def _calculate_thread_pool_size() -> int:
 
 
 SETUP_TOOLS_EXECUTOR = ThreadPoolExecutor(
-    max_workers=_calculate_thread_pool_size(),
-    thread_name_prefix="setup_tools"
+    max_workers=_calculate_thread_pool_size(), thread_name_prefix="setup_tools"
 )

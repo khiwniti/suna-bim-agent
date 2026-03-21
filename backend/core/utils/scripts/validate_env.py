@@ -116,9 +116,13 @@ def check_recommended_vars() -> List[str]:
     missing = []
 
     # Check if at least one LLM provider key is set
-    has_llm_key = any(os.getenv(key) for key in ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"])
+    has_llm_key = any(
+        os.getenv(key) for key in ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"]
+    )
     if not has_llm_key:
-        missing.append("At least one LLM API key (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
+        missing.append(
+            "At least one LLM API key (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)"
+        )
 
     # Check other recommended vars
     for var in RECOMMENDED_VARS:
@@ -128,15 +132,11 @@ def check_recommended_vars() -> List[str]:
     return missing
 
 
-def print_summary(
-    missing: List[str],
-    invalid: Dict[str, str],
-    recommended_missing: List[str]
-):
+def print_summary(missing: List[str], invalid: Dict[str, str], recommended_missing: List[str]):
     """Print validation summary."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("Environment Variable Validation Summary")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     # Required variables
     if missing or invalid:
@@ -163,8 +163,10 @@ def print_summary(
 
     print(f"Environment Mode: {env_mode}")
     print(f".env file: {'✅ exists' if os.path.exists(env_file) else '❌ not found'}")
-    print(f".env.local file: {'✅ exists' if os.path.exists(env_local) else '⚠️  not found (recommended)'}")
-    print("\n" + "="*70 + "\n")
+    print(
+        f".env.local file: {'✅ exists' if os.path.exists(env_local) else '⚠️  not found (recommended)'}"
+    )
+    print("\n" + "=" * 70 + "\n")
 
 
 def main():

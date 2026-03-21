@@ -13,6 +13,7 @@ from core.agents.pipeline.stateless.config import config as stateless_config
 if TYPE_CHECKING:
     from core.agents.pipeline.context import PipelineContext
 
+
 @dataclass
 class ToolResult:
     tool_call_id: str
@@ -22,11 +23,13 @@ class ToolResult:
     error: Optional[str] = None
     execution_time_ms: float = 0
 
+
 @dataclass
 class PendingWrite:
     write_type: str
     data: Dict[str, Any]
     created_at: float = field(default_factory=time.time)
+
 
 class RunState:
     MAX_TOOL_RESULTS: ClassVar[int] = stateless_config.MAX_TOOL_RESULTS
@@ -80,11 +83,11 @@ class RunState:
         self._termination_reason: Optional[str] = None
 
         if agent_config:
-            self.agent_id = agent_config.get('agent_id')
-            self.agent_version_id = agent_config.get('current_version_id')
+            self.agent_id = agent_config.get("agent_id")
+            self.agent_version_id = agent_config.get("current_version_id")
 
     @classmethod
-    async def create(cls, ctx: 'PipelineContext') -> 'RunState':
+    async def create(cls, ctx: "PipelineContext") -> "RunState":
         state = cls(
             run_id=ctx.agent_run_id,
             thread_id=ctx.thread_id,
@@ -149,22 +152,20 @@ class RunState:
             from core.billing.credits.integration import billing_integration
             from core.utils.config import config, EnvMode
             from core.agents.pipeline.ux_streaming import stream_user_error
-            
+
             if config.ENV_MODE == EnvMode.LOCAL:
                 logger.debug("[RunState] Skipping credit check in local mode")
                 return
-            
+
             can_run, message, _ = await billing_integration.check_and_reserve_credits(
                 self.account_id, wait_for_cache_ms=3000
             )
-            
+
             if not can_run:
                 logger.error(f"[RunState] {message}")
                 self._terminate(f"insufficient_credits")
                 await stream_user_error(
-                    stream_key=self.stream_key,
-                    error=message,
-                    error_code="INSUFFICIENT_CREDITS"
+                    stream_key=self.stream_key, error=message, error_code="INSUFFICIENT_CREDITS"
                 )
         except Exception as e:
             logger.warning(f"[RunState] Credit check failed: {e}")
@@ -209,7 +210,7 @@ class RunState:
         if self._step_counter >= self.MAX_STEPS:
             self._terminate("max_steps_exceeded")
             return False
-            
+
         return True
 
     def next_step(self) -> int:
@@ -230,7 +231,9 @@ class RunState:
 
     def append_content(self, content: str) -> None:
         if len(self._accumulated_content) + len(content) > self.MAX_CONTENT_LENGTH:
-            logger.warning(f"[RunState] Content length limit reached ({self.MAX_CONTENT_LENGTH}), truncating")
+            logger.warning(
+                f"[RunState] Content length limit reached ({self.MAX_CONTENT_LENGTH}), truncating"
+            )
             remaining = self.MAX_CONTENT_LENGTH - len(self._accumulated_content)
             if remaining > 0:
                 self._accumulated_content += content[:remaining]
@@ -240,7 +243,9 @@ class RunState:
 
     def append_reasoning(self, reasoning: str) -> None:
         if len(self._accumulated_reasoning) + len(reasoning) > self.MAX_CONTENT_LENGTH:
-            logger.warning(f"[RunState] Reasoning length limit reached ({self.MAX_CONTENT_LENGTH}), truncating")
+            logger.warning(
+                f"[RunState] Reasoning length limit reached ({self.MAX_CONTENT_LENGTH}), truncating"
+            )
             remaining = self.MAX_CONTENT_LENGTH - len(self._accumulated_reasoning)
             if remaining > 0:
                 self._accumulated_reasoning += reasoning[:remaining]
@@ -259,31 +264,33 @@ class RunState:
 
         self._last_activity = time.time()
 
-        self._pending_writes.append(PendingWrite(
-            write_type="message",
-            data={
-                "message_id": message_id,
-                "thread_id": self.thread_id,
-                "type": msg.get("_db_type") or msg.get("role", "assistant"),
-                "content": msg,
-                "metadata": metadata or {},
-                "is_llm_message": True,
-                "agent_id": self.agent_id,
-                "agent_version_id": self.agent_version_id,
-            }
-        ))
+        self._pending_writes.append(
+            PendingWrite(
+                write_type="message",
+                data={
+                    "message_id": message_id,
+                    "thread_id": self.thread_id,
+                    "type": msg.get("_db_type") or msg.get("role", "assistant"),
+                    "content": msg,
+                    "metadata": metadata or {},
+                    "is_llm_message": True,
+                    "agent_id": self.agent_id,
+                    "agent_version_id": self.agent_version_id,
+                },
+            )
+        )
 
         self._check_flush_threshold()
         return message_id
 
     def reserve_assistant_message_id(self) -> str:
         return str(uuid.uuid4())
-    
+
     def finalize_assistant_message(
         self,
         tool_calls: Optional[List[Dict[str, Any]]] = None,
         thread_run_id: Optional[str] = None,
-        message_id: Optional[str] = None
+        message_id: Optional[str] = None,
     ) -> str:
         msg = {"role": "assistant", "content": self._accumulated_content or None}
         if tool_calls:
@@ -307,7 +314,7 @@ class RunState:
                     "tool_call_id": tc.get("id"),
                     "function_name": tc.get("function", {}).get("name"),
                     "arguments": args_parsed,
-                    "source": "native"
+                    "source": "native",
                 }
                 unified_tool_calls.append(unified_tc)
             metadata["tool_calls"] = unified_tool_calls
@@ -325,19 +332,21 @@ class RunState:
 
         self._last_activity = time.time()
 
-        self._pending_writes.append(PendingWrite(
-            write_type="message",
-            data={
-                "message_id": actual_message_id,
-                "thread_id": self.thread_id,
-                "type": msg.get("role", "assistant"),
-                "content": msg,
-                "metadata": metadata or {},
-                "is_llm_message": True,
-                "agent_id": self.agent_id,
-                "agent_version_id": self.agent_version_id,
-            }
-        ))
+        self._pending_writes.append(
+            PendingWrite(
+                write_type="message",
+                data={
+                    "message_id": actual_message_id,
+                    "thread_id": self.thread_id,
+                    "type": msg.get("role", "assistant"),
+                    "content": msg,
+                    "metadata": metadata or {},
+                    "is_llm_message": True,
+                    "agent_id": self.agent_id,
+                    "agent_version_id": self.agent_version_id,
+                },
+            )
+        )
 
         self._check_flush_threshold()
         self._accumulated_content = ""
@@ -356,96 +365,110 @@ class RunState:
         self._pending_tool_calls.clear()
         return tools
 
-    def add_status_message(self, content: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None) -> str:
+    def add_status_message(
+        self, content: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
         self._message_counter += 1
         message_id = str(uuid.uuid4())
-        
+
         self._last_activity = time.time()
 
-        self._pending_writes.append(PendingWrite(
-            write_type="message",
-            data={
-                "message_id": message_id,
-                "thread_id": self.thread_id,
-                "type": "status",
-                "content": content,
-                "metadata": metadata or {},
-                "is_llm_message": False,
-                "agent_id": None,
-                "agent_version_id": None,
-            }
-        ))
+        self._pending_writes.append(
+            PendingWrite(
+                write_type="message",
+                data={
+                    "message_id": message_id,
+                    "thread_id": self.thread_id,
+                    "type": "status",
+                    "content": content,
+                    "metadata": metadata or {},
+                    "is_llm_message": False,
+                    "agent_id": None,
+                    "agent_version_id": None,
+                },
+            )
+        )
 
         self._check_flush_threshold()
         return message_id
 
-    def add_llm_response_start(self, llm_response_id: str, auto_continue_count: int, model: str, thread_run_id: str) -> str:
+    def add_llm_response_start(
+        self, llm_response_id: str, auto_continue_count: int, model: str, thread_run_id: str
+    ) -> str:
         self._message_counter += 1
         message_id = str(uuid.uuid4())
-        
+
         content = {
             "llm_response_id": llm_response_id,
             "auto_continue_count": auto_continue_count,
             "model": model,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000000+00:00", time.gmtime())
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000000+00:00", time.gmtime()),
         }
-        
-        metadata = {
-            "thread_run_id": thread_run_id,
-            "llm_response_id": llm_response_id
-        }
-        
+
+        metadata = {"thread_run_id": thread_run_id, "llm_response_id": llm_response_id}
+
         self._last_activity = time.time()
 
-        self._pending_writes.append(PendingWrite(
-            write_type="message",
-            data={
-                "message_id": message_id,
-                "thread_id": self.thread_id,
-                "type": "llm_response_start",
-                "content": content,
-                "metadata": metadata,
-                "is_llm_message": False,
-                "agent_id": None,
-                "agent_version_id": None,
-            }
-        ))
+        self._pending_writes.append(
+            PendingWrite(
+                write_type="message",
+                data={
+                    "message_id": message_id,
+                    "thread_id": self.thread_id,
+                    "type": "llm_response_start",
+                    "content": content,
+                    "metadata": metadata,
+                    "is_llm_message": False,
+                    "agent_id": None,
+                    "agent_version_id": None,
+                },
+            )
+        )
 
         self._check_flush_threshold()
         return message_id
 
-    def add_llm_response_end(self, llm_response_id: str, thread_run_id: str, response_data: Optional[Dict[str, Any]] = None) -> str:
+    def add_llm_response_end(
+        self,
+        llm_response_id: str,
+        thread_run_id: str,
+        response_data: Optional[Dict[str, Any]] = None,
+    ) -> str:
         self._message_counter += 1
         message_id = str(uuid.uuid4())
-        
+
         content = response_data or {}
         content["llm_response_id"] = llm_response_id
-        
-        metadata = {
-            "thread_run_id": thread_run_id,
-            "llm_response_id": llm_response_id
-        }
-        
+
+        metadata = {"thread_run_id": thread_run_id, "llm_response_id": llm_response_id}
+
         self._last_activity = time.time()
 
-        self._pending_writes.append(PendingWrite(
-            write_type="message",
-            data={
-                "message_id": message_id,
-                "thread_id": self.thread_id,
-                "type": "llm_response_end",
-                "content": content,
-                "metadata": metadata,
-                "is_llm_message": False,
-                "agent_id": None,
-                "agent_version_id": None,
-            }
-        ))
+        self._pending_writes.append(
+            PendingWrite(
+                write_type="message",
+                data={
+                    "message_id": message_id,
+                    "thread_id": self.thread_id,
+                    "type": "llm_response_end",
+                    "content": content,
+                    "metadata": metadata,
+                    "is_llm_message": False,
+                    "agent_id": None,
+                    "agent_version_id": None,
+                },
+            )
+        )
 
         self._check_flush_threshold()
         return message_id
 
-    def record_tool_result(self, result: ToolResult, assistant_message_id: Optional[str] = None, defer_message: bool = False) -> None:
+    def record_tool_result(
+        self,
+        result: ToolResult,
+        assistant_message_id: Optional[str] = None,
+        defer_message: bool = False,
+    ) -> None:
         while len(self._tool_results) >= self.MAX_TOOL_RESULTS:
             self._tool_results.popitem(last=False)
 
@@ -458,7 +481,9 @@ class RunState:
 
         self._add_tool_result_message(result, assistant_message_id)
 
-    def _add_tool_result_message(self, result: ToolResult, assistant_message_id: Optional[str] = None) -> str:
+    def _add_tool_result_message(
+        self, result: ToolResult, assistant_message_id: Optional[str] = None
+    ) -> str:
         output_for_metadata = result.output
         if isinstance(result.output, str):
             content_value = result.output
@@ -480,31 +505,34 @@ class RunState:
         structured_result = {
             "success": result.success,
             "output": output_for_metadata,
-            "error": result.error
+            "error": result.error,
         }
 
         metadata = {
             "tool_call_id": result.tool_call_id,
             "function_name": result.tool_name,
             "result": structured_result,
-            "return_format": "native"
+            "return_format": "native",
         }
         if assistant_message_id:
             metadata["assistant_message_id"] = assistant_message_id
 
-        return self.add_message({
-            "role": "tool",
-            "tool_call_id": result.tool_call_id,
-            "name": result.tool_name,
-            "content": content_value,
-        }, metadata)
+        return self.add_message(
+            {
+                "role": "tool",
+                "tool_call_id": result.tool_call_id,
+                "name": result.tool_name,
+                "content": content_value,
+            },
+            metadata,
+        )
 
     def commit_deferred_tool_results(self) -> int:
         count = 0
         for result, assistant_message_id in self._deferred_tool_results:
             self._add_tool_result_message(result, assistant_message_id)
             count += 1
-        
+
         self._deferred_tool_results.clear()
         return count
 
@@ -527,6 +555,7 @@ class RunState:
             task.add_done_callback(lambda t: self._flush_tasks.discard(t))
 
             from core.agents.pipeline.stateless.metrics import metrics
+
             metrics.flush_tasks_active.set(len(self._flush_tasks))
 
     async def flush(self) -> int:
@@ -544,12 +573,15 @@ class RunState:
 
             try:
                 for w in writes:
-                    write_type = WriteType.MESSAGE if w.write_type == "message" else WriteType.CREDIT
+                    write_type = (
+                        WriteType.MESSAGE if w.write_type == "message" else WriteType.CREDIT
+                    )
                     await wal.append(self.run_id, write_type, w.data)
 
                 result = await batch_writer.flush_run(self.run_id, self.account_id)
 
                 from core.agents.pipeline.stateless.metrics import metrics
+
                 metrics.record_writes_flushed(result.success_count, result.duration_ms / 1000)
 
                 if result.dlq_count > 0:
@@ -560,7 +592,9 @@ class RunState:
             except Exception as e:
                 logger.error(f"[RunState] Flush failed: {e}")
                 for w in writes:
-                    write_type = WriteType.MESSAGE if w.write_type == "message" else WriteType.CREDIT
+                    write_type = (
+                        WriteType.MESSAGE if w.write_type == "message" else WriteType.CREDIT
+                    )
                     try:
                         await wal.append(self.run_id, write_type, w.data)
                     except Exception as wal_error:

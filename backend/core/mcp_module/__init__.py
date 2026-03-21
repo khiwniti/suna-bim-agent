@@ -1,12 +1,10 @@
 from .mcp_service import (
     MCPService,
     mcp_service,
-
     MCPServerInfo,  # New: metadata-only, no active session
     MCPConnection,  # Backwards compat alias for MCPServerInfo
     ToolExecutionResult,
     CustomMCPConnectionResult,
-
     MCPException,
     MCPConnectionError,
     MCPToolNotFoundError,
@@ -31,5 +29,5 @@ __all__ = [
     "MCPProviderError",
     "MCPConfigurationError",
     "MCPAuthenticationError",
-    "CustomMCPError"
-] 
+    "CustomMCPError",
+]

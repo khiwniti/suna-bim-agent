@@ -6,6 +6,7 @@ from collections import deque
 
 from core.agents.pipeline.stateless.config import config as stateless_config
 
+
 class AsyncCounter:
     def __init__(self, name: str):
         self.name = name
@@ -137,7 +138,9 @@ class Gauge:
 @dataclass
 class Histogram:
     name: str
-    buckets: List[float] = field(default_factory=lambda: [0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 30.0, 60.0])
+    buckets: List[float] = field(
+        default_factory=lambda: [0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 30.0, 60.0]
+    )
     observations: deque = field(default_factory=lambda: deque(maxlen=1000))
 
     def observe(self, v: float) -> None:
@@ -191,9 +194,15 @@ class Metrics:
         self.runs_evicted = Counter("suna_runs_evicted")
         self.stale_runs_cleaned = Counter("suna_stale_runs_cleaned")
 
-        self.run_duration = Histogram("suna_run_duration_seconds", [1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600])
-        self.flush_latency = Histogram("suna_flush_latency_seconds", [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0])
-        self.step_latency = Histogram("suna_step_latency_seconds", [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0])
+        self.run_duration = Histogram(
+            "suna_run_duration_seconds", [1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+        )
+        self.flush_latency = Histogram(
+            "suna_flush_latency_seconds", [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+        )
+        self.step_latency = Histogram(
+            "suna_step_latency_seconds", [0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+        )
 
         self._async_active_runs = AsyncGauge("suna_active_runs_async")
         self._async_pending_writes = AsyncGauge("suna_pending_writes_async")
@@ -235,7 +244,9 @@ class Metrics:
     def record_heartbeat_failure(self) -> None:
         self.heartbeat_failures.inc()
 
-    def update_heartbeat_health(self, healthy: int, warning: int, critical: int, worst_age: float) -> None:
+    def update_heartbeat_health(
+        self, healthy: int, warning: int, critical: int, worst_age: float
+    ) -> None:
         """Update heartbeat health gauges."""
         self.heartbeat_healthy_runs.set(healthy)
         self.heartbeat_warning_runs.set(warning)
@@ -300,9 +311,15 @@ class Metrics:
             lines.append(f"{g.name} {g.get()}")
 
         counters = [
-            self.runs_started, self.runs_completed, self.runs_failed,
-            self.runs_recovered, self.runs_rejected, self.writes_flushed,
-            self.writes_dropped, self.wal_appends, self.dlq_entries,
+            self.runs_started,
+            self.runs_completed,
+            self.runs_failed,
+            self.runs_recovered,
+            self.runs_rejected,
+            self.writes_flushed,
+            self.writes_dropped,
+            self.wal_appends,
+            self.dlq_entries,
         ]
         for c in counters:
             lines.append(f"# TYPE {c.name} counter")
@@ -319,87 +336,112 @@ class Metrics:
         alerts = []
 
         if self.pending_writes.get() > stateless_config.PENDING_WRITES_WARNING_THRESHOLD:
-            alerts.append({
-                "level": "warning",
-                "metric": "pending_writes",
-                "value": self.pending_writes.get(),
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "pending_writes",
+                    "value": self.pending_writes.get(),
+                }
+            )
 
-        if self.flush_latency.percentile(99) > stateless_config.FLUSH_LATENCY_WARNING_THRESHOLD_SECONDS:
-            alerts.append({
-                "level": "warning",
-                "metric": "flush_latency_p99",
-                "value": self.flush_latency.percentile(99),
-            })
+        if (
+            self.flush_latency.percentile(99)
+            > stateless_config.FLUSH_LATENCY_WARNING_THRESHOLD_SECONDS
+        ):
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "flush_latency_p99",
+                    "value": self.flush_latency.percentile(99),
+                }
+            )
 
         if self.active_runs.get() > stateless_config.ACTIVE_RUNS_WARNING_THRESHOLD:
-            alerts.append({
-                "level": "warning",
-                "metric": "active_runs",
-                "value": self.active_runs.get(),
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "active_runs",
+                    "value": self.active_runs.get(),
+                }
+            )
 
         if self.flush_tasks_active.get() > stateless_config.MAX_FLUSH_TASKS:
-            alerts.append({
-                "level": "critical",
-                "metric": "flush_tasks_leak",
-                "value": self.flush_tasks_active.get(),
-            })
+            alerts.append(
+                {
+                    "level": "critical",
+                    "metric": "flush_tasks_leak",
+                    "value": self.flush_tasks_active.get(),
+                }
+            )
 
         if self.thread_locks_count.get() > stateless_config.MAX_THREAD_LOCKS * 0.9:
-            alerts.append({
-                "level": "warning",
-                "metric": "thread_locks_high",
-                "value": self.thread_locks_count.get(),
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "thread_locks_high",
+                    "value": self.thread_locks_count.get(),
+                }
+            )
 
         if self.writes_dropped.get() > 0:
-            alerts.append({
-                "level": "critical",
-                "metric": "writes_dropped",
-                "value": self.writes_dropped.get(),
-            })
+            alerts.append(
+                {
+                    "level": "critical",
+                    "metric": "writes_dropped",
+                    "value": self.writes_dropped.get(),
+                }
+            )
 
         if self.dlq_entries.get() > 0:
-            alerts.append({
-                "level": "warning",
-                "metric": "dlq_entries",
-                "value": self.dlq_entries.get(),
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "dlq_entries",
+                    "value": self.dlq_entries.get(),
+                }
+            )
 
         # Heartbeat health alerts
         if self.heartbeat_critical_runs.get() > 0:
-            alerts.append({
-                "level": "critical",
-                "metric": "heartbeat_critical_runs",
-                "value": self.heartbeat_critical_runs.get(),
-                "message": f"{int(self.heartbeat_critical_runs.get())} runs at risk of orphan takeover",
-            })
-        
+            alerts.append(
+                {
+                    "level": "critical",
+                    "metric": "heartbeat_critical_runs",
+                    "value": self.heartbeat_critical_runs.get(),
+                    "message": f"{int(self.heartbeat_critical_runs.get())} runs at risk of orphan takeover",
+                }
+            )
+
         if self.heartbeat_warning_runs.get() > 0:
-            alerts.append({
-                "level": "warning",
-                "metric": "heartbeat_warning_runs",
-                "value": self.heartbeat_warning_runs.get(),
-                "message": f"{int(self.heartbeat_warning_runs.get())} runs with degraded heartbeats",
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "heartbeat_warning_runs",
+                    "value": self.heartbeat_warning_runs.get(),
+                    "message": f"{int(self.heartbeat_warning_runs.get())} runs with degraded heartbeats",
+                }
+            )
 
         max_runs = self.buffered_runs_max.get()
         if max_runs > 0 and self.buffered_runs.get() > max_runs * 0.8:
-            alerts.append({
-                "level": "warning",
-                "metric": "buffered_runs_high",
-                "value": self.buffered_runs.get(),
-                "message": f"Buffered runs at {self.buffered_runs.get()}/{int(max_runs)} (80% threshold)",
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "buffered_runs_high",
+                    "value": self.buffered_runs.get(),
+                    "message": f"Buffered runs at {self.buffered_runs.get()}/{int(max_runs)} (80% threshold)",
+                }
+            )
 
         if self.runs_evicted.get() > 0:
-            alerts.append({
-                "level": "warning",
-                "metric": "runs_evicted",
-                "value": self.runs_evicted.get(),
-                "message": f"{self.runs_evicted.get()} runs evicted due to memory pressure",
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "metric": "runs_evicted",
+                    "value": self.runs_evicted.get(),
+                    "message": f"{self.runs_evicted.get()} runs evicted due to memory pressure",
+                }
+            )
 
         critical_alerts = [a for a in alerts if a.get("level") == "critical"]
 

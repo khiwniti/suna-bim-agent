@@ -5,7 +5,7 @@ from .mcp_server_service import MCPServerService, MCPServer, MCPUrlResponse
 from .composio_service import (
     ComposioIntegrationService,
     ComposioIntegrationResult,
-    get_integration_service
+    get_integration_service,
 )
 from .composio_profile_service import ComposioProfileService, ComposioProfile
 from .client import ComposioClient, get_composio_client
@@ -13,7 +13,7 @@ from .client import ComposioClient, get_composio_client
 __all__ = [
     "ToolkitService",
     "ToolkitInfo",
-    "AuthConfigService", 
+    "AuthConfigService",
     "AuthConfig",
     "ConnectedAccountService",
     "ConnectedAccount",
@@ -26,5 +26,5 @@ __all__ = [
     "ComposioProfileService",
     "ComposioProfile",
     "ComposioClient",
-    "get_composio_client"
-] 
+    "get_composio_client",
+]

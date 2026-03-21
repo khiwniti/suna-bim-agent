@@ -1,4 +1,3 @@
-
 import json
 import os
 import sys
@@ -50,6 +49,7 @@ except ImportError:
 @dataclass
 class TextElement:
     """Text element information for editable text boxes with enhanced styling"""
+
     text: str
     x: float
     y: float
@@ -67,54 +67,64 @@ class TextElement:
 
 class CSSParser:
     """Parse CSS styles and convert values to appropriate units"""
-    
+
     @staticmethod
     def parse_color(color_str: str) -> Tuple[int, int, int]:
         """Parse CSS color string to RGB tuple"""
         if not color_str:
             return (0, 0, 0)
-        
+
         color_str = color_str.strip().lower()
-        
+
         # Handle hex colors
-        if color_str.startswith('#'):
+        if color_str.startswith("#"):
             hex_color = color_str[1:]
             if len(hex_color) == 3:
-                hex_color = ''.join([c*2 for c in hex_color])
+                hex_color = "".join([c * 2 for c in hex_color])
             try:
-                return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+                return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
             except ValueError:
                 return (0, 0, 0)
-        
+
         # Handle rgb() colors
-        rgb_match = re.match(r'rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', color_str)
+        rgb_match = re.match(r"rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)", color_str)
         if rgb_match:
             return tuple(int(x) for x in rgb_match.groups())
-        
+
         # Handle rgba() colors (ignore alpha for now)
-        rgba_match = re.match(r'rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)', color_str)
+        rgba_match = re.match(
+            r"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)", color_str
+        )
         if rgba_match:
             return tuple(int(x) for x in rgba_match.groups())
-        
+
         # Named colors
         named_colors = {
-            'black': (0, 0, 0), 'white': (255, 255, 255), 'red': (255, 0, 0),
-            'green': (0, 128, 0), 'blue': (0, 0, 255), 'yellow': (255, 255, 0),
-            'cyan': (0, 255, 255), 'magenta': (255, 0, 255), 'gray': (128, 128, 128),
-            'grey': (128, 128, 128), 'orange': (255, 165, 0), 'purple': (128, 0, 128)
+            "black": (0, 0, 0),
+            "white": (255, 255, 255),
+            "red": (255, 0, 0),
+            "green": (0, 128, 0),
+            "blue": (0, 0, 255),
+            "yellow": (255, 255, 0),
+            "cyan": (0, 255, 255),
+            "magenta": (255, 0, 255),
+            "gray": (128, 128, 128),
+            "grey": (128, 128, 128),
+            "orange": (255, 165, 0),
+            "purple": (128, 0, 128),
         }
-        
+
         return named_colors.get(color_str, (0, 0, 0))
-    
+
     @staticmethod
     def parse_font_weight(weight_str: str) -> bool:
         """Parse font weight to bold boolean"""
         if not weight_str:
             return False
-        
+
         weight_str = weight_str.strip().lower()
-        bold_weights = ['bold', 'bolder', '700', '800', '900']
-        
+        bold_weights = ["bold", "bolder", "700", "800", "900"]
+
         return weight_str in bold_weights or (weight_str.isdigit() and int(weight_str) >= 700)
 
 
@@ -122,7 +132,7 @@ class PerfectHTMLToPPTXConverter:
     def __init__(self, presentation_dir: str, output_path: str = None):
         """
         Initialize the perfect converter.
-        
+
         Args:
             presentation_dir: Directory containing metadata.json and HTML slides
             output_path: Output PPTX file path (optional)
@@ -132,29 +142,29 @@ class PerfectHTMLToPPTXConverter:
         self.output_path = output_path
         self.metadata = None
         self.slides_info = []
-        
+
         # Validate inputs
         if not self.presentation_dir.exists():
             raise FileNotFoundError(f"Presentation directory not found: {self.presentation_dir}")
-        
+
         if not self.metadata_path.exists():
             raise FileNotFoundError(f"metadata.json not found in: {self.presentation_dir}")
-    
+
     def load_metadata(self) -> Dict:
         """Load and parse metadata.json"""
         try:
-            with open(self.metadata_path, 'r', encoding='utf-8') as f:
+            with open(self.metadata_path, "r", encoding="utf-8") as f:
                 self.metadata = json.load(f)
-            
+
             # Extract slide information and sort by slide number
-            slides = self.metadata.get('slides', {})
+            slides = self.metadata.get("slides", {})
             self.slides_info = []
-            
+
             for slide_num, slide_data in slides.items():
-                filename = slide_data.get('filename')
-                file_path = slide_data.get('file_path')
-                title = slide_data.get('title', f'Slide {slide_num}')
-                
+                filename = slide_data.get("filename")
+                file_path = slide_data.get("file_path")
+                title = slide_data.get("title", f"Slide {slide_num}")
+
                 if file_path:
                     # Handle both absolute and relative paths
                     print(f"file_path: {file_path}")
@@ -163,57 +173,59 @@ class PerfectHTMLToPPTXConverter:
                     else:
                         html_path = Path(f"{file_path}")
                         print(f"html_path: {html_path}")
-                    
+
                     # Verify the path exists
                     if html_path.exists():
-                        self.slides_info.append({
-                            'number': int(slide_num),
-                            'title': title,
-                            'filename': filename,
-                            'path': html_path
-                        })
-            
+                        self.slides_info.append(
+                            {
+                                "number": int(slide_num),
+                                "title": title,
+                                "filename": filename,
+                                "path": html_path,
+                            }
+                        )
+
             # Sort slides by number
-            self.slides_info.sort(key=lambda x: x['number'])
-            
+            self.slides_info.sort(key=lambda x: x["number"])
+
             if not self.slides_info:
                 print(f"---")
                 raise ValueError("No valid slides found in metadata.json")
-            
+
             # Set default output path if not provided
             if not self.output_path:
-                presentation_name = self.metadata.get('presentation_name', 'presentation')
+                presentation_name = self.metadata.get("presentation_name", "presentation")
                 self.output_path = self.presentation_dir / f"{presentation_name}_perfect.pptx"
             else:
                 self.output_path = Path(self.output_path).resolve()
-            
+
             print(f"Loaded {len(self.slides_info)} slides from metadata")
             return self.metadata
-            
+
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in metadata.json: {e}")
         except Exception as e:
             raise ValueError(f"Error loading metadata: {e}")
-    
+
     async def capture_perfect_background(self, browser, html_path: Path, temp_dir: Path) -> Path:
         """
         Capture the entire slide as a perfect background image with text made transparent.
-        
+
         Args:
             browser: Playwright browser instance
             html_path: Path to HTML file
             temp_dir: Temporary directory for images
-            
+
         Returns:
             Path to the perfect background image
         """
         page = await browser.new_page()
-        
+
         try:
             # Set exact viewport dimensions
             await page.set_viewport_size({"width": 1920, "height": 1080})
-            await page.emulate_media(media='screen')
-            
+            await page.emulate_media(media="screen")
+
             # Force device pixel ratio to 1 for exact measurements
             await page.evaluate(r"""
                 () => {
@@ -222,14 +234,14 @@ class PerfectHTMLToPPTXConverter:
                     });
                 }
             """)
-            
+
             # Navigate to HTML file
             file_url = f"file://{html_path.resolve()}"
             await page.goto(file_url, wait_until="networkidle", timeout=30000)
-            
+
             # Wait for fonts and content to load
             await page.wait_for_timeout(5000)
-            
+
             # Make ALL text transparent while preserving layout and everything else
             await page.evaluate(r"""
                 () => {
@@ -266,45 +278,45 @@ class PerfectHTMLToPPTXConverter:
                     console.log('Made all text transparent while preserving visual elements');
                 }
             """)
-            
+
             # Wait for changes to apply
             await page.wait_for_timeout(2000)
-            
+
             # Take perfect screenshot
             background_path = temp_dir / f"perfect_background_{html_path.stem}.png"
             await page.screenshot(
                 path=str(background_path),
                 full_page=False,
-                clip={"x": 0, "y": 0, "width": 1920, "height": 1080}
+                clip={"x": 0, "y": 0, "width": 1920, "height": 1080},
             )
-            
+
             print(f"    ✓ Captured perfect background: {background_path.name}")
             return background_path
-            
+
         except Exception as e:
             raise RuntimeError(f"Error capturing perfect background: {e}")
         finally:
             await page.close()
-    
+
     async def extract_visual_elements(self, page, html_path: Path, temp_dir: Path) -> List[Dict]:
         """Extract all visual elements (non-text) as individual images with positioning."""
         visual_elements = []
-        
+
         try:
             # Set viewport and load HTML
             await page.set_viewport_size({"width": 1920, "height": 1080})
-            await page.emulate_media(media='screen')
-            
+            await page.emulate_media(media="screen")
+
             # Use file:// URL instead of set_content to preserve relative paths
             file_url = f"file://{html_path.resolve()}"
             await page.goto(file_url, wait_until="networkidle", timeout=25000)
             await page.wait_for_timeout(1000)
-            
+
             def handle_console(msg):
                 print(f"BROWSER CONSOLE: {msg.text}")
 
             page.on("console", handle_console)
-            
+
             # Step 1: First extract icons BEFORE making text transparent
             icon_data = await page.evaluate(r"""
                 () => {
@@ -397,57 +409,57 @@ class PerfectHTMLToPPTXConverter:
                     return allIconElements;
                 }
             """)
-            
+
             # Capture icons as visual elements
             print(f"🔍 Total icon elements found: {len(icon_data) if icon_data else 0}")
             icon_visual_elements = []
-            
+
             for i, data in enumerate(icon_data or []):
-                if data and data['type'] == 'icon':
+                if data and data["type"] == "icon":
                     try:
                         # Ensure coordinates are within viewport bounds
-                        x = max(0, min(data['x'], 1920))
-                        y = max(0, min(data['y'], 1080))
-                        width = min(data['width'], 1920 - x)
-                        height = min(data['height'], 1080 - y)
-                        
+                        x = max(0, min(data["x"], 1920))
+                        y = max(0, min(data["y"], 1080))
+                        width = min(data["width"], 1920 - x)
+                        height = min(data["height"], 1080 - y)
+
                         # Skip if area is too small
                         if width < 5 or height < 5:
                             continue
-                        
+
                         # Capture the icon with transparency support for SVGs
                         element_path = temp_dir / f"icon_element_{html_path.stem}_{i:03d}.png"
-                        
+
                         # For SVG icons, we want to capture them with transparent background
                         screenshot_options = {
-                            'path': str(element_path),
-                            'full_page': False,
-                            'clip': {"x": x, "y": y, "width": width, "height": height}
+                            "path": str(element_path),
+                            "full_page": False,
+                            "clip": {"x": x, "y": y, "width": width, "height": height},
                         }
-                        
+
                         # Add transparency support for SVG icons
-                        if data.get('isSvg', False):
-                            screenshot_options['omit_background'] = True
-                        
+                        if data.get("isSvg", False):
+                            screenshot_options["omit_background"] = True
+
                         await page.screenshot(**screenshot_options)
-                        
+
                         icon_element = {
-                            'type': 'visual',  # Treat as visual element for consistency
-                            'x': data['x'],
-                            'y': data['y'],
-                            'width': data['width'],
-                            'height': data['height'],
-                            'tag': data['tag'],
-                            'image_path': element_path,
-                            'depth': data['depth'],
-                            'isIcon': True
+                            "type": "visual",  # Treat as visual element for consistency
+                            "x": data["x"],
+                            "y": data["y"],
+                            "width": data["width"],
+                            "height": data["height"],
+                            "tag": data["tag"],
+                            "image_path": element_path,
+                            "depth": data["depth"],
+                            "isIcon": True,
                         }
-                        
+
                         icon_visual_elements.append(icon_element)
-                        
+
                     except Exception as e:
                         print(f"Failed to capture icon element {i}: {e}")
-            
+
             # Step 2: Now make all text transparent while preserving visual styling
             await page.evaluate(r"""
                 () => {
@@ -471,9 +483,9 @@ class PerfectHTMLToPPTXConverter:
                     makeTextTransparent(document.body);
                 }
             """)
-            
+
             await page.wait_for_timeout(500)
-            
+
             # Step 3: Extract other visual elements by depth and visual properties
             visual_data = await page.evaluate(r"""
     () => {
@@ -630,34 +642,37 @@ class PerfectHTMLToPPTXConverter:
         return allVisualElements;
     }
 """)
-            
+
             # Debug: Log what we found in Python console
             print(f"🔍 Total visual elements found: {len(visual_data) if visual_data else 0}")
             if visual_data:
                 for i, data in enumerate(visual_data):  # Show first 5
                     print(f"🔍 Element {i}: {data['tag']} - {data.get('className', 'No class')}")
-                    print(f"   Position: ({data['x']}, {data['y']}) {data['width']}x{data['height']}")
+                    print(
+                        f"   Position: ({data['x']}, {data['y']}) {data['width']}x{data['height']}"
+                    )
                     print(f"   Has background: {data.get('hasBackground', False)}")
                     print(f"   Has border: {data.get('hasBorder', False)}")
                     print(f"   Has shadow: {data.get('hasShadow', False)}")
                     print("--- 🔍", data)
-            
+
             # Step 3: Capture each visual element as an image
             for i, data in enumerate(visual_data or []):
-                if data and data['type'] == 'visual':
+                if data and data["type"] == "visual":
                     try:
                         # Ensure coordinates are within viewport bounds
-                        x = max(0, min(data['x'], 1920))
-                        y = max(0, min(data['y'], 1080))
-                        width = min(data['width'], 1920 - x)
-                        height = min(data['height'], 1920 - y)
-                        
+                        x = max(0, min(data["x"], 1920))
+                        y = max(0, min(data["y"], 1080))
+                        width = min(data["width"], 1920 - x)
+                        height = min(data["height"], 1920 - y)
+
                         # Skip if area is too small
                         if width < 5 or height < 5:
                             continue
-                        
+
                         # Clone element and capture in isolation
-                        clone_result = await page.evaluate(r"""
+                        clone_result = await page.evaluate(
+                            r"""
                             (elementData) => {
                                 // Find the element by its unique capture ID
                                 const targetElement = document.querySelector(`[data-capture-id="${elementData.captureId}"]`);
@@ -742,15 +757,17 @@ class PerfectHTMLToPPTXConverter:
                                     return { success: false, error: error.message };
                                 }
                             }
-                        """, data)
-                        
-                        if not clone_result.get('success'):
+                        """,
+                            data,
+                        )
+
+                        if not clone_result.get("success"):
                             print(f"Failed to clone element: {clone_result.get('error')}")
                             continue
-                        
+
                         # Wait a moment for styles to apply
                         await page.wait_for_timeout(100)
-                        
+
                         # Hide main content and ensure transparent background for perfect isolation
                         await page.evaluate(f"""
                             () => {{
@@ -766,29 +783,29 @@ class PerfectHTMLToPPTXConverter:
                                 document.body.style.visibility = 'hidden';
                                 
                                 // Make sure our container stays visible
-                                const container = document.getElementById('{clone_result['containerId']}');
+                                const container = document.getElementById('{clone_result["containerId"]}');
                                 if (container) {{
                                     container.style.visibility = 'visible';
                                 }}
                             }}
                         """)
-                        
+
                         # Capture the isolated cloned element with transparency
                         element_path = temp_dir / f"visual_element_{html_path.stem}_{i:03d}.png"
-                        container_rect = clone_result['containerRect']
-                        
+                        container_rect = clone_result["containerRect"]
+
                         await page.screenshot(
                             path=str(element_path),
                             full_page=False,
                             omit_background=True,  # 🚀 Preserves transparency!
                             clip={
-                                "x": container_rect['x'], 
-                                "y": container_rect['y'], 
-                                "width": container_rect['width'], 
-                                "height": container_rect['height']
-                            }
+                                "x": container_rect["x"],
+                                "y": container_rect["y"],
+                                "width": container_rect["width"],
+                                "height": container_rect["height"],
+                            },
                         )
-                        
+
                         # Restore backgrounds, visibility and clean up
                         await page.evaluate(f"""
                             () => {{
@@ -800,29 +817,29 @@ class PerfectHTMLToPPTXConverter:
                                 document.body.style.visibility = 'visible';
                                 
                                 // Remove the cloned container
-                                const container = document.getElementById('{clone_result['containerId']}');
+                                const container = document.getElementById('{clone_result["containerId"]}');
                                 if (container) {{
                                     container.remove();
                                 }}
                             }}
                         """)
-                        
+
                         visual_element = {
-                            'type': 'visual',
-                            'x': data['x'],
-                            'y': data['y'],
-                            'width': data['width'],
-                            'height': data['height'],
-                            'tag': data['tag'],
-                            'image_path': element_path,
-                            'depth': data['depth'],
-                            'hasBackground': data.get('hasBackground', False),
-                            'hasBorder': data.get('hasBorder', False),
-                            'hasShadow': data.get('hasShadow', False)
+                            "type": "visual",
+                            "x": data["x"],
+                            "y": data["y"],
+                            "width": data["width"],
+                            "height": data["height"],
+                            "tag": data["tag"],
+                            "image_path": element_path,
+                            "depth": data["depth"],
+                            "hasBackground": data.get("hasBackground", False),
+                            "hasBorder": data.get("hasBorder", False),
+                            "hasShadow": data.get("hasShadow", False),
                         }
-                        
+
                         visual_elements.append(visual_element)
-                        
+
                     except Exception as e:
                         print(f"Failed to capture visual element {i}: {e}")
                         # Ensure we restore backgrounds and visibility even if capture fails
@@ -844,12 +861,12 @@ class PerfectHTMLToPPTXConverter:
                         except:
                             pass
                         continue
-            
+
             # Add the previously captured icon elements to our visual elements collection
             if icon_visual_elements:
                 print(f"Adding {len(icon_visual_elements)} icon elements to visual elements")
                 visual_elements.extend(icon_visual_elements)
-            
+
             # Final cleanup - remove capture IDs and ensure everything is restored
             try:
                 await page.evaluate(r"""
@@ -879,9 +896,9 @@ class PerfectHTMLToPPTXConverter:
                 print(f"🧹 Final cleanup completed: backgrounds restored, capture IDs removed")
             except Exception as e:
                 print(f"Warning: Failed to perform final cleanup: {e}")
-            
+
             return visual_elements
-            
+
         except Exception as e:
             print(f"Visual element extraction failed: {e}")
             # Emergency cleanup in case of failure
@@ -911,13 +928,15 @@ class PerfectHTMLToPPTXConverter:
                 pass
             return []
 
-    async def capture_clean_background(self, page, html_path: Path, temp_dir: Path, visual_elements: List[Dict]) -> Path:
+    async def capture_clean_background(
+        self, page, html_path: Path, temp_dir: Path, visual_elements: List[Dict]
+    ) -> Path:
         """Capture the clean background with visual elements temporarily hidden."""
         try:
             # Set exact viewport dimensions
             await page.set_viewport_size({"width": 1920, "height": 1080})
-            await page.emulate_media(media='screen')
-            
+            await page.emulate_media(media="screen")
+
             # Force device pixel ratio to 1 for exact measurements
             await page.evaluate(r"""
                 () => {
@@ -926,16 +945,17 @@ class PerfectHTMLToPPTXConverter:
                     });
                 }
             """)
-            
+
             # Use file:// URL instead of set_content to preserve relative paths
             file_url = f"file://{html_path.resolve()}"
             await page.goto(file_url, wait_until="networkidle", timeout=25000)
-            
+
             # Reduced wait time
             await page.wait_for_timeout(2000)
-            
+
             # Make text completely invisible AND hide visual elements to get clean background
-            await page.evaluate(r"""
+            await page.evaluate(
+                r"""
                 (visualElementsData) => {
                     // Function to make text completely invisible
                     function makeTextInvisible(element) {
@@ -989,38 +1009,41 @@ class PerfectHTMLToPPTXConverter:
                     makeTextInvisible(document.body);
                     hideVisualElements();
                 }
-            """, visual_elements or [])
-            
+            """,
+                visual_elements or [],
+            )
+
             # Reduced wait time
             await page.wait_for_timeout(500)
-            
+
             # Take clean background screenshot
             background_path = temp_dir / f"clean_background_{html_path.stem}.png"
             await page.screenshot(
                 path=str(background_path),
                 full_page=False,
-                clip={"x": 0, "y": 0, "width": 1920, "height": 1080}
+                clip={"x": 0, "y": 0, "width": 1920, "height": 1080},
             )
-            
+
             return background_path
-            
+
         except Exception as e:
             # Create a simple white background as fallback
             from PIL import Image
+
             background_path = temp_dir / f"clean_background_{html_path.stem}.png"
-            blank_bg = Image.new('RGB', (1920, 1080), color='white')
+            blank_bg = Image.new("RGB", (1920, 1080), color="white")
             blank_bg.save(background_path)
             return background_path
-    
+
     async def extract_text_elements(self, page, html_path: Path) -> List[TextElement]:
         """Extract all text elements with precise positioning for editable text boxes."""
         text_elements = []
-        
+
         try:
             # Set exact viewport dimensions
             await page.set_viewport_size({"width": 1920, "height": 1080})
-            await page.emulate_media(media='screen')
-            
+            await page.emulate_media(media="screen")
+
             # Force device pixel ratio to 1 for exact measurements
             await page.evaluate(r"""
                 () => {
@@ -1029,14 +1052,14 @@ class PerfectHTMLToPPTXConverter:
                     });
                 }
             """)
-            
+
             # Use file:// URL instead of set_content to preserve relative paths
             file_url = f"file://{html_path.resolve()}"
             await page.goto(file_url, wait_until="networkidle", timeout=25000)
-            
+
             # Reduced wait time
             await page.wait_for_timeout(2000)
-            
+
             # Extract all text elements with precise positioning and styling
             # // Enhanced text extraction JavaScript to include in your page.evaluate()
             text_data = await page.evaluate(r"""
@@ -1152,105 +1175,113 @@ class PerfectHTMLToPPTXConverter:
                     return allTextElements;
                 }
             """)
-            
+
             # Convert to TextElement objects with enhanced styling
             for data in text_data or []:
-                if data and data['text']:
-                    style = data.get('style', {})
-                    
+                if data and data["text"]:
+                    style = data.get("style", {})
+
                     # Parse font family
-                    font_family = style.get('fontFamily', 'Arial')
+                    font_family = style.get("fontFamily", "Arial")
                     if font_family:
-                        font_family = font_family.split(',')[0].strip().strip('"\'')
+                        font_family = font_family.split(",")[0].strip().strip("\"'")
                         font_family_map = {
-                            'roboto': 'Roboto', 'arial': 'Arial', 'helvetica': 'Helvetica',
-                            'sans-serif': 'Arial', 'serif': 'Times New Roman', 'monospace': 'Courier New',
-                            'jetbrains mono': 'Courier New', 'courier new': 'Courier New'
+                            "roboto": "Roboto",
+                            "arial": "Arial",
+                            "helvetica": "Helvetica",
+                            "sans-serif": "Arial",
+                            "serif": "Times New Roman",
+                            "monospace": "Courier New",
+                            "jetbrains mono": "Courier New",
+                            "courier new": "Courier New",
                         }
                         font_family = font_family_map.get(font_family.lower(), font_family)
                     else:
-                        font_family = 'Arial'
-                    
+                        font_family = "Arial"
+
                     # Parse line height (same for both text and icons)
                     line_height = 1.2
-                    line_height_str = style.get('lineHeight', 'normal')
-                    if line_height_str and line_height_str != 'normal':
-                        if line_height_str.endswith('px'):
+                    line_height_str = style.get("lineHeight", "normal")
+                    if line_height_str and line_height_str != "normal":
+                        if line_height_str.endswith("px"):
                             px_value = float(line_height_str[:-2])
-                            line_height = px_value / data['actualFontSizePx']
+                            line_height = px_value / data["actualFontSizePx"]
                         else:
                             try:
                                 line_height = float(line_height_str)
                             except:
                                 line_height = 1.2
-                    
+
                     # Parse color - handle complex color scenarios
-                    color = style.get('color', '#000000')
-                    
+                    color = style.get("color", "#000000")
+
                     # Handle gradient text (webkit background clip)
-                    if style.get('webkitBackgroundClip') == 'text' and style.get('backgroundImage'):
-                        bg_image = style.get('backgroundImage', '')
-                        if 'linear-gradient' in bg_image:
+                    if style.get("webkitBackgroundClip") == "text" and style.get("backgroundImage"):
+                        bg_image = style.get("backgroundImage", "")
+                        if "linear-gradient" in bg_image:
                             import re
-                            color_match = re.search(r'#[0-9a-fA-F]{6}', bg_image)
+
+                            color_match = re.search(r"#[0-9a-fA-F]{6}", bg_image)
                             if color_match:
                                 color = color_match.group(0)
                             else:
-                                color = '#3B82F6'  # Default blue for gradients
-                    
+                                color = "#3B82F6"  # Default blue for gradients
+
                     text_element = TextElement(
-                        text=data['text'],
-                        x=data['x'],
-                        y=data['y'],
-                        width=data['width'],
-                        height=data['height'],
+                        text=data["text"],
+                        x=data["x"],
+                        y=data["y"],
+                        width=data["width"],
+                        height=data["height"],
                         font_family=font_family,
-                        font_size=data['actualFontSizePx'] * 0.75,  # Convert px to points
-                        font_weight=style.get('fontWeight', 'normal'),
+                        font_size=data["actualFontSizePx"] * 0.75,  # Convert px to points
+                        font_weight=style.get("fontWeight", "normal"),
                         color=color,
-                        text_align=style.get('textAlign', 'left'),
+                        text_align=style.get("textAlign", "left"),
                         line_height=line_height,
-                        tag=data['tag'],
-                        style=style
+                        tag=data["tag"],
+                        style=style,
                     )
-                    
+
                     text_elements.append(text_element)
-            
+
             return text_elements
-            
+
         except Exception:
             return []
-    
+
     def create_text_box(self, slide, text_element: TextElement) -> None:
         """Create an editable text box in PowerPoint with exact positioning and enhanced styling."""
         # Convert pixel coordinates to inches
         left = Inches(text_element.x / 96.0)
         top = Inches(text_element.y / 96.0)
-        
+
         # Calculate proper width - ensure it's wide enough for the text content
         text_width = text_element.width
-        
+
         # For large fonts, increase the width calculation significantly
-        font_size_factor = max(1.0, text_element.font_size / 20.0)  # Scale factor based on font size
-        
+        font_size_factor = max(
+            1.0, text_element.font_size / 20.0
+        )  # Scale factor based on font size
+
         if text_width < 100:  # If width is too small, estimate based on text length and font size
             # More generous estimate: each character needs more space for larger fonts
             chars_per_pixel = 8 / font_size_factor  # Fewer characters per pixel for larger fonts
             estimated_width = len(text_element.text) * chars_per_pixel
             text_width = max(text_width, estimated_width)
-        
+
         # Add generous padding to prevent text from being cut off
         padding = max(20, text_element.font_size * 0.5)  # Padding scales with font size
         final_width = text_width + (padding * 2)
-        
+
         width = Inches(final_width / 96.0)
         height = Inches(max(text_element.height, 10) / 96.0)
-        
+
         # Create text box
         textbox = slide.shapes.add_textbox(left, top, width, height)
         text_frame = textbox.text_frame
         text_frame.clear()
-        
+
         # Set text frame properties for exact positioning
         text_frame.margin_left = Pt(0)
         text_frame.margin_right = Pt(0)
@@ -1258,66 +1289,70 @@ class PerfectHTMLToPPTXConverter:
         text_frame.margin_bottom = Pt(0)
         text_frame.word_wrap = True
         text_frame.auto_size = None
-        
+
         # Add paragraph
         p = text_frame.paragraphs[0]
         p.text = text_element.text
-        
+
         # Add bullet formatting for list items
-        if text_element.tag == 'li':
+        if text_element.tag == "li":
             p.level = 0
             p.text = text_element.text  # Ensure text is set
             # Note: python-pptx doesn't have direct bullet control, but we can prepend bullet
-            if not p.text.startswith('•'):
-                p.text = '• ' + p.text
-        
+            if not p.text.startswith("•"):
+                p.text = "• " + p.text
+
         # Set text alignment
         alignment_map = {
-            'left': PP_ALIGN.LEFT, 'center': PP_ALIGN.CENTER, 'centre': PP_ALIGN.CENTER,
-            'right': PP_ALIGN.RIGHT, 'justify': PP_ALIGN.JUSTIFY, 'start': PP_ALIGN.LEFT,
-            'end': PP_ALIGN.RIGHT
+            "left": PP_ALIGN.LEFT,
+            "center": PP_ALIGN.CENTER,
+            "centre": PP_ALIGN.CENTER,
+            "right": PP_ALIGN.RIGHT,
+            "justify": PP_ALIGN.JUSTIFY,
+            "start": PP_ALIGN.LEFT,
+            "end": PP_ALIGN.RIGHT,
         }
         p.alignment = alignment_map.get(text_element.text_align.lower(), PP_ALIGN.LEFT)
-        
+
         # Set spacing
         p.space_before = Pt(0)
         p.space_after = Pt(0)
-        if hasattr(p, 'line_spacing'):
+        if hasattr(p, "line_spacing"):
             p.line_spacing = text_element.line_height
-        
+
         # Set font properties
         font = p.font
         font.name = text_element.font_family
         font.size = Pt(max(text_element.font_size, 8))
         font.bold = CSSParser.parse_font_weight(text_element.font_weight)
-        
+
         # Enhanced styling from the style object
         if text_element.style:
             style = text_element.style
-            
+
             # Handle letter spacing
-            letter_spacing = style.get('letterSpacing', 'normal')
-            if letter_spacing != 'normal' and letter_spacing.endswith('px'):
+            letter_spacing = style.get("letterSpacing", "normal")
+            if letter_spacing != "normal" and letter_spacing.endswith("px"):
                 try:
                     spacing_px = float(letter_spacing[:-2])
-                    if hasattr(font, 'character_spacing'):
+                    if hasattr(font, "character_spacing"):
                         font.character_spacing = spacing_px
                 except:
                     pass
-            
+
             # Handle text transform
-            text_transform = style.get('textTransform', 'none')
-            if text_transform == 'uppercase':
+            text_transform = style.get("textTransform", "none")
+            if text_transform == "uppercase":
                 p.text = p.text.upper()
-            elif text_transform == 'lowercase':
+            elif text_transform == "lowercase":
                 p.text = p.text.lower()
-            elif text_transform == 'capitalize':
+            elif text_transform == "capitalize":
                 p.text = p.text.title()
-        
+
         # Set font color with enhanced handling
         try:
             # Handle gradient text (webkit background clip)
-            if text_element.style and text_element.style.get('webkitBackgroundClip') == 'text':
+            if text_element.style and text_element.style.get("webkitBackgroundClip") == "text":
                 r, g, b = CSSParser.parse_color(text_element.color)
                 font.color.rgb = RGBColor(r, g, b)
             else:
@@ -1326,58 +1361,62 @@ class PerfectHTMLToPPTXConverter:
                 font.color.rgb = RGBColor(r, g, b)
         except Exception:
             font.color.rgb = RGBColor(0, 0, 0)
-        
+
         # Make textbox transparent (no background, no border)
         textbox.fill.background()
         textbox.line.fill.background()
-    
+
     def add_visual_element_to_slide(self, slide, visual_element: Dict) -> None:
         """Add a visual element as an image to the PowerPoint slide with exact positioning."""
-        if visual_element['image_path'].exists():
+        if visual_element["image_path"].exists():
             # Convert pixel coordinates to inches
-            left = Inches(visual_element['x'] / 96.0)
-            top = Inches(visual_element['y'] / 96.0)
-            width = Inches(visual_element['width'] / 96.0)
-            height = Inches(visual_element['height'] / 96.0)
-            
+            left = Inches(visual_element["x"] / 96.0)
+            top = Inches(visual_element["y"] / 96.0)
+            width = Inches(visual_element["width"] / 96.0)
+            height = Inches(visual_element["height"] / 96.0)
+
             # Add the image to the slide
-            picture = slide.shapes.add_picture(str(visual_element['image_path']), left, top, width, height)
-            
+            picture = slide.shapes.add_picture(
+                str(visual_element["image_path"]), left, top, width, height
+            )
+
             # Special handling for background elements
-            if visual_element['tag'] == 'clean_background':
+            if visual_element["tag"] == "clean_background":
                 picture.z_order = 0
-    
-    async def build_slide_from_analysis(self, presentation, slide_analysis: Dict, temp_dir: Path) -> None:
+
+    async def build_slide_from_analysis(
+        self, presentation, slide_analysis: Dict, temp_dir: Path
+    ) -> None:
         """Build a PowerPoint slide from pre-analyzed data."""
-        slide_info = slide_analysis['slide_info']
-        visual_elements = slide_analysis['visual_elements']
-        background_path = slide_analysis['background_path']
-        text_elements = slide_analysis['text_elements']
-        
+        slide_info = slide_analysis["slide_info"]
+        visual_elements = slide_analysis["visual_elements"]
+        background_path = slide_analysis["background_path"]
+        text_elements = slide_analysis["text_elements"]
+
         # Add blank slide
         blank_slide_layout = presentation.slide_layouts[6]  # Blank layout
         slide = presentation.slides.add_slide(blank_slide_layout)
-        
+
         # Step 1: Add the clean background as the base layer
         if background_path and background_path.exists():
             background_element = {
-                'type': 'background',
-                'x': 0,
-                'y': 0,
-                'width': 1920,
-                'height': 1080,
-                'tag': 'clean_background',
-                'image_path': background_path,
-                'depth': -1
+                "type": "background",
+                "x": 0,
+                "y": 0,
+                "width": 1920,
+                "height": 1080,
+                "tag": "clean_background",
+                "image_path": background_path,
+                "depth": -1,
             }
             self.add_visual_element_to_slide(slide, background_element)
-        
+
         # Step 2: Add individual visual elements on top of background
         if visual_elements:
             for visual_element in visual_elements:
-                if visual_element['tag'] != 'full_background':
+                if visual_element["tag"] != "full_background":
                     self.add_visual_element_to_slide(slide, visual_element)
-        
+
         # Step 3: Create editable text boxes on top of everything
         if text_elements:
             for text_element in text_elements:
@@ -1385,108 +1424,110 @@ class PerfectHTMLToPPTXConverter:
                     self.create_text_box(slide, text_element)
                 except Exception:
                     pass
-    
-    async def convert_slide_perfect(self, browser, slide_info: Dict, presentation, temp_dir: Path) -> None:
+
+    async def convert_slide_perfect(
+        self, browser, slide_info: Dict, presentation, temp_dir: Path
+    ) -> None:
         """
         Convert a single HTML slide using perfect 1:1 approach.
-        
+
         Args:
             browser: Playwright browser instance
             slide_info: Slide information dictionary
             presentation: PowerPoint presentation object
             temp_dir: Temporary directory for images
         """
-        html_path = slide_info['path']
-        slide_num = slide_info['number']
-        
+        html_path = slide_info["path"]
+        slide_num = slide_info["number"]
+
         print(f"Converting slide {slide_num}: {slide_info['title']} (Perfect 1:1 Mode)")
-        
+
         # Add blank slide
         blank_slide_layout = presentation.slide_layouts[6]  # Blank layout
         slide = presentation.slides.add_slide(blank_slide_layout)
-        
+
         # Step 1: Capture perfect background (everything except text)
         print("  🎨 Capturing PERFECT background with all visual elements...")
         background_image_path = await self.capture_perfect_background(browser, html_path, temp_dir)
-        
+
         # Step 2: Add perfect background to slide
         if background_image_path and background_image_path.exists():
             left = Inches(0)
             top = Inches(0)
             width = Inches(20)  # 1920px at 96 DPI
             height = Inches(11.25)  # 1080px at 96 DPI
-            
+
             picture = slide.shapes.add_picture(str(background_image_path), left, top, width, height)
             print(f"    ✅ Perfect background added (1920x1080)")
-        
+
         # Step 3: Extract and add editable text elements
         print("  📝 Extracting editable text elements...")
         text_elements = await self.extract_text_elements(browser, html_path)
-        
+
         # Step 4: Create editable text boxes on top of perfect background
         print("  ✍️  Adding editable text overlays...")
         for text_element in text_elements:
             self.create_text_box(slide, text_element)
-        
-        print(f"  🎉 Slide {slide_num}: PERFECT background + {len(text_elements)} editable text elements")
-    
+
+        print(
+            f"  🎉 Slide {slide_num}: PERFECT background + {len(text_elements)} editable text elements"
+        )
+
     async def convert_to_pptx_perfect(self) -> None:
         """Main perfect conversion method - optimized and reliable."""
         print("🎯 Starting PERFECT 1:1 HTML to PPTX conversion...")
         print("📋 Method: Clean background + Visual elements + Editable text overlay")
         print("=" * 80)
-        
+
         # Load metadata
         self.load_metadata()
-        
+
         # Create temporary directory for images
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            
+
             # Launch browser for processing
             async with async_playwright() as p:
                 print("🌐 Launching browser for perfect processing...")
                 browser = await p.chromium.launch(
                     headless=True,
                     args=[
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-gpu',
-                        '--force-device-scale-factor=1',
-                        '--disable-background-timer-throttling',
-                        '--disable-backgrounding-occluded-windows',
-                        '--disable-renderer-backgrounding',
-                        '--disable-features=VizDisplayCompositor',
-                        '--disable-extensions',
-                        '--disable-plugins',
-                        '--disable-web-security',
-                        '--disable-features=TranslateUI',
-                        '--disable-ipc-flooding-protection'
-                    ]
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--force-device-scale-factor=1",
+                        "--disable-background-timer-throttling",
+                        "--disable-backgrounding-occluded-windows",
+                        "--disable-renderer-backgrounding",
+                        "--disable-features=VizDisplayCompositor",
+                        "--disable-extensions",
+                        "--disable-plugins",
+                        "--disable-web-security",
+                        "--disable-features=TranslateUI",
+                        "--disable-ipc-flooding-protection",
+                    ],
                 )
-                
+
                 try:
                     # Process all slides in parallel
                     # Create semaphore to limit concurrent operations
                     semaphore = asyncio.Semaphore(5)
-                    context = await browser.new_context(
-                        viewport={'width': 1920, 'height': 1080}
-                    )
-                    
+                    context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+
                     async def process_single_slide(slide_info: Dict) -> Dict:
                         """Process a single slide with controlled concurrency."""
                         async with semaphore:
-                            slide_num = slide_info['number']
-                            
+                            slide_num = slide_info["number"]
+
                             try:
                                 # Create a new page for this slide
                                 page = await context.new_page()
-                                
+
                                 # Set exact viewport dimensions
                                 await page.set_viewport_size({"width": 1920, "height": 1080})
-                                await page.emulate_media(media='screen')
-                                
+                                await page.emulate_media(media="screen")
+
                                 # Force device pixel ratio to 1
                                 await page.evaluate(r"""
                                     () => {
@@ -1495,101 +1536,108 @@ class PerfectHTMLToPPTXConverter:
                                         });
                                     }
                                 """)
-                                
+
                                 try:
                                     # Extract visual elements
-                                    visual_elements = await self.extract_visual_elements(page, slide_info['path'], temp_path)
-                                    
+                                    visual_elements = await self.extract_visual_elements(
+                                        page, slide_info["path"], temp_path
+                                    )
+
                                     # Capture clean background
-                                    background_path = await self.capture_clean_background(page, slide_info['path'], temp_path, visual_elements)
-                                    
+                                    background_path = await self.capture_clean_background(
+                                        page, slide_info["path"], temp_path, visual_elements
+                                    )
+
                                     # Extract text elements
-                                    text_elements = await self.extract_text_elements(page, slide_info['path'])
-                                    
+                                    text_elements = await self.extract_text_elements(
+                                        page, slide_info["path"]
+                                    )
+
                                     slide_analysis = {
-                                        'slide_info': slide_info,
-                                        'visual_elements': visual_elements,
-                                        'background_path': background_path,
-                                        'text_elements': text_elements
+                                        "slide_info": slide_info,
+                                        "visual_elements": visual_elements,
+                                        "background_path": background_path,
+                                        "text_elements": text_elements,
                                     }
-                                    
+
                                     return slide_analysis
-                                    
+
                                 except Exception as e:
                                     return {
-                                        'slide_info': slide_info,
-                                        'visual_elements': [],
-                                        'background_path': None,
-                                        'text_elements': [],
-                                        'error': str(e)
+                                        "slide_info": slide_info,
+                                        "visual_elements": [],
+                                        "background_path": None,
+                                        "text_elements": [],
+                                        "error": str(e),
                                     }
-                                    
+
                                 finally:
                                     # Always close the page to free memory
                                     await page.close()
-                                    
+
                             except Exception as e:
                                 return {
-                                    'slide_info': slide_info,
-                                    'visual_elements': [],
-                                    'background_path': None,
-                                    'text_elements': [],
-                                    'error': f"Page creation failed: {str(e)}"
+                                    "slide_info": slide_info,
+                                    "visual_elements": [],
+                                    "background_path": None,
+                                    "text_elements": [],
+                                    "error": f"Page creation failed: {str(e)}",
                                 }
-                    
+
                     # Launch ALL slides in parallel
                     parallel_tasks = [
-                        process_single_slide(slide_info) 
-                        for slide_info in self.slides_info
+                        process_single_slide(slide_info) for slide_info in self.slides_info
                     ]
-                    
+
                     # Wait for ALL slides to complete in parallel
                     slide_analyses = await asyncio.gather(*parallel_tasks, return_exceptions=True)
-                    
+
                     # Handle any top-level exceptions
                     processed_analyses = []
                     for i, result in enumerate(slide_analyses):
                         if isinstance(result, Exception):
                             error_analysis = {
-                                'slide_info': self.slides_info[i],
-                                'visual_elements': [],
-                                'background_path': None,
-                                'text_elements': [],
-                                'error': str(result)
+                                "slide_info": self.slides_info[i],
+                                "visual_elements": [],
+                                "background_path": None,
+                                "text_elements": [],
+                                "error": str(result),
                             }
                             processed_analyses.append(error_analysis)
                         else:
                             processed_analyses.append(result)
-                    
+
                     all_slide_analyses = processed_analyses
-                    
+
                 finally:
                     await browser.close()
-            
+
             # Build PPTX presentation
             # Create new PowerPoint presentation
             presentation = Presentation()
-            
+
             # Set slide dimensions to 1920x1080 (16:9)
             presentation.slide_width = Inches(20)  # 1920px at 96 DPI
             presentation.slide_height = Inches(11.25)  # 1080px at 96 DPI
-            
+
             # Remove default slide
             if len(presentation.slides) > 0:
                 xml_slides = presentation.slides._sldIdLst
                 xml_slides.remove(xml_slides[0])
-            
+
             # Build slides using the analyzed data
             successful_slides = 0
             for i, slide_analysis in enumerate(all_slide_analyses, 1):
                 try:
-                    if 'error' in slide_analysis and slide_analysis['error']:
+                    if "error" in slide_analysis and slide_analysis["error"]:
                         # Create a blank slide with error message
                         blank_slide_layout = presentation.slide_layouts[6]
                         slide = presentation.slides.add_slide(blank_slide_layout)
-                        
+
                         # Add error text box
-                        textbox = slide.shapes.add_textbox(Inches(1), Inches(4), Inches(18), Inches(2))
+                        textbox = slide.shapes.add_textbox(
+                            Inches(1), Inches(4), Inches(18), Inches(2)
+                        )
                         text_frame = textbox.text_frame
                         text_frame.clear()
                         p = text_frame.paragraphs[0]
@@ -1597,14 +1645,16 @@ class PerfectHTMLToPPTXConverter:
                         p.font.size = Pt(18)
                         p.font.color.rgb = RGBColor(255, 0, 0)
                     else:
-                        await self.build_slide_from_analysis(presentation, slide_analysis, temp_path)
+                        await self.build_slide_from_analysis(
+                            presentation, slide_analysis, temp_path
+                        )
                         successful_slides += 1
-                        
+
                 except Exception as e:
                     # Create error slide
                     blank_slide_layout = presentation.slide_layouts[6]
                     slide = presentation.slides.add_slide(blank_slide_layout)
-                    
+
                     textbox = slide.shapes.add_textbox(Inches(1), Inches(4), Inches(18), Inches(2))
                     text_frame = textbox.text_frame
                     text_frame.clear()
@@ -1612,7 +1662,7 @@ class PerfectHTMLToPPTXConverter:
                     p.text = f"Error building slide: {str(e)}"
                     p.font.size = Pt(18)
                     p.font.color.rgb = RGBColor(255, 0, 0)
-        
+
         # Save PowerPoint presentation
         presentation.save(str(self.output_path))
         print(f"\n🎉 PERFECT 1:1 PPTX created successfully: {self.output_path}")
@@ -1623,29 +1673,29 @@ class PerfectHTMLToPPTXConverter:
 def check_dependencies():
     """Check if required dependencies are available"""
     missing_deps = []
-    
+
     try:
         import playwright
     except ImportError:
         missing_deps.append("playwright (pip install playwright)")
-    
+
     try:
         from pptx import Presentation
     except ImportError:
         missing_deps.append("python-pptx (pip install python-pptx)")
-    
+
     try:
         from PIL import Image
     except ImportError:
         missing_deps.append("Pillow (pip install Pillow)")
-    
+
     if missing_deps:
         print("❌ Missing dependencies:")
         for dep in missing_deps:
             print(f"  - {dep}")
         print("\nPlease install missing dependencies and try again.")
         return False
-    
+
     return True
 
 
@@ -1655,11 +1705,11 @@ def main():
     print("=" * 80)
     print("🎨 Clean background + Visual elements + Editable text overlay")
     print()
-    
+
     # Check dependencies
     if not check_dependencies():
         sys.exit(1)
-    
+
     # Parse command line arguments
     if len(sys.argv) < 2:
         presentation_dir = "."
@@ -1677,12 +1727,12 @@ def main():
         print("  python html_to_pptx_perfect.py . perfect_presentation.pptx")
         print("  python html_to_pptx_perfect.py /path/to/slides output.pptx")
         sys.exit(1)
-    
+
     try:
         # Create converter and run
         converter = PerfectHTMLToPPTXConverter(presentation_dir, output_path)
         asyncio.run(converter.convert_to_pptx_perfect())
-        
+
     except KeyboardInterrupt:
         print("\n❌ Conversion cancelled by user")
         sys.exit(1)

@@ -20,12 +20,9 @@ async def ensure_project_metadata_cached(project_id: str) -> None:
             return
 
         sandbox_info = {}
-        if project_data.get('resource_external_id'):
-            resource_config = project_data.get('resource_config') or {}
-            sandbox_info = {
-                'sandbox_id': project_data['resource_external_id'],
-                **resource_config
-            }
+        if project_data.get("resource_external_id"):
+            resource_config = project_data.get("resource_config") or {}
+            sandbox_info = {"sandbox_id": project_data["resource_external_id"], **resource_config}
 
         await set_cached_project_metadata(project_id, sandbox_info)
         logger.debug(f"✅ Cached project metadata for {project_id}")
@@ -45,15 +42,14 @@ async def update_agent_run_status(
 
     try:
         success = await agents_repo.update_agent_run_status(
-            agent_run_id=agent_run_id,
-            status=status,
-            error=error
+            agent_run_id=agent_run_id, status=status, error=error
         )
 
         if success:
             if status in {"completed", "failed", "stopped", "cancelled", "error"}:
                 try:
                     from core.agents.pipeline.stateless.ownership import ownership
+
                     await ownership.release(agent_run_id, status)
                 except Exception as e:
                     logger.warning(f"Failed to release ownership for {agent_run_id}: {e}")
@@ -61,6 +57,7 @@ async def update_agent_run_status(
                 if account_id:
                     try:
                         from core.agents.pipeline.slot_manager import release_slot
+
                         await release_slot(account_id, agent_run_id)
                     except Exception as e:
                         logger.warning(f"Failed to release slot for {agent_run_id}: {e}")
@@ -68,12 +65,14 @@ async def update_agent_run_status(
             if account_id:
                 try:
                     from core.cache.runtime_cache import invalidate_running_runs_cache
+
                     await invalidate_running_runs_cache(account_id)
                 except:
                     pass
 
                 try:
                     from core.billing.shared.cache_utils import invalidate_account_state_cache
+
                     await invalidate_account_state_cache(account_id)
                 except:
                     pass
@@ -90,9 +89,7 @@ async def update_agent_run_status(
 
 
 async def send_completion_notification(
-    thread_id: str,
-    agent_config: Optional[Dict[str, Any]],
-    complete_tool_called: bool
+    thread_id: str, agent_config: Optional[Dict[str, Any]], complete_tool_called: bool
 ):
     if not complete_tool_called:
         return
@@ -103,15 +100,15 @@ async def send_completion_notification(
 
         thread_info = await threads_repo.get_project_and_thread_info(thread_id)
         if thread_info:
-            task_name = thread_info.get('project_name') or 'Task'
-            user_id = thread_info.get('account_id')
+            task_name = thread_info.get("project_name") or "Task"
+            user_id = thread_info.get("account_id")
             if user_id:
                 await notification_service.send_task_completion_notification(
                     account_id=user_id,
                     task_name=task_name,
                     thread_id=thread_id,
-                    agent_name=agent_config.get('name') if agent_config else None,
-                    result_summary="Task completed successfully"
+                    agent_name=agent_config.get("name") if agent_config else None,
+                    result_summary="Task completed successfully",
                 )
     except Exception as e:
         logger.warning(f"Failed to send completion notification: {e}")

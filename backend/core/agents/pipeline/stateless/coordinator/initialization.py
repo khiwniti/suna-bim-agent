@@ -16,14 +16,14 @@ class ManagerInitializer:
         # Create JIT config without tier-disabled tools
         jit_config = JITConfig.from_run_context(
             agent_config=ctx.agent_config,
-            disabled_tools=[]  # Empty - blocking handled at execution time
+            disabled_tools=[],  # Empty - blocking handled at execution time
         )
 
         trace = langfuse.trace(
             name="stateless_run",
             id=ctx.agent_run_id,
             session_id=ctx.thread_id,
-            metadata={"project_id": ctx.project_id}
+            metadata={"project_id": ctx.project_id},
         )
 
         thread_manager = ThreadManager(
@@ -32,17 +32,18 @@ class ManagerInitializer:
             project_id=ctx.project_id,
             thread_id=ctx.thread_id,
             account_id=ctx.account_id,
-            jit_config=jit_config
+            jit_config=jit_config,
         )
 
         tool_registry = thread_manager.tool_registry
 
         from core.agents.runner.tool_manager import ToolManager
+
         tool_manager = ToolManager(
             thread_manager,
             ctx.project_id,
             ctx.thread_id,
-            ctx.agent_config
+            ctx.agent_config,
             # tier_disabled_tools removed - blocking handled at execution time
         )
         tool_manager.register_core_tools()
@@ -56,12 +57,17 @@ class ManagerInitializer:
         ):
             try:
                 from core.agents.runner.mcp_manager import MCPManager
+
                 mcp_manager = MCPManager(thread_manager, ctx.account_id)
                 await mcp_manager.initialize_jit_loader(ctx.agent_config, cache_only=True)
-                
+
                 tool_count = 0
-                if hasattr(thread_manager, 'mcp_loader') and thread_manager.mcp_loader:
-                    tool_count = len(thread_manager.mcp_loader.tool_map) if hasattr(thread_manager.mcp_loader, 'tool_map') else 0
+                if hasattr(thread_manager, "mcp_loader") and thread_manager.mcp_loader:
+                    tool_count = (
+                        len(thread_manager.mcp_loader.tool_map)
+                        if hasattr(thread_manager.mcp_loader, "tool_map")
+                        else 0
+                    )
                 logger.info(f"⚡ [STATELESS MCP] Initialized MCP loader with {tool_count} tools")
             except Exception as e:
                 logger.warning(f"⚠️ [STATELESS MCP] MCP init failed (non-fatal): {e}")
@@ -73,34 +79,40 @@ class ManagerInitializer:
         import asyncio
         from core.jit import JITLoader
         from core.jit.result_types import ActivationSuccess
-        
+
         try:
             client = await thread_manager.db.client
-            
-            result = await client.table('threads')\
-                .select('metadata')\
-                .eq('thread_id', ctx.thread_id)\
-                .single()\
+
+            result = (
+                await client.table("threads")
+                .select("metadata")
+                .eq("thread_id", ctx.thread_id)
+                .single()
                 .execute()
-            
+            )
+
             if not result.data:
                 return
-            
-            metadata = result.data.get('metadata') or {}
-            dynamic_tools = metadata.get('dynamic_tools', [])
-            
+
+            metadata = result.data.get("metadata") or {}
+            dynamic_tools = metadata.get("dynamic_tools", [])
+
             if not dynamic_tools:
                 return
-            
-            logger.info(f"🔄 [RELOAD] Found {len(dynamic_tools)} previously activated tools: {dynamic_tools}")
-            
+
+            logger.info(
+                f"🔄 [RELOAD] Found {len(dynamic_tools)} previously activated tools: {dynamic_tools}"
+            )
+
             activation_tasks = [
-                JITLoader.activate_tool(tool_name, thread_manager, ctx.project_id, jit_config=jit_config)
+                JITLoader.activate_tool(
+                    tool_name, thread_manager, ctx.project_id, jit_config=jit_config
+                )
                 for tool_name in dynamic_tools
             ]
-            
+
             results = await asyncio.gather(*activation_tasks, return_exceptions=True)
-            
+
             success_count = 0
             for tool_name, result in zip(dynamic_tools, results):
                 if isinstance(result, ActivationSuccess):
@@ -109,9 +121,9 @@ class ManagerInitializer:
                     logger.warning(f"⚠️ [RELOAD] Failed to reload '{tool_name}': {result}")
                 else:
                     logger.warning(f"⚠️ [RELOAD] Failed to reload '{tool_name}': {result}")
-            
+
             logger.info(f"✅ [RELOAD] Reloaded {success_count}/{len(dynamic_tools)} dynamic tools")
-            
+
         except Exception as e:
             logger.warning(f"⚠️ [RELOAD] Failed to reload dynamic tools (non-fatal): {e}")
 
@@ -126,9 +138,9 @@ class ManagerInitializer:
             thread_id=ctx.thread_id,
             account_id=ctx.account_id,
             tool_registry=tool_registry,
-            mcp_loader=getattr(thread_manager, 'mcp_loader', None),
+            mcp_loader=getattr(thread_manager, "mcp_loader", None),
             client=await thread_manager.db.client if thread_manager else None,
-            disabled_tools=[]  # Empty - blocking handled at execution time
+            disabled_tools=[],  # Empty - blocking handled at execution time
         )
         if prompt:
             state.system_prompt = prompt.system_prompt

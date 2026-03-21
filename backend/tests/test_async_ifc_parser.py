@@ -19,6 +19,7 @@ from core.bim.async_ifc_parser import (
 # Skip all tests if ifcopenshell is not installed
 try:
     import ifcopenshell
+
     HAS_IFC = True
 except ImportError:
     HAS_IFC = False
@@ -116,11 +117,7 @@ END-ISO-10303-21;
                 return await async_open_ifc(tmp_path)
 
             # Run both tasks concurrently
-            results = await asyncio.gather(
-                parse_ifc(),
-                increment_counter(),
-                return_exceptions=True
-            )
+            results = await asyncio.gather(parse_ifc(), increment_counter(), return_exceptions=True)
 
             # Verify both tasks completed
             ifc_file = results[0]
@@ -158,9 +155,7 @@ END-ISO-10303-21;
 
             wall = walls[0]
             # Test property retrieval
-            load_bearing = await async_get_property_value(
-                wall, "LoadBearing", "Pset_WallCommon"
-            )
+            load_bearing = await async_get_property_value(wall, "LoadBearing", "Pset_WallCommon")
             assert load_bearing is True
         finally:
             Path(tmp_path).unlink()
@@ -222,9 +217,11 @@ class TestBIMToolBaseAsync:
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Attribute):
-                        if (isinstance(node.func.value, ast.Name) and
-                            node.func.value.id == "ifcopenshell" and
-                            node.func.attr == "open"):
+                        if (
+                            isinstance(node.func.value, ast.Name)
+                            and node.func.value.id == "ifcopenshell"
+                            and node.func.attr == "open"
+                        ):
                             # Found direct ifcopenshell.open() call
                             pytest.fail(
                                 f"Found synchronous ifcopenshell.open() in {tool_file.name}. "
@@ -253,7 +250,7 @@ class TestAsyncIFCConfiguration:
     def test_python_version_supports_asyncio_to_thread(self):
         """Verify Python version supports asyncio.to_thread (3.9+)."""
         import sys
+
         assert sys.version_info >= (3, 9), (
-            "asyncio.to_thread requires Python 3.9+. "
-            f"Current version: {sys.version_info}"
+            f"asyncio.to_thread requires Python 3.9+. Current version: {sys.version_info}"
         )

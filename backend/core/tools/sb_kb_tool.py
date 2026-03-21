@@ -64,7 +64,9 @@ class SandboxKbTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_manager: ThreadManager):
         super().__init__(project_id, thread_manager)
         self.kb_version = "0.1.2"
-        self.kb_download_url = f"https://github.com/khiwniti/carbon-bim-agent/releases/download/v{self.kb_version}/kb"
+        self.kb_download_url = (
+            f"https://github.com/khiwniti/carbon-bim-agent/releases/download/v{self.kb_version}/kb"
+        )
         self._kb_synced = False  # Track if KB has been synced this session
 
     async def _auto_sync_kb_if_needed(self) -> bool:
@@ -75,9 +77,7 @@ class SandboxKbTool(SandboxToolsBase):
         try:
             # Check if KB directory already exists with files
             kb_dir = f"{self.workspace_path}/downloads/global-knowledge"
-            check = await self.sandbox.process.exec(
-                f"test -d {kb_dir} && ls -A {kb_dir} | head -1"
-            )
+            check = await self.sandbox.process.exec(f"test -d {kb_dir} && ls -A {kb_dir} | head -1")
             if check.exit_code == 0 and check.result.strip():
                 # KB directory exists and has files
                 self._kb_synced = True
@@ -91,9 +91,7 @@ class SandboxKbTool(SandboxToolsBase):
             if result.success:
                 self._kb_synced = True
                 synced_count = (
-                    result.output.get("synced_files", 0)
-                    if isinstance(result.output, dict)
-                    else 0
+                    result.output.get("synced_files", 0) if isinstance(result.output, dict) else 0
                 )
                 if synced_count > 0:
                     logger.info(f"[KB] Auto-synced {synced_count} knowledge base files")
@@ -118,9 +116,7 @@ class SandboxKbTool(SandboxToolsBase):
         # Let kb use its default location (~/.config/kb/ or ~/knowledge-base/)
         # Don't force KB_DIR so file watcher and direct commands use same DB
 
-        response = await self.sandbox.process.exec(
-            command, env=env, cwd=cwd or self.workspace_path
-        )
+        response = await self.sandbox.process.exec(command, env=env, cwd=cwd or self.workspace_path)
 
         return {"output": response.result, "exit_code": response.exit_code}
 
@@ -256,9 +252,7 @@ class SandboxKbTool(SandboxToolsBase):
             # Parse results to check if any hits were found
             try:
                 results_data = json.loads(result["output"])
-                total_hits = sum(
-                    len(query_result.get("hits", [])) for query_result in results_data
-                )
+                total_hits = sum(len(query_result.get("hits", [])) for query_result in results_data)
 
                 response = {"results": result["output"]}
 
@@ -334,9 +328,7 @@ class SandboxKbTool(SandboxToolsBase):
                 command = f"kb sweep --retention-days {retention_days}"
             elif operation == "remove_files":
                 if not file_paths:
-                    return self.fail_response(
-                        "file_paths is required for remove_files operation."
-                    )
+                    return self.fail_response("file_paths is required for remove_files operation.")
                 paths_str = " ".join([f'"{path}"' for path in file_paths])
                 command = f"kb sweep --remove {paths_str}"
             elif operation == "clear_embeddings":
@@ -352,9 +344,7 @@ class SandboxKbTool(SandboxToolsBase):
             result = await self._execute_kb_command(command)
 
             if result["exit_code"] != 0:
-                return self.fail_response(
-                    f"Cleanup operation failed: {result['output']}"
-                )
+                return self.fail_response(f"Cleanup operation failed: {result['output']}")
 
             return self.success_response(
                 {
@@ -430,14 +420,10 @@ class SandboxKbTool(SandboxToolsBase):
         last_error = None
         for attempt in range(max_retries):
             try:
-                file_response = await client.storage.from_("file-uploads").download(
-                    file_path
-                )
+                file_response = await client.storage.from_("file-uploads").download(file_path)
                 if file_response and len(file_response) > 0:
                     return file_response
-                logger.warning(
-                    f"[KB_SYNC] Empty response on attempt {attempt + 1} for {file_path}"
-                )
+                logger.warning(f"[KB_SYNC] Empty response on attempt {attempt + 1} for {file_path}")
             except Exception as e:
                 last_error = e
                 logger.warning(
@@ -463,9 +449,7 @@ class SandboxKbTool(SandboxToolsBase):
                 if parent_dir:
                     try:
                         await self.sandbox.fs.create_folder(parent_dir, "755")
-                        logger.debug(
-                            f"[KB_SYNC] Created/verified directory: {parent_dir}"
-                        )
+                        logger.debug(f"[KB_SYNC] Created/verified directory: {parent_dir}")
                     except Exception as dir_err:
                         # Directory might already exist, which is fine
                         logger.debug(f"[KB_SYNC] Directory create note: {dir_err}")
@@ -484,9 +468,7 @@ class SandboxKbTool(SandboxToolsBase):
                         logger.info(f"[KB_SYNC] Upload verified via SDK: {destination}")
                         return True
                 except Exception as info_err:
-                    logger.debug(
-                        f"[KB_SYNC] SDK verification failed, trying shell: {info_err}"
-                    )
+                    logger.debug(f"[KB_SYNC] SDK verification failed, trying shell: {info_err}")
 
                 # Fallback: verify with shell command
                 verify_cmd = f'test -f "{destination}" && wc -c < "{destination}"'
@@ -593,9 +575,7 @@ class SandboxKbTool(SandboxToolsBase):
                     .eq("agent_id", agent_id)
                     .execute()
                 )
-                account_id = (
-                    agent_result.data[0]["account_id"] if agent_result.data else None
-                )
+                account_id = agent_result.data[0]["account_id"] if agent_result.data else None
 
                 # Check total KB entries for account
                 total_entries = 0
@@ -608,9 +588,7 @@ class SandboxKbTool(SandboxToolsBase):
                         .eq("is_active", True)
                         .execute()
                     )
-                    total_entries = (
-                        len(entries_result.data) if entries_result.data else 0
-                    )
+                    total_entries = len(entries_result.data) if entries_result.data else 0
 
                     if total_entries > 0:
                         # Check assignments for this agent
@@ -621,12 +599,8 @@ class SandboxKbTool(SandboxToolsBase):
                             .execute()
                         )
 
-                        assigned_count = (
-                            len(assignments.data) if assignments.data else 0
-                        )
-                        enabled_count = sum(
-                            1 for a in (assignments.data or []) if a.get("enabled")
-                        )
+                        assigned_count = len(assignments.data) if assignments.data else 0
+                        enabled_count = sum(1 for a in (assignments.data or []) if a.get("enabled"))
 
                         unassigned_info = f" Your account has {total_entries} KB files, but {assigned_count} are assigned to this agent ({enabled_count} enabled). Use global_kb_list_contents to see available files, then use global_kb_enable_item to enable them for this agent."
 
@@ -652,9 +626,7 @@ class SandboxKbTool(SandboxToolsBase):
 
             # Use SDK method to create directory structure
             try:
-                await self.sandbox.fs.create_folder(
-                    f"{self.workspace_path}/downloads", "755"
-                )
+                await self.sandbox.fs.create_folder(f"{self.workspace_path}/downloads", "755")
             except Exception:
                 pass  # May already exist
             try:
@@ -705,9 +677,7 @@ class SandboxKbTool(SandboxToolsBase):
                         )
                         continue
 
-                    logger.info(
-                        f"[KB_SYNC] Downloaded {len(file_response)} bytes for {filename}"
-                    )
+                    logger.info(f"[KB_SYNC] Downloaded {len(file_response)} bytes for {filename}")
 
                     # Create folder structure in sandbox using SDK method
                     folder_path = f"{kb_dir}/{safe_folder_name}"
@@ -717,9 +687,7 @@ class SandboxKbTool(SandboxToolsBase):
                     except Exception as folder_err:
                         # Folder might already exist, try to verify
                         try:
-                            folder_info = await self.sandbox.fs.get_file_info(
-                                folder_path
-                            )
+                            folder_info = await self.sandbox.fs.get_file_info(folder_path)
                             if not folder_info.is_dir:
                                 failed_files.append(
                                     {
@@ -800,15 +768,15 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 safe_folder = self._sanitize_for_filesystem(folder_name)
                 readme_content += f"\n### {folder_name}/\n"
                 for file_info in files:
-                    readme_content += f"- `{file_info['synced_as']}` (original: {file_info['original']})\n"
+                    readme_content += (
+                        f"- `{file_info['synced_as']}` (original: {file_info['original']})\n"
+                    )
                     readme_content += f"  Path: `{file_info['path']}`\n"
 
             if failed_files:
                 readme_content += f"\n## Failed to Sync ({len(failed_files)} files):\n"
                 for fail in failed_files:
-                    readme_content += (
-                        f"- {fail['folder']}/{fail['filename']}: {fail['error']}\n"
-                    )
+                    readme_content += f"- {fail['folder']}/{fail['filename']}: {fail['error']}\n"
 
             readme_content += f"""
 ## Usage:
@@ -824,9 +792,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
 
             # Upload README with retry
             readme_path = f"{kb_dir}/README.md"
-            await self._upload_file_with_retry(
-                readme_content.encode("utf-8"), readme_path
-            )
+            await self._upload_file_with_retry(readme_content.encode("utf-8"), readme_path)
 
             # Build a flat list of all synced file paths for easy access
             all_file_paths = []
@@ -835,9 +801,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                     all_file_paths.append(file_info["path"])
 
             # Final verification: list all files in the KB directory
-            verify_ls = await self.sandbox.process.exec(
-                f'find "{kb_dir}" -type f 2>/dev/null'
-            )
+            verify_ls = await self.sandbox.process.exec(f'find "{kb_dir}" -type f 2>/dev/null')
             verified_files = []
             if verify_ls.exit_code == 0 and verify_ls.result.strip():
                 verified_files = [
@@ -885,9 +849,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 logger.warning(f"[KB_SYNC] Missing files after sync: {missing_files}")
 
             if synced_files == 0 and failed_files:
-                return self.fail_response(
-                    f"Failed to sync any files. Errors: {failed_files}"
-                )
+                return self.fail_response(f"Failed to sync any files. Errors: {failed_files}")
 
             return self.success_response(response)
 
@@ -919,9 +881,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
             },
         }
     )
-    async def global_kb_create_folder(
-        self, name: str, description: str = None
-    ) -> ToolResult:
+    async def global_kb_create_folder(self, name: str, description: str = None) -> ToolResult:
         """Create a new folder in the global knowledge base."""
         try:
             # Validate folder name
@@ -939,9 +899,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             from core.knowledge_base.validation import validate_folder_name_unique
 
@@ -949,10 +907,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -980,11 +935,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 "description": description.strip() if description else None,
             }
 
-            result = (
-                await client.table("knowledge_base_folders")
-                .insert(folder_data)
-                .execute()
-            )
+            result = await client.table("knowledge_base_folders").insert(folder_data).execute()
 
             if not result.data:
                 return self.fail_response("Failed to create folder")
@@ -1054,9 +1005,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             from core.services.supabase import DBConnection
             from core.knowledge_base.file_processor import FileProcessor
@@ -1067,10 +1016,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -1097,9 +1043,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
             try:
                 file_content = await self.sandbox.fs.download_file(sandbox_file_path)
             except Exception:
-                return self.fail_response(
-                    f"File '{sandbox_file_path}' not found in sandbox"
-                )
+                return self.fail_response(f"File '{sandbox_file_path}' not found in sandbox")
 
             # Get filename and mime type
             filename = os.path.basename(sandbox_file_path)
@@ -1136,9 +1080,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 validate_file_name_unique_in_folder,
             )
 
-            final_filename = await validate_file_name_unique_in_folder(
-                filename, folder_id
-            )
+            final_filename = await validate_file_name_unique_in_folder(filename, folder_id)
 
             # Process file using existing processor
             processor = FileProcessor()
@@ -1213,18 +1155,13 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             client = await self.thread_manager.db.client
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -1268,9 +1205,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                     for aid in agent_ids_to_invalidate:
                         await invalidate_kb_context_cache(aid)
                 except Exception as e:
-                    logger.warning(
-                        f"[KB] Failed to invalidate cache after folder delete: {e}"
-                    )
+                    logger.warning(f"[KB] Failed to invalidate cache after folder delete: {e}")
                 return self.success_response(
                     {
                         "message": f"Successfully deleted folder '{deleted_folder.get('name', 'Unknown')}' and all its files",
@@ -1288,9 +1223,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                     .eq("entry_id", item_id)
                     .execute()
                 )
-                agent_ids_to_invalidate = set(
-                    row["agent_id"] for row in (assign_result.data or [])
-                )
+                agent_ids_to_invalidate = set(row["agent_id"] for row in (assign_result.data or []))
                 # Delete the file directly using its ID
                 file_result = (
                     await client.table("knowledge_base_entries")
@@ -1309,9 +1242,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                     for aid in agent_ids_to_invalidate:
                         await invalidate_kb_context_cache(aid)
                 except Exception as e:
-                    logger.warning(
-                        f"[KB] Failed to invalidate cache after file delete: {e}"
-                    )
+                    logger.warning(f"[KB] Failed to invalidate cache after file delete: {e}")
                 return self.success_response(
                     {
                         "message": f"Successfully deleted file '{deleted_file.get('filename', 'Unknown')}'",
@@ -1368,9 +1299,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             if item_type != "file":
                 return self.fail_response(
@@ -1381,10 +1310,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -1442,9 +1368,7 @@ This directory contains your agent's knowledge base files, synced from the cloud
 
                 await invalidate_kb_context_cache(agent_id)
             except Exception as e:
-                logger.warning(
-                    f"[KB] Failed to invalidate cache after enable/disable: {e}"
-                )
+                logger.warning(f"[KB] Failed to invalidate cache after enable/disable: {e}")
             status = "enabled" if enabled else "disabled"
             return self.success_response(
                 {
@@ -1484,18 +1408,13 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             client = await self.thread_manager.db.client
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -1602,18 +1521,13 @@ This directory contains your agent's knowledge base files, synced from the cloud
                 else None
             )
             if not agent_id:
-                return self.fail_response(
-                    "No agent ID found for knowledge base operations"
-                )
+                return self.fail_response("No agent ID found for knowledge base operations")
 
             client = await self.thread_manager.db.client
 
             # Get agent's account ID
             agent_result = (
-                await client.table("agents")
-                .select("account_id")
-                .eq("agent_id", agent_id)
-                .execute()
+                await client.table("agents").select("account_id").eq("agent_id", agent_id).execute()
             )
             if not agent_result.data:
                 return self.fail_response("Worker not found")
@@ -1708,6 +1622,4 @@ This directory contains your agent's knowledge base files, synced from the cloud
             )
 
         except Exception as e:
-            return self.fail_response(
-                f"Failed to list knowledge base contents: {str(e)}"
-            )
+            return self.fail_response(f"Failed to list knowledge base contents: {str(e)}")

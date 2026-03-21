@@ -31,13 +31,13 @@ class SystemStatusResponse(BaseModel):
 @router.get("/status", response_model=SystemStatusResponse)
 async def get_public_system_status() -> SystemStatusResponse:
     status = await get_system_status()
-    
+
     maintenance_notice = MaintenanceNoticeResponse(
         enabled=status.maintenance_notice.enabled,
         startTime=status.maintenance_notice.start_time,
-        endTime=status.maintenance_notice.end_time
+        endTime=status.maintenance_notice.end_time,
     )
-    
+
     technical_issue = TechnicalIssueResponse(
         enabled=status.technical_issue.enabled,
         message=status.technical_issue.message,
@@ -45,11 +45,11 @@ async def get_public_system_status() -> SystemStatusResponse:
         affectedServices=status.technical_issue.affected_services,
         description=status.technical_issue.description,
         estimatedResolution=status.technical_issue.estimated_resolution,
-        severity=status.technical_issue.severity
+        severity=status.technical_issue.severity,
     )
-    
+
     return SystemStatusResponse(
         maintenanceNotice=maintenance_notice,
         technicalIssue=technical_issue,
-        updatedAt=status.updated_at
+        updatedAt=status.updated_at,
     )

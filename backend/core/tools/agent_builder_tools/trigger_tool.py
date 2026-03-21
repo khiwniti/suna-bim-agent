@@ -16,6 +16,7 @@ import os
 from core.composio_integration.composio_profile_service import ComposioProfileService
 from core.composio_integration.composio_trigger_service import ComposioTriggerService
 
+
 @tool_metadata(
     display_name="Triggers & Automation",
     description="Set up automatic triggers to run agents on a schedule or on events",
@@ -47,7 +48,7 @@ from core.composio_integration.composio_trigger_service import ComposioTriggerSe
 - Use clear, descriptive trigger names
 - Test with appropriate schedules
 - Document what each trigger does
-"""
+""",
 )
 class TriggerTool(AgentBuilderBaseTool):
     def __init__(self, thread_manager: ThreadManager, db_connection, agent_id: str):
@@ -56,7 +57,13 @@ class TriggerTool(AgentBuilderBaseTool):
     async def _get_account_workers(self) -> List[Dict[str, Any]]:
         account_id = await self._get_current_account_id()
         client = await self.db.client
-        result = await client.table('agents').select('agent_id,name,is_default,metadata,created_at,updated_at').eq('account_id', account_id).order('created_at', desc=True).execute()
+        result = (
+            await client.table("agents")
+            .select("agent_id,name,is_default,metadata,created_at,updated_at")
+            .eq("account_id", account_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
         return result.data or []
 
     async def _resolve_target_worker(
@@ -73,8 +80,9 @@ class TriggerTool(AgentBuilderBaseTool):
         if worker_name:
             requested_name = worker_name.strip().lower()
             exact_matches = [
-                worker for worker in workers
-                if (worker.get('name') or '').strip().lower() == requested_name
+                worker
+                for worker in workers
+                if (worker.get("name") or "").strip().lower() == requested_name
             ]
 
             if len(exact_matches) == 1:
@@ -85,14 +93,17 @@ class TriggerTool(AgentBuilderBaseTool):
                 )
             else:
                 partial_matches = [
-                    worker for worker in workers
-                    if requested_name in (worker.get('name') or '').strip().lower()
+                    worker
+                    for worker in workers
+                    if requested_name in (worker.get("name") or "").strip().lower()
                 ]
 
                 if len(partial_matches) == 1:
                     target_worker = partial_matches[0]
                 elif len(partial_matches) > 1:
-                    matching_names = ', '.join((worker.get('name') or '') for worker in partial_matches[:5])
+                    matching_names = ", ".join(
+                        (worker.get("name") or "") for worker in partial_matches[:5]
+                    )
                     raise ValueError(
                         f"Multiple workers match '{worker_name}': {matching_names}. Please pass agent_id or an exact worker_name."
                     )
@@ -101,23 +112,25 @@ class TriggerTool(AgentBuilderBaseTool):
 
         if not target_worker and agent_id:
             requested_agent_id = agent_id.strip()
-            if requested_agent_id.lower() in ('current', 'self'):
+            if requested_agent_id.lower() in ("current", "self"):
                 requested_agent_id = self.agent_id
-            elif requested_agent_id.lower() == 'default':
-                explicit_defaults = [worker for worker in workers if worker.get('is_default')]
+            elif requested_agent_id.lower() == "default":
+                explicit_defaults = [worker for worker in workers if worker.get("is_default")]
                 if explicit_defaults:
                     target_worker = explicit_defaults[0]
                 else:
                     suna_defaults = [
-                        worker for worker in workers
-                        if isinstance(worker.get('metadata'), dict) and worker['metadata'].get('is_suna_default') is True
+                        worker
+                        for worker in workers
+                        if isinstance(worker.get("metadata"), dict)
+                        and worker["metadata"].get("is_suna_default") is True
                     ]
                     if suna_defaults:
                         target_worker = suna_defaults[0]
 
             if not target_worker:
                 for worker in workers:
-                    if str(worker.get('agent_id')) == requested_agent_id:
+                    if str(worker.get("agent_id")) == requested_agent_id:
                         target_worker = worker
                         break
 
@@ -126,7 +139,7 @@ class TriggerTool(AgentBuilderBaseTool):
 
         if not target_worker:
             for worker in workers:
-                if str(worker.get('agent_id')) == str(self.agent_id):
+                if str(worker.get("agent_id")) == str(self.agent_id):
                     target_worker = worker
                     break
 
@@ -148,81 +161,110 @@ class TriggerTool(AgentBuilderBaseTool):
     @staticmethod
     def _is_connected_account_id(value: Optional[str]) -> bool:
         return bool(value and isinstance(value, str) and value.strip().startswith("ca_"))
-    
+
     def _extract_variables(self, text: str) -> List[str]:
         """Extract variable names from a text containing {{variable}} patterns"""
-        pattern = r'\{\{(\w+)\}\}'
+        pattern = r"\{\{(\w+)\}\}"
         matches = re.findall(pattern, text)
         return list(set(matches))
-    
+
     def _has_variables(self, text: str) -> bool:
         """Check if text contains any {{variable}} patterns"""
-        pattern = r'\{\{(\w+)\}\}'
+        pattern = r"\{\{(\w+)\}\}"
         return bool(re.search(pattern, text))
 
     async def _sync_triggers_to_version_config(self, agent_id: Optional[str] = None) -> None:
         try:
             client = await self.db.client
             target_agent_id = agent_id or self.agent_id
-            
-            agent_result = await client.table('agents').select('current_version_id').eq('agent_id', target_agent_id).single().execute()
-            if not agent_result.data or not agent_result.data.get('current_version_id'):
+
+            agent_result = (
+                await client.table("agents")
+                .select("current_version_id")
+                .eq("agent_id", target_agent_id)
+                .single()
+                .execute()
+            )
+            if not agent_result.data or not agent_result.data.get("current_version_id"):
                 logger.warning(f"No current version found for agent {target_agent_id}")
                 return
-            
-            current_version_id = agent_result.data['current_version_id']
-            
-            triggers_result = await client.table('agent_triggers').select('*').eq('agent_id', target_agent_id).execute()
+
+            current_version_id = agent_result.data["current_version_id"]
+
+            triggers_result = (
+                await client.table("agent_triggers")
+                .select("*")
+                .eq("agent_id", target_agent_id)
+                .execute()
+            )
             triggers = []
             if triggers_result.data:
                 import json
+
                 for trigger in triggers_result.data:
                     trigger_copy = trigger.copy()
-                    if 'config' in trigger_copy and isinstance(trigger_copy['config'], str):
+                    if "config" in trigger_copy and isinstance(trigger_copy["config"], str):
                         try:
-                            trigger_copy['config'] = json.loads(trigger_copy['config'])
+                            trigger_copy["config"] = json.loads(trigger_copy["config"])
                         except json.JSONDecodeError:
-                            logger.warning(f"Failed to parse trigger config for {trigger_copy.get('trigger_id')}")
-                            trigger_copy['config'] = {}
+                            logger.warning(
+                                f"Failed to parse trigger config for {trigger_copy.get('trigger_id')}"
+                            )
+                            trigger_copy["config"] = {}
                     triggers.append(trigger_copy)
-            
-            version_result = await client.table('agent_versions').select('config').eq('version_id', current_version_id).single().execute()
+
+            version_result = (
+                await client.table("agent_versions")
+                .select("config")
+                .eq("version_id", current_version_id)
+                .single()
+                .execute()
+            )
             if not version_result.data:
                 logger.warning(f"Version {current_version_id} not found")
                 return
-            
-            config = version_result.data.get('config', {})
-            
-            config['triggers'] = triggers
-            
-            await client.table('agent_versions').update({'config': config}).eq('version_id', current_version_id).execute()
-            
-            logger.debug(f"Synced {len(triggers)} triggers to version config for agent {target_agent_id}")
-            
+
+            config = version_result.data.get("config", {})
+
+            config["triggers"] = triggers
+
+            await (
+                client.table("agent_versions")
+                .update({"config": config})
+                .eq("version_id", current_version_id)
+                .execute()
+            )
+
+            logger.debug(
+                f"Synced {len(triggers)} triggers to version config for agent {target_agent_id}"
+            )
+
         except Exception as e:
             logger.error(f"Failed to sync triggers to version config: {e}")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "list_account_workers",
-            "description": "List all workers in the current account including worker names and IDs. Use this before bulk trigger setup so you can configure triggers without asking the user for IDs.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "search": {
-                        "type": "string",
-                        "description": "Optional search text to filter workers by name"
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "list_account_workers",
+                "description": "List all workers in the current account including worker names and IDs. Use this before bulk trigger setup so you can configure triggers without asking the user for IDs.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search": {
+                            "type": "string",
+                            "description": "Optional search text to filter workers by name",
+                        },
+                        "include_carbon_bim": {
+                            "type": "boolean",
+                            "description": "Whether to include the built-in Carbon BIM worker in results. Defaults to false.",
+                        },
                     },
-                    "include_carbon_bim": {
-                        "type": "boolean",
-                        "description": "Whether to include the built-in Carbon BIM worker in results. Defaults to false."
-                    }
+                    "required": [],
                 },
-                "required": []
-            }
+            },
         }
-    })
+    )
     async def list_account_workers(
         self,
         search: Optional[str] = None,
@@ -231,91 +273,99 @@ class TriggerTool(AgentBuilderBaseTool):
         try:
             workers = await self._get_account_workers()
 
-            search_text = (search or '').strip().lower()
+            search_text = (search or "").strip().lower()
             filtered_workers = []
 
             for worker in workers:
-                raw_metadata = worker.get('metadata')
+                raw_metadata = worker.get("metadata")
                 metadata: Dict[str, Any] = raw_metadata if isinstance(raw_metadata, dict) else {}
-                is_carbon_bim = bool(metadata.get('is_suna_default'))
-                name = worker.get('name') or 'Untitled Worker'
+                is_carbon_bim = bool(metadata.get("is_suna_default"))
+                name = worker.get("name") or "Untitled Worker"
 
                 if not include_carbon_bim and is_carbon_bim:
                     continue
                 if search_text and search_text not in name.lower():
                     continue
 
-                filtered_workers.append({
-                    "agent_id": worker.get('agent_id'),
-                    "name": name,
-                    "is_default": bool(worker.get('is_default')),
-                    "is_carbon_bim": is_carbon_bim,
-                    "is_current": str(worker.get('agent_id')) == str(self.agent_id),
-                    "created_at": worker.get('created_at'),
-                    "updated_at": worker.get('updated_at'),
-                })
+                filtered_workers.append(
+                    {
+                        "agent_id": worker.get("agent_id"),
+                        "name": name,
+                        "is_default": bool(worker.get("is_default")),
+                        "is_carbon_bim": is_carbon_bim,
+                        "is_current": str(worker.get("agent_id")) == str(self.agent_id),
+                        "created_at": worker.get("created_at"),
+                        "updated_at": worker.get("updated_at"),
+                    }
+                )
 
             if not filtered_workers:
                 if search_text:
                     message = f"No workers found matching '{search}'."
                 else:
                     message = "No workers found in this account."
-                return self.success_response({
-                    "message": message,
-                    "workers": [],
-                    "total": 0,
-                })
+                return self.success_response(
+                    {
+                        "message": message,
+                        "workers": [],
+                        "total": 0,
+                    }
+                )
 
-            return self.success_response({
-                "message": f"Found {len(filtered_workers)} worker(s)",
-                "workers": filtered_workers,
-                "total": len(filtered_workers),
-            })
+            return self.success_response(
+                {
+                    "message": f"Found {len(filtered_workers)} worker(s)",
+                    "workers": filtered_workers,
+                    "total": len(filtered_workers),
+                }
+            )
         except Exception as e:
             logger.error(f"Error listing account workers: {e}", exc_info=True)
             return self.fail_response("Error listing workers")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "create_scheduled_trigger",
-            "description": "Create a scheduled trigger for the agent to execute at specified times using cron expressions. This allows the agent to run automatically on a schedule. TEMPLATE VARIABLES: Use {{variable_name}} syntax in prompts to create reusable templates. Example: Instead of 'Monitor Apple brand', use 'Monitor {{company_name}} brand'. Users will provide their own values when installing.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "agent_id": {
-                        "type": "string",
-                        "description": "Optional target worker ID. Use list_account_workers first when configuring multiple workers. Supports 'current' and 'default'."
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "create_scheduled_trigger",
+                "description": "Create a scheduled trigger for the agent to execute at specified times using cron expressions. This allows the agent to run automatically on a schedule. TEMPLATE VARIABLES: Use {{variable_name}} syntax in prompts to create reusable templates. Example: Instead of 'Monitor Apple brand', use 'Monitor {{company_name}} brand'. Users will provide their own values when installing.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": {
+                            "type": "string",
+                            "description": "Optional target worker ID. Use list_account_workers first when configuring multiple workers. Supports 'current' and 'default'.",
+                        },
+                        "worker_name": {
+                            "type": "string",
+                            "description": "Optional target worker name. Exact name preferred; partial names are supported when unique.",
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "Name of the scheduled trigger. Should be descriptive of when/why it runs.",
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Description of what this trigger does and when it runs.",
+                        },
+                        "cron_expression": {
+                            "type": "string",
+                            "description": "Cron expression defining when to run (e.g., '0 9 * * *' for daily at 9am, '*/30 * * * *' for every 30 minutes)",
+                        },
+                        "agent_prompt": {
+                            "type": "string",
+                            "description": "Prompt to send to the agent when triggered. Can include variables like {{variable_name}} that will be replaced when users install the template. For example: 'Monitor {{company_name}} brand across all platforms...'",
+                        },
+                        "model": {
+                            "type": "string",
+                            "description": "Model to use for the scheduled execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'.",
+                        },
                     },
-                    "worker_name": {
-                        "type": "string",
-                        "description": "Optional target worker name. Exact name preferred; partial names are supported when unique."
-                    },
-                    "name": {
-                        "type": "string",
-                        "description": "Name of the scheduled trigger. Should be descriptive of when/why it runs."
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Description of what this trigger does and when it runs."
-                    },
-                    "cron_expression": {
-                        "type": "string",
-                        "description": "Cron expression defining when to run (e.g., '0 9 * * *' for daily at 9am, '*/30 * * * *' for every 30 minutes)"
-                    },
-                    "agent_prompt": {
-                        "type": "string",
-                        "description": "Prompt to send to the agent when triggered. Can include variables like {{variable_name}} that will be replaced when users install the template. For example: 'Monitor {{company_name}} brand across all platforms...'"
-                    },
-                    "model": {
-                        "type": "string",
-                        "description": "Model to use for the scheduled execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'."
-                    }
+                    "required": ["name", "cron_expression", "agent_prompt"],
                 },
-                "required": ["name", "cron_expression", "agent_prompt"]
-            }
+            },
         }
-    })
+    )
     async def create_scheduled_trigger(
         self,
         name: str,
@@ -331,38 +381,40 @@ class TriggerTool(AgentBuilderBaseTool):
                 return self.fail_response("agent_prompt is required")
 
             try:
-                target_worker = await self._resolve_target_worker(agent_id=agent_id, worker_name=worker_name)
+                target_worker = await self._resolve_target_worker(
+                    agent_id=agent_id, worker_name=worker_name
+                )
             except ValueError as e:
                 return self.fail_response(str(e))
 
-            target_agent_id = str(target_worker.get('agent_id'))
-            target_worker_name = target_worker.get('name') or 'Worker'
-            
+            target_agent_id = str(target_worker.get("agent_id"))
+            target_worker_name = target_worker.get("name") or "Worker"
+
             # Extract variables from the prompt
             variables = self._extract_variables(agent_prompt)
-            
+
             trigger_config: Dict[str, Any] = {
                 "cron_expression": cron_expression,
                 "provider_id": "schedule",
                 "agent_prompt": agent_prompt,
-                "model": model or "carbon-bim/basic"
+                "model": model or "carbon-bim/basic",
             }
-            
+
             if variables:
                 trigger_config["trigger_variables"] = variables
                 logger.debug(f"Found variables in trigger prompt: {variables}")
-            
+
             trigger_svc = get_trigger_service(self.db)
-            
+
             try:
                 trigger = await trigger_svc.create_trigger(
                     agent_id=target_agent_id,
                     provider_id="schedule",
                     name=name,
                     config=trigger_config,
-                    description=description
+                    description=description,
                 )
-                
+
                 result_message = f"Scheduled trigger '{name}' created successfully!\n\n"
                 result_message += f"**Worker**: {target_worker_name}\n"
                 result_message += f"**Schedule**: {cron_expression}\n"
@@ -372,65 +424,66 @@ class TriggerTool(AgentBuilderBaseTool):
                 if variables:
                     result_message += f"**Template Variables Detected**: {', '.join(['{{' + v + '}}' for v in variables])}\n"
                     result_message += f"*Note: Users will be prompted to provide values for these variables when installing this agent as a template.*\n"
-                result_message += f"\nThe trigger is now active and will run according to the schedule."
-                
+                result_message += (
+                    f"\nThe trigger is now active and will run according to the schedule."
+                )
+
                 # Sync triggers to version config
                 try:
                     await self._sync_triggers_to_version_config(target_agent_id)
                 except Exception as e:
                     logger.warning(f"Failed to sync triggers to version config: {e}")
-                
-                return self.success_response({
-                    "message": result_message,
-                    "agent_id": target_agent_id,
-                    "worker_name": target_worker_name,
-                    "trigger": {
-                        "name": trigger.name,
-                        "description": trigger.description,
-                        "cron_expression": cron_expression,
-                        "model": trigger_config['model'],
-                        "is_active": trigger.is_active,
-                        "variables": variables if variables else []
+
+                return self.success_response(
+                    {
+                        "message": result_message,
+                        "agent_id": target_agent_id,
+                        "worker_name": target_worker_name,
+                        "trigger": {
+                            "name": trigger.name,
+                            "description": trigger.description,
+                            "cron_expression": cron_expression,
+                            "model": trigger_config["model"],
+                            "is_active": trigger.is_active,
+                            "variables": variables if variables else [],
+                        },
                     }
-                })
+                )
             except ValueError as ve:
                 return self.fail_response("Validation error")
             except Exception as e:
                 logger.error(f"Error creating trigger through manager: {str(e)}")
                 return self.fail_response("Failed to create trigger")
-                    
+
         except Exception as e:
             logger.error(f"Error creating scheduled trigger: {str(e)}")
             return self.fail_response("Error creating scheduled trigger")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "get_scheduled_triggers",
-            "description": "Get all scheduled triggers for the current agent. Shows when the agent will run automatically.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "get_scheduled_triggers",
+                "description": "Get all scheduled triggers for the current agent. Shows when the agent will run automatically.",
+                "parameters": {"type": "object", "properties": {}, "required": []},
+            },
         }
-    })
+    )
     async def get_scheduled_triggers(self) -> ToolResult:
         try:
             from core.triggers import TriggerType
-            
+
             trigger_svc = get_trigger_service(self.db)
-            
+
             triggers = await trigger_svc.get_agent_triggers(self.agent_id)
-            
+
             schedule_triggers = [t for t in triggers if t.trigger_type == TriggerType.SCHEDULE]
-            
+
             if not schedule_triggers:
-                return self.success_response({
-                    "message": "No scheduled triggers found for this worker.",
-                    "triggers": []
-                })
-            
+                return self.success_response(
+                    {"message": "No scheduled triggers found for this worker.", "triggers": []}
+                )
+
             formatted_triggers = []
             for trigger in schedule_triggers:
                 formatted = {
@@ -439,220 +492,255 @@ class TriggerTool(AgentBuilderBaseTool):
                     "cron_expression": trigger.config.get("cron_expression"),
                     "agent_prompt": trigger.config.get("agent_prompt"),
                     "model": trigger.config.get("model", "carbon-bim/basic"),
-                    "is_active": trigger.is_active
+                    "is_active": trigger.is_active,
                 }
-                
+
                 formatted_triggers.append(formatted)
-            
-            return self.success_response({
-                "message": f"Found {len(formatted_triggers)} scheduled trigger(s)",
-                "triggers": formatted_triggers
-            })
-                    
+
+            return self.success_response(
+                {
+                    "message": f"Found {len(formatted_triggers)} scheduled trigger(s)",
+                    "triggers": formatted_triggers,
+                }
+            )
+
         except Exception as e:
             logger.error(f"Error getting scheduled triggers: {str(e)}")
             return self.fail_response("Error getting scheduled triggers")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "delete_scheduled_trigger",
-            "description": "Delete a scheduled trigger. The agent will no longer run automatically at the scheduled time.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "trigger_id": {
-                        "type": "string",
-                        "description": "ID of the trigger to delete"
-                    }
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "delete_scheduled_trigger",
+                "description": "Delete a scheduled trigger. The agent will no longer run automatically at the scheduled time.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "trigger_id": {
+                            "type": "string",
+                            "description": "ID of the trigger to delete",
+                        }
+                    },
+                    "required": ["trigger_id"],
                 },
-                "required": ["trigger_id"]
-            }
+            },
         }
-    })
+    )
     async def delete_scheduled_trigger(self, trigger_id: str) -> ToolResult:
         try:
             trigger_svc = get_trigger_service(self.db)
-            
+
             trigger_config = await trigger_svc.get_trigger(trigger_id)
-            
+
             if not trigger_config:
                 return self.fail_response("Trigger not found")
-            
+
             if trigger_config.agent_id != self.agent_id:
                 return self.fail_response("This trigger doesn't belong to the current agent")
-            
+
             success = await trigger_svc.delete_trigger(trigger_id)
-            
+
             if success:
                 # Sync triggers to version config
                 try:
                     await self._sync_triggers_to_version_config()
                 except Exception as e:
                     logger.warning(f"Failed to sync triggers to version config: {e}")
-                
-                return self.success_response({
-                    "message": f"Scheduled trigger '{trigger_config.name}' deleted successfully"
-                })
+
+                return self.success_response(
+                    {"message": f"Scheduled trigger '{trigger_config.name}' deleted successfully"}
+                )
             else:
                 return self.fail_response("Failed to delete trigger")
-                    
+
         except Exception as e:
             logger.error(f"Error deleting scheduled trigger: {str(e)}")
             return self.fail_response("Error deleting scheduled trigger")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "toggle_scheduled_trigger",
-            "description": "Enable or disable a scheduled trigger. Disabled triggers won't run until re-enabled.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "trigger_id": {
-                        "type": "string",
-                        "description": "ID of the trigger to toggle"
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "toggle_scheduled_trigger",
+                "description": "Enable or disable a scheduled trigger. Disabled triggers won't run until re-enabled.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "trigger_id": {
+                            "type": "string",
+                            "description": "ID of the trigger to toggle",
+                        },
+                        "is_active": {
+                            "type": "boolean",
+                            "description": "Whether to enable (true) or disable (false) the trigger",
+                        },
                     },
-                    "is_active": {
-                        "type": "boolean",
-                        "description": "Whether to enable (true) or disable (false) the trigger"
-                    }
+                    "required": ["trigger_id", "is_active"],
                 },
-                "required": ["trigger_id", "is_active"]
-            }
+            },
         }
-    })
+    )
     async def toggle_scheduled_trigger(self, trigger_id: str, is_active: bool) -> ToolResult:
         try:
             trigger_svc = get_trigger_service(self.db)
-            
+
             trigger_config = await trigger_svc.get_trigger(trigger_id)
-            
+
             if not trigger_config:
                 return self.fail_response("Trigger not found")
-            
+
             if trigger_config.agent_id != self.agent_id:
                 return self.fail_response("This trigger doesn't belong to the current agent")
-            
+
             updated_config = await trigger_svc.update_trigger(
-                trigger_id=trigger_id,
-                is_active=is_active
+                trigger_id=trigger_id, is_active=is_active
             )
-            
+
             if updated_config:
                 status = "enabled" if is_active else "disabled"
-                
+
                 # Sync triggers to version config
                 try:
                     await self._sync_triggers_to_version_config()
                 except Exception as e:
                     logger.warning(f"Failed to sync triggers to version config: {e}")
-                
-                return self.success_response({
-                    "message": f"Scheduled trigger '{updated_config.name}' has been {status}",
-                    "trigger": {
-                        "name": updated_config.name,
-                        "is_active": updated_config.is_active
+
+                return self.success_response(
+                    {
+                        "message": f"Scheduled trigger '{updated_config.name}' has been {status}",
+                        "trigger": {
+                            "name": updated_config.name,
+                            "is_active": updated_config.is_active,
+                        },
                     }
-                })
+                )
             else:
                 return self.fail_response("Failed to update trigger")
-                    
+
         except Exception as e:
             logger.error(f"Error toggling scheduled trigger: {str(e)}")
             return self.fail_response("Error toggling scheduled trigger")
 
     # ===== EVENT-BASED TRIGGERS =====
 
-# Event trigger methods - available in all environments
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "list_event_trigger_apps",
-            "description": "List apps (toolkits) that have available event-based triggers via Composio. Returns slug, name, and logo.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
+    # Event trigger methods - available in all environments
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "list_event_trigger_apps",
+                "description": "List apps (toolkits) that have available event-based triggers via Composio. Returns slug, name, and logo.",
+                "parameters": {"type": "object", "properties": {}, "required": []},
+            },
         }
-    })
+    )
     async def list_event_trigger_apps(self) -> ToolResult:
         try:
             trigger_service = ComposioTriggerService()
             response = await trigger_service.list_apps_with_triggers()
-            
+
             # Return exact same format as API
-            return self.success_response({
-                "message": f"Found {response['total']} apps with triggers",
-                "items": response["items"],
-                "total": response["total"]
-            })
+            return self.success_response(
+                {
+                    "message": f"Found {response['total']} apps with triggers",
+                    "items": response["items"],
+                    "total": response["total"],
+                }
+            )
         except Exception as e:
             logger.error(f"Error listing event trigger apps: {e}")
             return self.fail_response("Error listing apps")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "list_app_event_triggers",
-            "description": "List available triggers for a given app/toolkit slug. Includes slug, name, description, type, instructions, config, and payload schema.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "toolkit_slug": {
-                        "type": "string",
-                        "description": "Toolkit slug, e.g. 'gmail'"
-                    }
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "list_app_event_triggers",
+                "description": "List available triggers for a given app/toolkit slug. Includes slug, name, description, type, instructions, config, and payload schema.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "toolkit_slug": {
+                            "type": "string",
+                            "description": "Toolkit slug, e.g. 'gmail'",
+                        }
+                    },
+                    "required": ["toolkit_slug"],
                 },
-                "required": ["toolkit_slug"]
-            }
+            },
         }
-    })
+    )
     async def list_app_event_triggers(self, toolkit_slug: str) -> ToolResult:
         try:
             trigger_service = ComposioTriggerService()
             response = await trigger_service.list_triggers_for_app(toolkit_slug)
-            
+
             # Return exact same format as API
-            return self.success_response({
-                "message": f"Found {response['total']} triggers for {toolkit_slug}",
-                "items": response["items"],
-                "toolkit": response["toolkit"],
-                "total": response["total"]
-            })
+            return self.success_response(
+                {
+                    "message": f"Found {response['total']} triggers for {toolkit_slug}",
+                    "items": response["items"],
+                    "toolkit": response["toolkit"],
+                    "total": response["total"],
+                }
+            )
         except Exception as e:
             logger.error(f"Error listing triggers for app {toolkit_slug}: {e}")
             return self.fail_response("Error listing triggers")
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "create_event_trigger",
-            "description": "Create a Composio event-based trigger for the current worker or another worker in your account. First list apps and triggers, then pass the chosen trigger slug, profile_id, and trigger_config. You can use variables in the prompt like {{company_name}} or {{brand_name}} to make templates reusable.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "agent_id": {
-                        "type": "string",
-                        "description": "Optional target worker ID. Use list_account_workers first for bulk setup. Supports 'current' and 'default'."
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "create_event_trigger",
+                "description": "Create a Composio event-based trigger for the current worker or another worker in your account. First list apps and triggers, then pass the chosen trigger slug, profile_id, and trigger_config. You can use variables in the prompt like {{company_name}} or {{brand_name}} to make templates reusable.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": {
+                            "type": "string",
+                            "description": "Optional target worker ID. Use list_account_workers first for bulk setup. Supports 'current' and 'default'.",
+                        },
+                        "worker_name": {
+                            "type": "string",
+                            "description": "Optional target worker name. Exact name preferred; partial names are supported when unique.",
+                        },
+                        "slug": {
+                            "type": "string",
+                            "description": "Trigger type slug, e.g. 'GMAIL_NEW_GMAIL_MESSAGE'",
+                        },
+                        "profile_id": {
+                            "type": "string",
+                            "description": "Composio profile_id (UUID) to use. Preferred input from get_credential_profiles.",
+                        },
+                        "trigger_config": {
+                            "type": "object",
+                            "description": "Trigger configuration object per trigger schema",
+                            "additionalProperties": True,
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "Optional friendly name for the trigger",
+                        },
+                        "agent_prompt": {
+                            "type": "string",
+                            "description": "Prompt to pass to the agent when triggered. Can include variables like {{variable_name}} that will be replaced when users install the template. For example: 'New email received for {{company_name}}...'",
+                        },
+                        "connected_account_id": {
+                            "type": "string",
+                            "description": "Optional Composio connected account id (format: ca_...). If omitted, it is auto-derived from profile_id when possible. Do not pass profile UUID here.",
+                        },
+                        "model": {
+                            "type": "string",
+                            "description": "Model to use for the event execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'.",
+                        },
                     },
-                    "worker_name": {
-                        "type": "string",
-                        "description": "Optional target worker name. Exact name preferred; partial names are supported when unique."
-                    },
-                    "slug": {"type": "string", "description": "Trigger type slug, e.g. 'GMAIL_NEW_GMAIL_MESSAGE'"},
-                    "profile_id": {"type": "string", "description": "Composio profile_id (UUID) to use. Preferred input from get_credential_profiles."},
-                    "trigger_config": {"type": "object", "description": "Trigger configuration object per trigger schema", "additionalProperties": True},
-                    "name": {"type": "string", "description": "Optional friendly name for the trigger"},
-                    "agent_prompt": {"type": "string", "description": "Prompt to pass to the agent when triggered. Can include variables like {{variable_name}} that will be replaced when users install the template. For example: 'New email received for {{company_name}}...'"},
-                    "connected_account_id": {"type": "string", "description": "Optional Composio connected account id (format: ca_...). If omitted, it is auto-derived from profile_id when possible. Do not pass profile UUID here."},
-                    "model": {"type": "string", "description": "Model to use for the event execution. Options: 'carbon-bim/basic' (default, free tier) or 'carbon-bim/power' (requires paid subscription). If not specified, defaults to 'carbon-bim/basic'."}
+                    "required": ["slug", "profile_id", "agent_prompt"],
                 },
-                "required": ["slug", "profile_id", "agent_prompt"]
-            }
+            },
         }
-    })
+    )
     async def create_event_trigger(
         self,
         slug: str,
@@ -672,13 +760,15 @@ class TriggerTool(AgentBuilderBaseTool):
                 return self.fail_response("agent_prompt is required")
 
             try:
-                target_worker = await self._resolve_target_worker(agent_id=agent_id, worker_name=worker_name)
+                target_worker = await self._resolve_target_worker(
+                    agent_id=agent_id, worker_name=worker_name
+                )
             except ValueError as e:
                 return self.fail_response(str(e))
 
-            target_agent_id = str(target_worker.get('agent_id'))
-            target_worker_name = target_worker.get('name') or 'Worker'
-            
+            target_agent_id = str(target_worker.get("agent_id"))
+            target_worker_name = target_worker.get("name") or "Worker"
+
             # Extract variables from the prompt
             variables = self._extract_variables(agent_prompt)
 
@@ -700,13 +790,17 @@ class TriggerTool(AgentBuilderBaseTool):
                     "profile_id is required. Use get_credential_profiles and pass the profile UUID."
                 )
 
-            if resolved_connected_account_id and not self._is_connected_account_id(resolved_connected_account_id):
+            if resolved_connected_account_id and not self._is_connected_account_id(
+                resolved_connected_account_id
+            ):
                 return self.fail_response(
                     "Invalid connected_account_id format. Expected value like 'ca_...'. Do not pass profile UUID as connected_account_id."
                 )
 
             try:
-                profile_config = await profile_service.get_profile_config(resolved_profile_id, account_id=account_id)
+                profile_config = await profile_service.get_profile_config(
+                    resolved_profile_id, account_id=account_id
+                )
             except Exception as e:
                 logger.error(f"Failed to get profile config: {e}")
                 return self.fail_response(f"Failed to get profile config: {str(e)}")
@@ -719,16 +813,20 @@ class TriggerTool(AgentBuilderBaseTool):
                 return self.fail_response(
                     "Connected account is missing for this profile. Reconnect the integration and try again."
                 )
-                 
+
             composio_user_id = profile_config.get("user_id")
             if not composio_user_id:
                 return self.fail_response("Composio profile is missing user_id")
-            
+
             # Get toolkit_slug and build qualified_name
             toolkit_slug = profile_config.get("toolkit_slug")
             if not toolkit_slug and slug:
-                toolkit_slug = slug.split('_')[0].lower() if '_' in slug else 'composio'
-            qualified_name = f'composio.{toolkit_slug}' if toolkit_slug and toolkit_slug != 'composio' else 'composio'
+                toolkit_slug = slug.split("_")[0].lower() if "_" in slug else "composio"
+            qualified_name = (
+                f"composio.{toolkit_slug}"
+                if toolkit_slug and toolkit_slug != "composio"
+                else "composio"
+            )
 
             # API setup
             api_base = os.getenv("COMPOSIO_API_BASE", "https://backend.composio.dev").rstrip("/")
@@ -793,7 +891,9 @@ class TriggerTool(AgentBuilderBaseTool):
                 except httpx.HTTPStatusError as e:
                     ct = resp.headers.get("content-type", "")
                     detail = resp.json() if "application/json" in ct else resp.text
-                    logger.error(f"Composio upsert error - status: {resp.status_code}, detail: {detail}")
+                    logger.error(
+                        f"Composio upsert error - status: {resp.status_code}, detail: {detail}"
+                    )
                     return self.fail_response(f"Composio upsert error: {detail}")
                 created = resp.json()
 
@@ -828,7 +928,7 @@ class TriggerTool(AgentBuilderBaseTool):
 
             if not composio_trigger_id:
                 return self.fail_response("Failed to get Composio trigger id from response")
-            
+
             # Build Suna trigger config (same as API)
             suna_config: Dict[str, Any] = {
                 "provider_id": "composio",
@@ -838,13 +938,13 @@ class TriggerTool(AgentBuilderBaseTool):
                 "profile_id": resolved_profile_id,
                 "connected_account_id": resolved_connected_account_id,
                 "agent_prompt": agent_prompt,
-                "model": model or "carbon-bim/basic"
+                "model": model or "carbon-bim/basic",
             }
-            
+
             if variables:
                 suna_config["trigger_variables"] = variables
                 logger.debug(f"Found variables in event trigger prompt: {variables}")
-            
+
             # Create Suna trigger
             trigger_svc = get_trigger_service(self.db)
             try:
@@ -853,7 +953,7 @@ class TriggerTool(AgentBuilderBaseTool):
                     provider_id="composio",
                     name=name or slug,
                     config=suna_config,
-                    description=f"{slug}"
+                    description=f"{slug}",
                 )
             except Exception as e:
                 logger.error(f"Failed to create Suna trigger: {e}")
@@ -874,20 +974,22 @@ class TriggerTool(AgentBuilderBaseTool):
                 message += f"\n**Template Variables Detected**: {', '.join(['{{' + v + '}}' for v in variables])}\n"
                 message += f"*Note: Users will be prompted to provide values for these variables when installing this agent as a template.*"
 
-            return self.success_response({
-                "message": message,
-                "trigger": {
-                    "provider": "composio",
-                    "slug": slug,
-                    "agent_id": target_agent_id,
-                    "worker_name": target_worker_name,
-                    "profile_id": resolved_profile_id,
-                    "connected_account_id": resolved_connected_account_id,
-                    "model": suna_config['model'],
-                    "is_active": trigger.is_active,
-                    "variables": variables if variables else []
+            return self.success_response(
+                {
+                    "message": message,
+                    "trigger": {
+                        "provider": "composio",
+                        "slug": slug,
+                        "agent_id": target_agent_id,
+                        "worker_name": target_worker_name,
+                        "profile_id": resolved_profile_id,
+                        "connected_account_id": resolved_connected_account_id,
+                        "model": suna_config["model"],
+                        "is_active": trigger.is_active,
+                        "variables": variables if variables else [],
+                    },
                 }
-            })
+            )
         except Exception as e:
             logger.error(f"Exception in create_event_trigger: {e}", exc_info=True)
             return self.fail_response(f"Error creating event trigger: {str(e)}")

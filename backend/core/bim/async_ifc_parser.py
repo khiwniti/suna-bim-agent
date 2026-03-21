@@ -32,6 +32,7 @@ async def async_open_ifc(file_path: str | Path) -> ifcopenshell.file:
         >>> ifc_file = await async_open_ifc("/path/to/model.ifc")
         >>> elements = ifc_file.by_type("IfcWall")
     """
+
     def _open_ifc() -> ifcopenshell.file:
         """Synchronous IFC file opening operation."""
         if not Path(file_path).exists():
@@ -47,10 +48,7 @@ async def async_open_ifc(file_path: str | Path) -> ifcopenshell.file:
     return await asyncio.to_thread(_open_ifc)
 
 
-async def async_get_elements_by_type(
-    ifc_file: ifcopenshell.file,
-    element_type: str
-) -> list[Any]:
+async def async_get_elements_by_type(ifc_file: ifcopenshell.file, element_type: str) -> list[Any]:
     """Get IFC elements by type asynchronously.
 
     Args:
@@ -64,6 +62,7 @@ async def async_get_elements_by_type(
         >>> ifc_file = await async_open_ifc("/path/to/model.ifc")
         >>> walls = await async_get_elements_by_type(ifc_file, "IfcWall")
     """
+
     def _get_elements() -> list[Any]:
         """Synchronous element retrieval operation."""
         return ifc_file.by_type(element_type)
@@ -72,9 +71,7 @@ async def async_get_elements_by_type(
 
 
 async def async_get_property_value(
-    element: Any,
-    property_name: str,
-    pset_name: str | None = None
+    element: Any, property_name: str, pset_name: str | None = None
 ) -> Any | None:
     """Get property value from IFC element asynchronously.
 
@@ -92,13 +89,14 @@ async def async_get_property_value(
         ...     wall, "LoadBearing", "Pset_WallCommon"
         ... )
     """
+
     def _get_property() -> Any | None:
         """Synchronous property retrieval operation."""
         try:
             if pset_name:
                 psets = element.IsDefinedBy
                 for definition in psets:
-                    if hasattr(definition, 'RelatingPropertyDefinition'):
+                    if hasattr(definition, "RelatingPropertyDefinition"):
                         pset = definition.RelatingPropertyDefinition
                         if pset.Name == pset_name:
                             for prop in pset.HasProperties:
@@ -108,9 +106,9 @@ async def async_get_property_value(
                 # Search all property sets
                 psets = element.IsDefinedBy
                 for definition in psets:
-                    if hasattr(definition, 'RelatingPropertyDefinition'):
+                    if hasattr(definition, "RelatingPropertyDefinition"):
                         pset = definition.RelatingPropertyDefinition
-                        if hasattr(pset, 'HasProperties'):
+                        if hasattr(pset, "HasProperties"):
                             for prop in pset.HasProperties:
                                 if prop.Name == property_name:
                                     return prop.NominalValue.wrappedValue

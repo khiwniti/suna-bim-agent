@@ -15,7 +15,7 @@ async def create_commitment_history(commitment_data: Dict[str, Any]) -> None:
     columns = list(commitment_data.keys())
     col_list = ", ".join(columns)
     placeholders = ", ".join(f":{col}" for col in columns)
-    
+
     sql = f"INSERT INTO commitment_history ({col_list}) VALUES ({placeholders})"
     await execute_mutate(sql, commitment_data)
 
@@ -45,14 +45,14 @@ async def clear_commitment(account_id: str) -> None:
 async def update_commitment(account_id: str, commitment_data: Dict[str, Any]) -> None:
     if not commitment_data:
         return
-    
+
     set_parts = []
     params = {"account_id": account_id}
-    
+
     for key, value in commitment_data.items():
         set_parts.append(f"{key} = :{key}")
         params[key] = value
-    
+
     set_sql = ", ".join(set_parts)
     sql = f"UPDATE credit_accounts SET {set_sql} WHERE account_id = :account_id"
     await execute_mutate(sql, params)

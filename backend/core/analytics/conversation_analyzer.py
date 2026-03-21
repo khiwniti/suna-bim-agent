@@ -40,21 +40,29 @@ async def get_existing_categories() -> List[str]:
         db = DBConnection()
         client = await db.client
 
-        result = await client.from_('conversation_analytics')\
-            .select('use_case_category')\
-            .not_.is_('use_case_category', None)\
+        result = (
+            await client.from_("conversation_analytics")
+            .select("use_case_category")
+            .not_.is_("use_case_category", None)
             .execute()
+        )
 
         # Add valid DB categories (skip garbage like "action_subject")
         for r in result.data or []:
-            cat = r.get('use_case_category')
-            if cat and len(cat) > 3 and not cat.startswith('action_') and not cat.startswith('CREATE'):
+            cat = r.get("use_case_category")
+            if (
+                cat
+                and len(cat) > 3
+                and not cat.startswith("action_")
+                and not cat.startswith("CREATE")
+            ):
                 categories.add(cat)
 
     except Exception as e:
         logger.warning(f"[ANALYTICS] Failed to fetch existing categories: {e}")
 
     return sorted(list(categories))
+
 
 def build_analysis_prompt(existing_categories: List[str]) -> str:
     """Build the analysis prompt with dynamic categories from DB."""
@@ -123,11 +131,7 @@ Analyze the following conversation:
 """
 
 
-async def queue_for_analysis(
-    thread_id: str,
-    agent_run_id: Optional[str],
-    account_id: str
-) -> None:
+async def queue_for_analysis(thread_id: str, agent_run_id: Optional[str], account_id: str) -> None:
     """
     Add a conversation to the analysis queue.
 
@@ -144,24 +148,32 @@ async def queue_for_analysis(
         client = await db.client
 
         # Check if already queued or analyzed recently
-        existing = await client.from_('conversation_analytics_queue')\
-            .select('id')\
-            .eq('thread_id', thread_id)\
-            .in_('status', ['pending', 'processing'])\
+        existing = (
+            await client.from_("conversation_analytics_queue")
+            .select("id")
+            .eq("thread_id", thread_id)
+            .in_("status", ["pending", "processing"])
             .execute()
+        )
 
         if existing.data:
             logger.debug(f"[ANALYTICS] Thread {thread_id} already in queue, skipping")
             return
 
         # Insert into queue
-        await client.from_('conversation_analytics_queue').insert({
-            'thread_id': thread_id,
-            'agent_run_id': agent_run_id,
-            'account_id': account_id,
-            'status': 'pending',
-            'attempts': 0,
-        }).execute()
+        await (
+            client.from_("conversation_analytics_queue")
+            .insert(
+                {
+                    "thread_id": thread_id,
+                    "agent_run_id": agent_run_id,
+                    "account_id": account_id,
+                    "status": "pending",
+                    "attempts": 0,
+                }
+            )
+            .execute()
+        )
 
         logger.debug(f"[ANALYTICS] Queued thread {thread_id} for analysis")
 
@@ -174,7 +186,7 @@ async def fetch_conversation_messages(
     thread_id: str,
     agent_run_id: Optional[str] = None,
     include_context: bool = True,
-    context_message_limit: int = 10
+    context_message_limit: int = 10,
 ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Fetch messages from a thread for analysis.
@@ -197,50 +209,57 @@ async def fetch_conversation_messages(
     started_at = None
     completed_at = None
     if agent_run_id:
-        run_result = await client.from_('agent_runs')\
-            .select('started_at, completed_at')\
-            .eq('id', agent_run_id)\
-            .single()\
+        run_result = (
+            await client.from_("agent_runs")
+            .select("started_at, completed_at")
+            .eq("id", agent_run_id)
+            .single()
             .execute()
+        )
         if run_result.data:
             # Include 30 seconds before started_at to capture triggering user message
-            raw_started = run_result.data.get('started_at')
+            raw_started = run_result.data.get("started_at")
             if raw_started:
-                started_dt = datetime.fromisoformat(raw_started.replace('Z', '+00:00'))
+                started_dt = datetime.fromisoformat(raw_started.replace("Z", "+00:00"))
                 started_at = (started_dt - timedelta(seconds=30)).isoformat()
-            completed_at = run_result.data.get('completed_at')
+            completed_at = run_result.data.get("completed_at")
 
-    base_query = client.from_('messages')\
-        .select('type, content, created_at')\
-        .eq('thread_id', thread_id)\
-        .eq('is_llm_message', True)\
-        .in_('type', ['user', 'assistant', 'tool'])
+    base_query = (
+        client.from_("messages")
+        .select("type, content, created_at")
+        .eq("thread_id", thread_id)
+        .eq("is_llm_message", True)
+        .in_("type", ["user", "assistant", "tool"])
+    )
 
     if started_at and completed_at:
         # Fetch messages for this run
-        run_query = base_query\
-            .gte('created_at', started_at)\
-            .lte('created_at', completed_at)\
-            .order('created_at', desc=False)
+        run_query = (
+            base_query.gte("created_at", started_at)
+            .lte("created_at", completed_at)
+            .order("created_at", desc=False)
+        )
         run_result = await run_query.execute()
         run_messages = run_result.data or []
 
         # Fetch previous USER messages as context (we care about what they asked, not assistant verbosity)
         if include_context:
-            context_query = client.from_('messages')\
-                .select('type, content, created_at')\
-                .eq('thread_id', thread_id)\
-                .eq('is_llm_message', True)\
-                .eq('type', 'user')\
-                .lt('created_at', started_at)\
-                .order('created_at', desc=True)\
+            context_query = (
+                client.from_("messages")
+                .select("type, content, created_at")
+                .eq("thread_id", thread_id)
+                .eq("is_llm_message", True)
+                .eq("type", "user")
+                .lt("created_at", started_at)
+                .order("created_at", desc=True)
                 .limit(context_message_limit)
+            )
             context_result = await context_query.execute()
             # Reverse to get chronological order
             context_messages = list(reversed(context_result.data or []))
     else:
         # No agent_run_id or missing timestamps - fetch all messages
-        result = await base_query.order('created_at', desc=False).execute()
+        result = await base_query.order("created_at", desc=False).execute()
         run_messages = result.data or []
 
     return context_messages, run_messages
@@ -252,8 +271,8 @@ def format_conversation_for_analysis(messages: List[Dict[str, Any]]) -> str:
     """
     lines = []
     for msg in messages:
-        role = msg.get('type', 'unknown').upper()
-        content = msg.get('content', '')
+        role = msg.get("type", "unknown").upper()
+        content = msg.get("content", "")
 
         # Handle content that might be a list (tool calls, etc.)
         if isinstance(content, list):
@@ -261,13 +280,13 @@ def format_conversation_for_analysis(messages: List[Dict[str, Any]]) -> str:
             text_parts = []
             for block in content:
                 if isinstance(block, dict):
-                    if block.get('type') == 'text':
-                        text_parts.append(block.get('text', ''))
-                    elif block.get('type') == 'tool_use':
+                    if block.get("type") == "text":
+                        text_parts.append(block.get("text", ""))
+                    elif block.get("type") == "tool_use":
                         text_parts.append(f"[Tool: {block.get('name', 'unknown')}]")
                 elif isinstance(block, str):
                     text_parts.append(block)
-            content = ' '.join(text_parts)
+            content = " ".join(text_parts)
 
         # Truncate very long messages
         if len(content) > 2000:
@@ -279,8 +298,7 @@ def format_conversation_for_analysis(messages: List[Dict[str, Any]]) -> str:
 
 
 async def analyze_conversation(
-    thread_id: str,
-    agent_run_id: Optional[str] = None
+    thread_id: str, agent_run_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze a conversation using LLM.
@@ -301,8 +319,8 @@ async def analyze_conversation(
             return None
 
         # Count messages by type (only in run_messages - what we're analyzing)
-        user_count = sum(1 for m in run_messages if m.get('type') == 'user')
-        assistant_count = sum(1 for m in run_messages if m.get('type') == 'assistant')
+        user_count = sum(1 for m in run_messages if m.get("type") == "user")
+        assistant_count = sum(1 for m in run_messages if m.get("type") == "assistant")
 
         # Skip very short conversations (likely not meaningful)
         if user_count < 1:
@@ -311,12 +329,12 @@ async def analyze_conversation(
 
         # Calculate duration
         if len(run_messages) >= 2:
-            first_time = run_messages[0].get('created_at')
-            last_time = run_messages[-1].get('created_at')
+            first_time = run_messages[0].get("created_at")
+            last_time = run_messages[-1].get("created_at")
             if first_time and last_time:
                 try:
-                    first_dt = datetime.fromisoformat(first_time.replace('Z', '+00:00'))
-                    last_dt = datetime.fromisoformat(last_time.replace('Z', '+00:00'))
+                    first_dt = datetime.fromisoformat(first_time.replace("Z", "+00:00"))
+                    last_dt = datetime.fromisoformat(last_time.replace("Z", "+00:00"))
                     duration_seconds = int((last_dt - first_dt).total_seconds())
                 except Exception:
                     duration_seconds = None
@@ -335,7 +353,9 @@ async def analyze_conversation(
         if context_messages:
             context_text = format_conversation_for_analysis(context_messages)
             if len(context_text) > CONTEXT_BUDGET:
-                context_text = context_text[:CONTEXT_BUDGET] + "\n[... earlier context truncated ...]"
+                context_text = (
+                    context_text[:CONTEXT_BUDGET] + "\n[... earlier context truncated ...]"
+                )
 
         # Format current run messages (priority)
         run_text = format_conversation_for_analysis(run_messages)
@@ -361,7 +381,7 @@ async def analyze_conversation(
         response = await make_llm_api_call(
             messages=[
                 {"role": "system", "content": analysis_prompt},
-                {"role": "user", "content": conversation_text}
+                {"role": "user", "content": conversation_text},
             ],
             model_name="openai/gpt-5-nano-2025-08-07",
             temperature=0.3,
@@ -370,7 +390,7 @@ async def analyze_conversation(
         )
 
         # Parse response
-        if not response or not hasattr(response, 'choices'):
+        if not response or not hasattr(response, "choices"):
             logger.warning(f"[ANALYTICS] No response from LLM for thread {thread_id}")
             return None
 
@@ -383,24 +403,27 @@ async def analyze_conversation(
         except json.JSONDecodeError:
             # Try to find JSON in the response
             import re
-            json_match = re.search(r'\{[\s\S]*\}', content)
+
+            json_match = re.search(r"\{[\s\S]*\}", content)
             if json_match:
                 try:
                     analysis = json.loads(json_match.group())
                 except json.JSONDecodeError:
-                    logger.warning(f"[ANALYTICS] Failed to parse LLM response for thread {thread_id}")
+                    logger.warning(
+                        f"[ANALYTICS] Failed to parse LLM response for thread {thread_id}"
+                    )
                     return None
             else:
                 logger.warning(f"[ANALYTICS] No JSON found in LLM response for thread {thread_id}")
                 return None
 
         # Build result
-        use_case = analysis.get('use_case', {})
-        use_case_category = use_case.get('category')
+        use_case = analysis.get("use_case", {})
+        use_case_category = use_case.get("category")
 
         # Fallback: try alternate structures the LLM might use
         if not use_case_category:
-            use_case_category = analysis.get('use_case_category') or analysis.get('category')
+            use_case_category = analysis.get("use_case_category") or analysis.get("category")
 
         # Debug: log what we got from LLM
         logger.debug(f"[ANALYTICS] LLM response keys: {list(analysis.keys())}")
@@ -408,18 +431,18 @@ async def analyze_conversation(
         logger.debug(f"[ANALYTICS] Extracted category: {use_case_category}")
 
         result = {
-            'sentiment_label': analysis.get('sentiment'),
-            'frustration_score': analysis.get('frustration', {}).get('score'),
-            'frustration_signals': analysis.get('frustration', {}).get('signals', []),
-            'intent_type': analysis.get('intent_type'),
-            'is_feature_request': analysis.get('feature_request', {}).get('detected', False),
-            'feature_request_text': analysis.get('feature_request', {}).get('text'),
-            'is_useful': use_case.get('is_useful', True),
-            'use_case_category': use_case_category,
-            'user_message_count': user_count,
-            'assistant_message_count': assistant_count,
-            'conversation_duration_seconds': duration_seconds,
-            'raw_analysis': analysis,
+            "sentiment_label": analysis.get("sentiment"),
+            "frustration_score": analysis.get("frustration", {}).get("score"),
+            "frustration_signals": analysis.get("frustration", {}).get("signals", []),
+            "intent_type": analysis.get("intent_type"),
+            "is_feature_request": analysis.get("feature_request", {}).get("detected", False),
+            "feature_request_text": analysis.get("feature_request", {}).get("text"),
+            "is_useful": use_case.get("is_useful", True),
+            "use_case_category": use_case_category,
+            "user_message_count": user_count,
+            "assistant_message_count": assistant_count,
+            "conversation_duration_seconds": duration_seconds,
+            "raw_analysis": analysis,
         }
 
         logger.debug(f"[ANALYTICS] Analyzed thread {thread_id}: category={use_case_category}")
@@ -435,7 +458,7 @@ async def store_analysis(
     agent_run_id: Optional[str],
     account_id: str,
     analysis: Dict[str, Any],
-    agent_run_status: Optional[str] = None
+    agent_run_status: Optional[str] = None,
 ) -> bool:
     """
     Store analysis results in the database.
@@ -457,47 +480,51 @@ async def store_analysis(
         client = await db.client
 
         record = {
-            'thread_id': thread_id,
-            'agent_run_id': agent_run_id,
-            'account_id': account_id,
-            'sentiment_label': analysis.get('sentiment_label'),
-            'frustration_score': analysis.get('frustration_score'),
-            'frustration_signals': json.dumps(analysis.get('frustration_signals', [])),
-            'intent_type': analysis.get('intent_type'),
-            'is_feature_request': analysis.get('is_feature_request', False),
-            'feature_request_text': analysis.get('feature_request_text'),
-            'is_useful': analysis.get('is_useful', True),
-            'use_case_category': analysis.get('use_case_category'),
-            'user_message_count': analysis.get('user_message_count'),
-            'assistant_message_count': analysis.get('assistant_message_count'),
-            'conversation_duration_seconds': analysis.get('conversation_duration_seconds'),
-            'agent_run_status': agent_run_status,
-            'raw_analysis': json.dumps(analysis.get('raw_analysis', {})),
+            "thread_id": thread_id,
+            "agent_run_id": agent_run_id,
+            "account_id": account_id,
+            "sentiment_label": analysis.get("sentiment_label"),
+            "frustration_score": analysis.get("frustration_score"),
+            "frustration_signals": json.dumps(analysis.get("frustration_signals", [])),
+            "intent_type": analysis.get("intent_type"),
+            "is_feature_request": analysis.get("is_feature_request", False),
+            "feature_request_text": analysis.get("feature_request_text"),
+            "is_useful": analysis.get("is_useful", True),
+            "use_case_category": analysis.get("use_case_category"),
+            "user_message_count": analysis.get("user_message_count"),
+            "assistant_message_count": analysis.get("assistant_message_count"),
+            "conversation_duration_seconds": analysis.get("conversation_duration_seconds"),
+            "agent_run_status": agent_run_status,
+            "raw_analysis": json.dumps(analysis.get("raw_analysis", {})),
         }
 
-        await client.from_('conversation_analytics').insert(record).execute()
+        await client.from_("conversation_analytics").insert(record).execute()
 
         logger.debug(f"[ANALYTICS] Stored analysis for thread {thread_id}")
 
         # Sync use_case_category to project categories (non-blocking)
-        use_case = analysis.get('use_case_category')
-        is_useful = analysis.get('is_useful', True)
+        use_case = analysis.get("use_case_category")
+        is_useful = analysis.get("is_useful", True)
 
         if use_case and is_useful:
             try:
                 # Get project_id from thread
-                thread_result = await client.from_('threads')\
-                    .select('project_id')\
-                    .eq('thread_id', thread_id)\
-                    .single()\
+                thread_result = (
+                    await client.from_("threads")
+                    .select("project_id")
+                    .eq("thread_id", thread_id)
+                    .single()
                     .execute()
+                )
 
-                project_id = thread_result.data.get('project_id') if thread_result.data else None
+                project_id = thread_result.data.get("project_id") if thread_result.data else None
 
                 if project_id:
                     # Add category to project if not already present
                     from core.services.db import execute_mutate
-                    await execute_mutate("""
+
+                    await execute_mutate(
+                        """
                         UPDATE projects
                         SET categories = array_append(
                             COALESCE(categories, ARRAY[]::text[]),
@@ -505,7 +532,9 @@ async def store_analysis(
                         )
                         WHERE project_id = :project_id
                         AND NOT (:category = ANY(COALESCE(categories, ARRAY[]::text[])))
-                    """, {"project_id": project_id, "category": use_case})
+                    """,
+                        {"project_id": project_id, "category": use_case},
+                    )
 
                     logger.debug(f"[ANALYTICS] Added category '{use_case}' to project {project_id}")
             except Exception as e:
@@ -551,36 +580,37 @@ async def calculate_rfm_engagement(account_id: str, days: int = 30) -> Dict[str,
         from_date = (now - timedelta(days=days)).isoformat()
 
         # First get thread_ids for this account
-        threads_result = await client.from_('threads')\
-            .select('thread_id')\
-            .eq('account_id', account_id)\
-            .execute()
+        threads_result = (
+            await client.from_("threads").select("thread_id").eq("account_id", account_id).execute()
+        )
 
-        thread_ids = [t['thread_id'] for t in (threads_result.data or [])]
+        thread_ids = [t["thread_id"] for t in (threads_result.data or [])]
 
         if not thread_ids:
             # No threads = no activity
             return {
-                'rfm_score': '1-1-1',
-                'recency_score': 1,
-                'frequency_score': 1,
-                'monetary_score': 1,
-                'churn_risk': 1.0,
-                'segment': 'hibernating',
-                'days_since_last_activity': days,
-                'runs_in_period': 0,
-                'total_conversations': 0
+                "rfm_score": "1-1-1",
+                "recency_score": 1,
+                "frequency_score": 1,
+                "monetary_score": 1,
+                "churn_risk": 1.0,
+                "segment": "hibernating",
+                "days_since_last_activity": days,
+                "runs_in_period": 0,
+                "total_conversations": 0,
             }
 
         logger.debug(f"[RFM] Account {account_id} has {len(thread_ids)} threads")
 
         # Get agent runs for this account's threads in the period
-        runs_result = await client.from_('agent_runs')\
-            .select('started_at')\
-            .in_('thread_id', thread_ids)\
-            .gte('started_at', from_date)\
-            .order('started_at', desc=True)\
+        runs_result = (
+            await client.from_("agent_runs")
+            .select("started_at")
+            .in_("thread_id", thread_ids)
+            .gte("started_at", from_date)
+            .order("started_at", desc=True)
             .execute()
+        )
 
         runs = runs_result.data or []
         runs_in_period = len(runs)
@@ -588,9 +618,9 @@ async def calculate_rfm_engagement(account_id: str, days: int = 30) -> Dict[str,
 
         # Calculate days since last activity
         if runs:
-            last_run_time = runs[0].get('started_at')
+            last_run_time = runs[0].get("started_at")
             if last_run_time:
-                last_dt = datetime.fromisoformat(last_run_time.replace('Z', '+00:00'))
+                last_dt = datetime.fromisoformat(last_run_time.replace("Z", "+00:00"))
                 days_since_last = (now - last_dt.replace(tzinfo=None)).days
             else:
                 days_since_last = days  # Assume max if no timestamp
@@ -598,11 +628,13 @@ async def calculate_rfm_engagement(account_id: str, days: int = 30) -> Dict[str,
             days_since_last = days  # No runs = max days
 
         # Get total conversations (monetary proxy)
-        total_result = await client.from_('agent_runs')\
-            .select('id', count='exact')\
-            .in_('thread_id', thread_ids)\
-            .limit(1)\
+        total_result = (
+            await client.from_("agent_runs")
+            .select("id", count="exact")
+            .in_("thread_id", thread_ids)
+            .limit(1)
             .execute()
+        )
         total_conversations = total_result.count or 0
 
         # Score Recency (1-5): fewer days since last activity = higher score
@@ -649,46 +681,46 @@ async def calculate_rfm_engagement(account_id: str, days: int = 30) -> Dict[str,
         # Determine segment based on RFM pattern
         rfm_sum = recency_score + frequency_score + monetary_score
         if recency_score >= 4 and frequency_score >= 4:
-            segment = 'champion'
+            segment = "champion"
         elif recency_score >= 4 and frequency_score <= 2:
-            segment = 'new_user'
+            segment = "new_user"
         elif recency_score <= 2 and frequency_score >= 4:
-            segment = 'at_risk'
+            segment = "at_risk"
         elif recency_score <= 2 and frequency_score <= 2 and monetary_score >= 3:
-            segment = 'cant_lose'
+            segment = "cant_lose"
         elif recency_score <= 2 and frequency_score <= 2:
-            segment = 'hibernating'
+            segment = "hibernating"
         elif rfm_sum >= 12:
-            segment = 'loyal'
+            segment = "loyal"
         elif rfm_sum >= 9:
-            segment = 'potential'
+            segment = "potential"
         elif rfm_sum >= 6:
-            segment = 'needs_attention'
+            segment = "needs_attention"
         else:
-            segment = 'about_to_sleep'
+            segment = "about_to_sleep"
 
         return {
-            'rfm_score': f"{recency_score}-{frequency_score}-{monetary_score}",
-            'recency_score': recency_score,
-            'frequency_score': frequency_score,
-            'monetary_score': monetary_score,
-            'churn_risk': churn_risk,
-            'segment': segment,
-            'days_since_last_activity': days_since_last,
-            'runs_in_period': runs_in_period,
-            'total_conversations': total_conversations
+            "rfm_score": f"{recency_score}-{frequency_score}-{monetary_score}",
+            "recency_score": recency_score,
+            "frequency_score": frequency_score,
+            "monetary_score": monetary_score,
+            "churn_risk": churn_risk,
+            "segment": segment,
+            "days_since_last_activity": days_since_last,
+            "runs_in_period": runs_in_period,
+            "total_conversations": total_conversations,
         }
 
     except Exception as e:
         logger.error(f"[ANALYTICS] Failed to calculate RFM for {account_id}: {e}")
         return {
-            'rfm_score': '0-0-0',
-            'recency_score': 0,
-            'frequency_score': 0,
-            'monetary_score': 0,
-            'churn_risk': 1.0,
-            'segment': 'unknown',
-            'days_since_last_activity': -1,
-            'runs_in_period': 0,
-            'total_conversations': 0
+            "rfm_score": "0-0-0",
+            "recency_score": 0,
+            "frequency_score": 0,
+            "monetary_score": 0,
+            "churn_risk": 1.0,
+            "segment": "unknown",
+            "days_since_last_activity": -1,
+            "runs_in_period": 0,
+            "total_conversations": 0,
         }

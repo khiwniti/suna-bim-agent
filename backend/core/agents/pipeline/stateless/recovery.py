@@ -86,7 +86,14 @@ class RunRecovery:
     async def sweep(self) -> Dict[str, Any]:
         from core.agents.pipeline.stateless.ownership import ownership
 
-        result = {"orphaned": 0, "recovered": 0, "stuck": 0, "completed": 0, "zombies_cleaned": 0, "errors": []}
+        result = {
+            "orphaned": 0,
+            "recovered": 0,
+            "stuck": 0,
+            "completed": 0,
+            "zombies_cleaned": 0,
+            "errors": [],
+        }
 
         try:
             if self.is_sharded:
@@ -161,7 +168,9 @@ class RunRecovery:
                             is_zombie = True
 
                     if heartbeat:
-                        hb_time = float(heartbeat.decode() if isinstance(heartbeat, bytes) else heartbeat)
+                        hb_time = float(
+                            heartbeat.decode() if isinstance(heartbeat, bytes) else heartbeat
+                        )
                         if now - hb_time > 600 and not owner:
                             is_zombie = True
 
@@ -215,6 +224,7 @@ class RunRecovery:
                     logger.warning(f"[Recovery] Callback failed: {e}")
 
             from core.agents.pipeline.stateless.metrics import metrics
+
             metrics.record_run_recovered()
 
             return RecoveryResult(run_id, True, "recover", "Recovered")
@@ -237,9 +247,7 @@ class RunRecovery:
             if agent_run:
                 account_id = agent_run.get("thread_account_id")
                 await update_agent_run_status(
-                    agent_run_id=run_id,
-                    status="completed",
-                    account_id=account_id
+                    agent_run_id=run_id, status="completed", account_id=account_id
                 )
                 logger.info(f"[Recovery] Updated database status for {run_id} to completed")
 
@@ -269,10 +277,7 @@ class RunRecovery:
             if agent_run:
                 account_id = agent_run.get("thread_account_id")
                 await update_agent_run_status(
-                    agent_run_id=run_id,
-                    status="failed",
-                    error=error,
-                    account_id=account_id
+                    agent_run_id=run_id, status="failed", error=error, account_id=account_id
                 )
                 logger.info(f"[Recovery] Updated database status for {run_id} to failed")
 
@@ -298,7 +303,9 @@ class RunRecovery:
             agent_id = agent_run.get("agent_id")
 
             if not thread_id or not account_id:
-                return RecoveryResult(run_id, False, "force_resume", "Missing thread or account info")
+                return RecoveryResult(
+                    run_id, False, "force_resume", "Missing thread or account info"
+                )
 
             await redis.delete(f"run:{{{run_id}}}:owner")
             await redis.srem("runs:active", run_id)
@@ -308,7 +315,7 @@ class RunRecovery:
                 agent_run_id=run_id,
                 status="stopped",
                 error="Stopped for resume",
-                account_id=account_id
+                account_id=account_id,
             )
 
             try:
@@ -317,19 +324,18 @@ class RunRecovery:
                     prompt="Continue from where you left off.",
                     agent_id=agent_id,
                     thread_id=thread_id,
-                    skip_limits_check=True
+                    skip_limits_check=True,
                 )
                 new_run_id = result.get("agent_run_id")
                 logger.info(f"[Recovery] Started new run {new_run_id} to resume {run_id}")
                 return RecoveryResult(
-                    run_id, 
-                    True, 
-                    "force_resume", 
-                    f"Resumed with new run {new_run_id}"
+                    run_id, True, "force_resume", f"Resumed with new run {new_run_id}"
                 )
             except Exception as e:
                 logger.error(f"[Recovery] Failed to start new run for resume: {e}")
-                return RecoveryResult(run_id, False, "force_resume", f"Failed to start new run: {e}")
+                return RecoveryResult(
+                    run_id, False, "force_resume", f"Failed to start new run: {e}"
+                )
 
         except Exception as e:
             return RecoveryResult(run_id, False, "force_resume", "Failed", str(e))
@@ -342,10 +348,7 @@ class RunRecovery:
         result = []
         try:
             active = await redis.smembers("runs:active")
-            run_ids = [
-                r.decode() if isinstance(r, bytes) else r
-                for r in active
-            ]
+            run_ids = [r.decode() if isinstance(r, bytes) else r for r in active]
 
             if self.is_sharded:
                 run_ids = [r for r in run_ids if hash(r) % self._total_shards == self._shard_id]

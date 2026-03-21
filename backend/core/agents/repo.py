@@ -17,12 +17,12 @@ async def get_active_agent_runs(user_id: str) -> List[Dict[str, Any]]:
       AND ar.status = 'running'
     ORDER BY ar.started_at DESC
     """
-    
+
     rows = await execute(sql, {"user_id": user_id})
-    
+
     if not rows:
         return []
-    
+
     return [
         {
             "id": row["id"],
@@ -49,12 +49,12 @@ async def get_thread_agent_runs(thread_id: str) -> List[Dict[str, Any]]:
     WHERE thread_id = :thread_id
     ORDER BY created_at DESC
     """
-    
+
     rows = await execute(sql, {"thread_id": thread_id})
-    
+
     if not rows:
         return []
-    
+
     return [serialize_row(dict(row)) for row in rows]
 
 
@@ -78,27 +78,27 @@ async def list_agents(
     search: Optional[str] = None,
     has_default: Optional[bool] = None,
     sort_by: str = "created_at",
-    sort_order: str = "desc"
+    sort_order: str = "desc",
 ) -> Tuple[List[Dict[str, Any]], int]:
     valid_sort_columns = {"name", "created_at", "updated_at"}
     if sort_by not in valid_sort_columns:
         sort_by = "created_at"
-    
+
     sort_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
-    
+
     where_clauses = ["account_id = :account_id"]
     params: Dict[str, Any] = {"account_id": account_id, "limit": limit, "offset": offset}
-    
+
     if search:
         where_clauses.append("(name ILIKE :search OR description ILIKE :search)")
         params["search"] = f"%{search}%"
-    
+
     if has_default is not None:
         where_clauses.append("is_default = :is_default")
         params["is_default"] = has_default
-    
+
     where_sql = " AND ".join(where_clauses)
-    
+
     sql = f"""
     SELECT 
         agent_id,
@@ -120,30 +120,32 @@ async def list_agents(
     ORDER BY {sort_by} {sort_direction}
     LIMIT :limit OFFSET :offset
     """
-    
+
     rows = await execute(sql, params)
-    
+
     if not rows:
         return [], 0
-    
+
     total_count = rows[0]["total_count"] if rows else 0
-    
+
     agents = []
     for row in rows:
         agent = serialize_row(dict(row))
         agent["metadata"] = agent.get("metadata") or {}
         agents.append(agent)
-    
+
     return agents, total_count
 
 
-async def get_agent_by_id(agent_id: str, account_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+async def get_agent_by_id(
+    agent_id: str, account_id: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
     columns = """
         agent_id, account_id, name, description, is_default, is_public, tags,
         icon_name, icon_color, icon_background, created_at, updated_at,
         current_version_id, version_count, metadata
     """
-    
+
     if account_id:
         sql = f"""
         SELECT {columns}
@@ -158,7 +160,7 @@ async def get_agent_by_id(agent_id: str, account_id: Optional[str] = None) -> Op
         WHERE agent_id = :agent_id
         """
         params = {"agent_id": agent_id}
-    
+
     result = await execute_one(sql, params)
     return serialize_row(dict(result)) if result else None
 
@@ -195,7 +197,7 @@ async def create_agent(
     icon_background: str = "#F3F4F6",
     is_default: bool = False,
     description: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     sql = """
     INSERT INTO agents (
@@ -208,60 +210,70 @@ async def create_agent(
     )
     RETURNING *
     """
-    
+
     now = datetime.now(timezone.utc)
-    
-    result = await execute_one(sql, {
-        "account_id": account_id,
-        "name": name,
-        "description": description,
-        "icon_name": icon_name,
-        "icon_color": icon_color,
-        "icon_background": icon_background,
-        "is_default": is_default,
-        "metadata": metadata or {},
-        "created_at": now,
-        "updated_at": now,
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "account_id": account_id,
+            "name": name,
+            "description": description,
+            "icon_name": icon_name,
+            "icon_color": icon_color,
+            "icon_background": icon_background,
+            "is_default": is_default,
+            "metadata": metadata or {},
+            "created_at": now,
+            "updated_at": now,
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
 async def update_agent(
-    agent_id: str,
-    account_id: str,
-    updates: Dict[str, Any]
+    agent_id: str, account_id: str, updates: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
     if not updates:
         return await get_agent_by_id(agent_id, account_id)
-    
+
     updates["updated_at"] = datetime.now(timezone.utc)
-    
+
     valid_columns = {
-        "name", "description", "icon_name", "icon_color", "icon_background",
-        "is_default", "current_version_id", "version_count", "metadata", "updated_at"
+        "name",
+        "description",
+        "icon_name",
+        "icon_color",
+        "icon_background",
+        "is_default",
+        "current_version_id",
+        "version_count",
+        "metadata",
+        "updated_at",
     }
-    
+
     set_parts = []
     params = {"agent_id": agent_id, "account_id": account_id}
-    
+
     for key, value in updates.items():
         if key in valid_columns:
             set_parts.append(f"{key} = :{key}")
             params[key] = value
-    
+
     if not set_parts:
         return await get_agent_by_id(agent_id, account_id)
-    
+
     set_sql = ", ".join(set_parts)
-    
+
     sql = f"""
     UPDATE agents
     SET {set_sql}
     WHERE agent_id = :agent_id AND account_id = :account_id
     RETURNING *
     """
-    
+
     result = await execute_one(sql, params, commit=True)
     return serialize_row(dict(result)) if result else None
 
@@ -273,11 +285,11 @@ async def clear_default_agent(account_id: str, exclude_agent_id: Optional[str] =
     WHERE account_id = :account_id AND is_default = true
     """
     params = {"account_id": account_id, "updated_at": datetime.now(timezone.utc)}
-    
+
     if exclude_agent_id:
         sql += " AND agent_id != :exclude_agent_id"
         params["exclude_agent_id"] = exclude_agent_id
-    
+
     result = await execute_mutate(sql, params)
     return len(result) if result else 0
 
@@ -306,22 +318,26 @@ async def create_agent_run(
     thread_id: str,
     agent_id: Optional[str] = None,
     agent_version_id: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     sql = """
     INSERT INTO agent_runs (thread_id, status, started_at, agent_id, agent_version_id, metadata)
     VALUES (:thread_id, 'running', :started_at, :agent_id, :agent_version_id, :metadata)
     RETURNING id, thread_id, status, started_at, agent_id, agent_version_id, metadata
     """
-    
-    result = await execute_one(sql, {
-        "thread_id": thread_id,
-        "started_at": datetime.now(timezone.utc),
-        "agent_id": agent_id,
-        "agent_version_id": agent_version_id,
-        "metadata": metadata or {}
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "thread_id": thread_id,
+            "started_at": datetime.now(timezone.utc),
+            "agent_id": agent_id,
+            "agent_version_id": agent_version_id,
+            "metadata": metadata or {},
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
@@ -330,30 +346,32 @@ async def create_agent_run_with_id(
     thread_id: str,
     agent_id: Optional[str] = None,
     agent_version_id: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     sql = """
     INSERT INTO agent_runs (id, thread_id, status, started_at, agent_id, agent_version_id, metadata)
     VALUES (:id, :thread_id, 'running', :started_at, :agent_id, :agent_version_id, :metadata)
     RETURNING id, thread_id, status, started_at, agent_id, agent_version_id, metadata
     """
-    
-    result = await execute_one(sql, {
-        "id": agent_run_id,
-        "thread_id": thread_id,
-        "started_at": datetime.now(timezone.utc),
-        "agent_id": agent_id,
-        "agent_version_id": agent_version_id,
-        "metadata": metadata or {}
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "id": agent_run_id,
+            "thread_id": thread_id,
+            "started_at": datetime.now(timezone.utc),
+            "agent_id": agent_id,
+            "agent_version_id": agent_version_id,
+            "metadata": metadata or {},
+        },
+        commit=True,
+    )
+
     return serialize_row(dict(result)) if result else None
 
 
 async def update_agent_run_status(
-    agent_run_id: str,
-    status: str,
-    error: Optional[str] = None
+    agent_run_id: str, status: str, error: Optional[str] = None
 ) -> bool:
     sql = """
     UPDATE agent_runs
@@ -361,14 +379,18 @@ async def update_agent_run_status(
     WHERE id = :agent_run_id
     RETURNING id
     """
-    
-    result = await execute_one(sql, {
-        "agent_run_id": agent_run_id,
-        "status": status,
-        "completed_at": datetime.now(timezone.utc),
-        "error": error
-    }, commit=True)
-    
+
+    result = await execute_one(
+        sql,
+        {
+            "agent_run_id": agent_run_id,
+            "status": status,
+            "completed_at": datetime.now(timezone.utc),
+            "error": error,
+        },
+        commit=True,
+    )
+
     return result is not None
 
 
@@ -396,10 +418,10 @@ async def get_agent_run_with_thread(agent_run_id: str) -> Optional[Dict[str, Any
 async def get_thread_ids_for_runs(run_ids: List[str]) -> Dict[str, str]:
     if not run_ids:
         return {}
-    
+
     placeholders = ",".join([f":run_id_{i}" for i in range(len(run_ids))])
     params = {f"run_id_{i}": run_id for i, run_id in enumerate(run_ids)}
-    
+
     sql = f"""
     SELECT 
         ar.id as run_id,
@@ -407,11 +429,11 @@ async def get_thread_ids_for_runs(run_ids: List[str]) -> Dict[str, str]:
     FROM agent_runs ar
     WHERE ar.id IN ({placeholders})
     """
-    
+
     rows = await execute(sql, params)
     if not rows:
         return {}
-    
+
     return {str(row["run_id"]): str(row["thread_id"]) for row in rows}
 
 
@@ -467,7 +489,7 @@ async def get_active_thread_ids_with_runs() -> List[Dict[str, Any]]:
     rows = await execute(sql, {})
     if not rows:
         return []
-    
+
     return [
         {
             "thread_id": str(row["thread_id"]),
@@ -476,6 +498,7 @@ async def get_active_thread_ids_with_runs() -> List[Dict[str, Any]]:
         }
         for row in rows
     ]
+
 
 async def get_default_agent_id(account_id: str) -> Optional[str]:
     sql = """
@@ -505,7 +528,7 @@ async def get_shared_suna_agent(admin_user_id: Optional[str] = None) -> Optional
         result = await execute_one(sql, {"admin_user_id": admin_user_id})
         if result:
             return dict(result)
-    
+
     sql = """
     SELECT agent_id, account_id FROM agents 
     WHERE metadata->>'is_suna_default' = 'true'

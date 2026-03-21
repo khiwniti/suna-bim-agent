@@ -12,8 +12,8 @@ from core.utils.files_utils import clean_path
 
 class SandboxToolsBase(Tool):
     _urls_printed = False
-    
-    def __init__(self, project_id: str, thread_manager: Optional['ThreadManager'] = None):
+
+    def __init__(self, project_id: str, thread_manager: Optional["ThreadManager"] = None):
         super().__init__()
         self.project_id = project_id
         self.thread_manager = thread_manager
@@ -24,28 +24,33 @@ class SandboxToolsBase(Tool):
         if self._sandbox_info is None:
             try:
                 client = await self.thread_manager.db.client
-                
-                project = await client.table('projects').select(
-                    'project_id, account_id'
-                ).eq('project_id', self.project_id).execute()
-                
+
+                project = (
+                    await client.table("projects")
+                    .select("project_id, account_id")
+                    .eq("project_id", self.project_id)
+                    .execute()
+                )
+
                 if not project.data or len(project.data) == 0:
                     raise ValueError(f"Project {self.project_id} not found")
 
-                account_id = project.data[0].get('account_id')
-                
+                account_id = project.data[0].get("account_id")
+
                 sandbox_info = await resolve_sandbox(
                     project_id=self.project_id,
                     account_id=str(account_id) if account_id else None,
                     db_client=client,
-                    require_started=True
+                    require_started=True,
                 )
-                
+
                 if not sandbox_info:
                     raise RuntimeError(f"Failed to resolve sandbox for project {self.project_id}")
-                
+
                 self._sandbox_info = sandbox_info
-                logger.debug(f"[TOOL_BASE] Resolved sandbox {sandbox_info.sandbox_id} for project {self.project_id}")
+                logger.debug(
+                    f"[TOOL_BASE] Resolved sandbox {sandbox_info.sandbox_id} for project {self.project_id}"
+                )
 
             except Exception as e:
                 logger.error(f"Error resolving sandbox for project {self.project_id}: {str(e)}")

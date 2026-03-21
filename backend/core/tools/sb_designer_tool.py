@@ -9,20 +9,21 @@ from litellm import aimage_generation, aimage_edit
 import base64
 from core.utils.file_name_generator import generate_smart_filename
 
+
 @tool_metadata(
     display_name="Design & Graphics",
     description="Generate images and graphics for social media, websites, and more",
     icon="Palette",
     color="bg-rose-100 dark:bg-rose-800/50",
     weight=210,
-    visible=True
+    visible=True,
 )
 class SandboxDesignerTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_id: str, thread_manager: ThreadManager):
         super().__init__(project_id, thread_manager)
         self.thread_id = thread_id
         self.thread_manager = thread_manager
-        
+
         self.social_media_sizes = {
             "instagram_square": (1080, 1080),
             "instagram_portrait": (1080, 1350),
@@ -61,12 +62,12 @@ class SandboxDesignerTool(SandboxToolsBase):
             "flyer_a4": (2480, 3508),
             "poster_a3": (3508, 4961),
         }
-    
+
     @property
     def designs_dir(self) -> str:
         """Get the designs directory path based on workspace_path."""
         return f"{self.workspace_path}/designs"
-        
+
     async def _ensure_designs_directory(self):
         await self._ensure_sandbox()
         try:
@@ -94,7 +95,45 @@ class SandboxDesignerTool(SandboxToolsBase):
                         },
                         "platform_preset": {
                             "type": "string",
-                            "enum": ["instagram_square", "instagram_portrait", "instagram_story", "instagram_landscape", "facebook_post", "facebook_cover", "facebook_story", "twitter_post", "twitter_header", "linkedin_post", "linkedin_banner", "linkedin_article", "youtube_thumbnail", "youtube_banner", "pinterest_pin", "pinterest_square", "tiktok_video", "whatsapp_status", "google_ads_square", "google_ads_medium", "google_ads_large", "google_ads_banner", "google_ads_leaderboard", "google_ads_skyscraper", "facebook_ads_feed", "facebook_ads_story", "display_ad_billboard", "display_ad_square", "display_ad_vertical", "email_header", "blog_header", "presentation_16_9", "presentation_4_3", "business_card", "flyer_a4", "poster_a3", "custom"],
+                            "enum": [
+                                "instagram_square",
+                                "instagram_portrait",
+                                "instagram_story",
+                                "instagram_landscape",
+                                "facebook_post",
+                                "facebook_cover",
+                                "facebook_story",
+                                "twitter_post",
+                                "twitter_header",
+                                "linkedin_post",
+                                "linkedin_banner",
+                                "linkedin_article",
+                                "youtube_thumbnail",
+                                "youtube_banner",
+                                "pinterest_pin",
+                                "pinterest_square",
+                                "tiktok_video",
+                                "whatsapp_status",
+                                "google_ads_square",
+                                "google_ads_medium",
+                                "google_ads_large",
+                                "google_ads_banner",
+                                "google_ads_leaderboard",
+                                "google_ads_skyscraper",
+                                "facebook_ads_feed",
+                                "facebook_ads_story",
+                                "display_ad_billboard",
+                                "display_ad_square",
+                                "display_ad_vertical",
+                                "email_header",
+                                "blog_header",
+                                "presentation_16_9",
+                                "presentation_4_3",
+                                "business_card",
+                                "flyer_a4",
+                                "poster_a3",
+                                "custom",
+                            ],
                             "description": "Platform-specific size preset for optimal dimensions. Choose 'custom' to specify width/height manually. Each preset is optimized for its platform's requirements.",
                         },
                         "width": {
@@ -111,7 +150,24 @@ class SandboxDesignerTool(SandboxToolsBase):
                         },
                         "design_style": {
                             "type": "string",
-                            "enum": ["modern", "minimalist", "material", "glassmorphism", "neomorphism", "flat", "skeuomorphic", "organic", "geometric", "abstract", "professional", "playful", "luxury", "tech", "vintage", "bold"],
+                            "enum": [
+                                "modern",
+                                "minimalist",
+                                "material",
+                                "glassmorphism",
+                                "neomorphism",
+                                "flat",
+                                "skeuomorphic",
+                                "organic",
+                                "geometric",
+                                "abstract",
+                                "professional",
+                                "playful",
+                                "luxury",
+                                "tech",
+                                "vintage",
+                                "bold",
+                            ],
                             "description": "Visual style preset that enhances the design with specific aesthetic principles.",
                         },
                         "image_path": {
@@ -150,15 +206,19 @@ class SandboxDesignerTool(SandboxToolsBase):
 
             if platform_preset == "custom":
                 if width is None or height is None:
-                    return self.fail_response("Width and height are required when using 'custom' platform preset.")
+                    return self.fail_response(
+                        "Width and height are required when using 'custom' platform preset."
+                    )
                 actual_width, actual_height = width, height
             else:
                 if platform_preset not in self.social_media_sizes:
                     return self.fail_response(f"Invalid platform preset: {platform_preset}")
                 actual_width, actual_height = self.social_media_sizes[platform_preset]
 
-            enhanced_prompt = self._enhance_design_prompt(prompt, design_style, platform_preset, actual_width, actual_height)
-            
+            enhanced_prompt = self._enhance_design_prompt(
+                prompt, design_style, platform_preset, actual_width, actual_height
+            )
+
             size_string = self._get_size_string(actual_width, actual_height)
 
             if mode == "create":
@@ -174,14 +234,14 @@ class SandboxDesignerTool(SandboxToolsBase):
                     return self.fail_response("'image_path' is required for edit mode.")
 
                 image_bytes = await self._get_image_bytes(image_path)
-                if isinstance(image_bytes, ToolResult):  
+                if isinstance(image_bytes, ToolResult):
                     return image_bytes
 
                 image_io = BytesIO(image_bytes)
                 image_io.name = "design.png"
 
                 response = await aimage_edit(
-                    image=[image_io],  
+                    image=[image_io],
                     prompt=enhanced_prompt,
                     model="gpt-image-1.5",
                     n=1,
@@ -190,17 +250,25 @@ class SandboxDesignerTool(SandboxToolsBase):
             else:
                 return self.fail_response("Invalid mode. Use 'create' or 'edit'.")
 
-            design_path = await self._process_design_response(response, actual_width, actual_height, prompt, platform_preset)
-            if isinstance(design_path, ToolResult):  
+            design_path = await self._process_design_response(
+                response, actual_width, actual_height, prompt, platform_preset
+            )
+            if isinstance(design_path, ToolResult):
                 return design_path
 
             dimensions_text = f"{actual_width}x{actual_height}px"
-            platform_text = f" for {platform_preset.replace('_', ' ').title()}" if platform_preset != "custom" else ""
+            platform_text = (
+                f" for {platform_preset.replace('_', ' ').title()}"
+                if platform_preset != "custom"
+                else ""
+            )
             style_text = f" in {design_style} style" if design_style else ""
-            
+
             await self._ensure_sandbox()
-            sandbox_file_url = f"/api/sandboxes/{self.sandbox_id}/files?path={design_path.lstrip('/')}"
-            
+            sandbox_file_url = (
+                f"/api/sandboxes/{self.sandbox_id}/files?path={design_path.lstrip('/')}"
+            )
+
             response_data = {
                 "success": True,
                 "design_path": design_path,
@@ -210,19 +278,22 @@ class SandboxDesignerTool(SandboxToolsBase):
                 "dimensions": {"width": actual_width, "height": actual_height},
                 "style": design_style,
                 "quality": quality,
-                "message": f"Successfully created professional design{platform_text} ({dimensions_text}){style_text}. Design saved at: {design_path}"
+                "message": f"Successfully created professional design{platform_text} ({dimensions_text}){style_text}. Design saved at: {design_path}",
             }
 
             # If add_to_canvas is specified, add the image to the canvas
             if add_to_canvas:
                 try:
                     from core.tools.sb_canvas_tool import SandboxCanvasTool
+
                     canvas_tool = SandboxCanvasTool(self.project_id, self.thread_manager)
-                    
+
                     # Sanitize canvas name
-                    safe_canvas_name = "".join(c for c in add_to_canvas if c.isalnum() or c in "-_").lower()
+                    safe_canvas_name = "".join(
+                        c for c in add_to_canvas if c.isalnum() or c in "-_"
+                    ).lower()
                     canvas_path = f"canvases/{safe_canvas_name}.kanvax"
-                    
+
                     # Add image to canvas
                     add_result = await canvas_tool.add_image_to_canvas(
                         canvas_path=canvas_path,
@@ -230,9 +301,9 @@ class SandboxDesignerTool(SandboxToolsBase):
                         x=100,
                         y=100,
                         width=actual_width,
-                        height=actual_height
+                        height=actual_height,
                     )
-                    
+
                     if add_result.success:
                         response_data["canvas_path"] = canvas_path
                         response_data["added_to_canvas"] = True
@@ -243,15 +314,20 @@ class SandboxDesignerTool(SandboxToolsBase):
                 except Exception as e:
                     response_data["added_to_canvas"] = False
                     response_data["canvas_error"] = str(e)
-            
+
             return self.success_response(response_data)
 
         except Exception as e:
-            return self.fail_response(
-                f"An error occurred during design creation/editing: {str(e)}"
-            )
+            return self.fail_response(f"An error occurred during design creation/editing: {str(e)}")
 
-    def _enhance_design_prompt(self, prompt: str, design_style: Optional[str] = None, platform: Optional[str] = None, width: int = 1024, height: int = 1024) -> str:
+    def _enhance_design_prompt(
+        self,
+        prompt: str,
+        design_style: Optional[str] = None,
+        platform: Optional[str] = None,
+        width: int = 1024,
+        height: int = 1024,
+    ) -> str:
         style_enhancements = {
             "modern": "with contemporary aesthetics, clean lines, bold typography, and current design trends",
             "minimalist": "with minimal elements, plenty of whitespace, simple color palette, and focus on essential components",
@@ -270,7 +346,7 @@ class SandboxDesignerTool(SandboxToolsBase):
             "vintage": "with retro styling, nostalgic elements, classic typography, aged textures, and timeless appeal",
             "bold": "with high impact visuals, strong contrasts, attention-grabbing elements, and powerful composition",
         }
-        
+
         platform_optimizations = {
             "instagram_square": "optimized for Instagram feed with centered composition, thumb-stopping visuals, and mobile-first design",
             "instagram_story": "vertical design with safe zones for UI elements, engaging full-screen layout",
@@ -281,7 +357,7 @@ class SandboxDesignerTool(SandboxToolsBase):
             "twitter_header": "wide banner format with important elements in the center safe zone",
             "google_ads_banner": "advertising-optimized with clear CTA, minimal text, and immediate visual impact",
         }
-        
+
         professional_principles = [
             "Apply rule of thirds for balanced composition",
             "Use golden ratio proportions where applicable",
@@ -296,15 +372,15 @@ class SandboxDesignerTool(SandboxToolsBase):
             "Ensure scalability and clarity at different sizes",
             "Apply gestalt principles for visual grouping and organization",
         ]
-        
+
         base_enhancement = "Create a PROFESSIONAL, POLISHED design with EXPERT-LEVEL execution. "
-        
+
         enhanced = base_enhancement + prompt
-        
+
         enhanced += "\n\nAPPLY THESE PROFESSIONAL DESIGN PRINCIPLES:\n"
         for principle in professional_principles:
             enhanced += f"- {principle}\n"
-        
+
         aspect_ratio = width / height
         if aspect_ratio > 1.5:
             enhanced += "\nFor this WIDE/LANDSCAPE format: Position key elements using horizontal rule of thirds, ensure text is readable across the width, create horizontal visual flow."
@@ -312,17 +388,17 @@ class SandboxDesignerTool(SandboxToolsBase):
             enhanced += "\nFor this TALL/PORTRAIT format: Stack elements vertically with clear hierarchy, use vertical rule of thirds, ensure content flows naturally from top to bottom."
         else:
             enhanced += "\nFor this SQUARE/BALANCED format: Center key elements, use symmetrical or asymmetrical balance, create strong focal point in the center or using rule of thirds."
-        
+
         if platform and platform in platform_optimizations:
             enhanced += f"\n\nPLATFORM OPTIMIZATION: {platform_optimizations[platform]}"
-        
+
         if design_style and design_style in style_enhancements:
             enhanced += f"\n\nSTYLE DIRECTION: Apply {design_style} aesthetics - {style_enhancements[design_style]}"
-        
+
         enhanced += "\n\nENSURE: All text is perfectly legible, professionally placed with proper alignment, appropriate sizing for the format, and maintains clear hierarchy. If including text, use professional typography with proper kerning, leading, and tracking. Position text in safe zones away from edges."
-        
+
         enhanced += "\n\nQUALITY: Deliver agency-quality, portfolio-worthy design with flawless execution, attention to detail, and professional finish."
-        
+
         return enhanced
 
     def _get_size_string(self, width: int, height: int) -> str:
@@ -361,7 +437,9 @@ class SandboxDesignerTool(SandboxToolsBase):
                 f"Could not read design file from sandbox: {image_path} - {str(e)}"
             )
 
-    async def _process_design_response(self, response, width: int, height: int, prompt: str = "", platform: str = "") -> str | ToolResult:
+    async def _process_design_response(
+        self, response, width: int, height: int, prompt: str = "", platform: str = ""
+    ) -> str | ToolResult:
         try:
             original_b64_str = response.data[0].b64_json
             image_data = base64.b64decode(original_b64_str)
@@ -369,20 +447,18 @@ class SandboxDesignerTool(SandboxToolsBase):
             # Generate smart filename based on the design prompt
             if prompt:
                 smart_filename = await generate_smart_filename(
-                    prompt=prompt,
-                    file_type="image",
-                    extension="png"
+                    prompt=prompt, file_type="image", extension="png"
                 )
             else:
                 # Fallback with platform info
-                platform_title = platform.replace('_', ' ').title() if platform else 'Custom'
+                platform_title = platform.replace("_", " ").title() if platform else "Custom"
                 smart_filename = f"{platform_title} Design.png"
-            
+
             full_path = f"{self.designs_dir}/{smart_filename}"
 
             await self.sandbox.fs.upload_file(image_data, full_path)
-            
+
             return full_path
 
         except Exception as e:
-            return self.fail_response(f"Failed to save design: {str(e)}") 
+            return self.fail_response(f"Failed to save design: {str(e)}")

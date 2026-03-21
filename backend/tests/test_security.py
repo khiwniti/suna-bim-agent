@@ -36,9 +36,7 @@ def test_secrets_scan_passes():
         text=True,
     )
 
-    assert result.returncode == 0, (
-        f"Secrets detected! Output:\n{result.stdout}\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"Secrets detected! Output:\n{result.stdout}\n{result.stderr}"
 
 
 def test_precommit_config_exists():

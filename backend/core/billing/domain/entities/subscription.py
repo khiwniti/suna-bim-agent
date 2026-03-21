@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional, Dict
 from enum import Enum
 
+
 class SubscriptionStatus(Enum):
     ACTIVE = "active"
     CANCELED = "canceled"
@@ -11,9 +12,11 @@ class SubscriptionStatus(Enum):
     INCOMPLETE = "incomplete"
     TRIALING = "trialing"
 
+
 class SubscriptionProvider(Enum):
     STRIPE = "stripe"
     REVENUECAT = "revenuecat"
+
 
 @dataclass
 class Subscription:
@@ -29,19 +32,13 @@ class Subscription:
     created_at: datetime
     updated_at: datetime
     metadata: Optional[Dict] = None
-    
+
     def is_active(self) -> bool:
         return self.status == SubscriptionStatus.ACTIVE
-    
+
     def is_expired(self) -> bool:
         return datetime.utcnow() > self.current_period_end
-    
+
     def days_until_renewal(self) -> int:
         delta = self.current_period_end - datetime.utcnow()
         return max(0, delta.days)
-
-
-
-
-
-

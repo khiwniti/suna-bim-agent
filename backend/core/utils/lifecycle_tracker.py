@@ -36,11 +36,11 @@ def log_cleanup_error(agent_run_id: str, step: str, error: Exception) -> None:
 
 
 def log_run_cleanup(
-    agent_run_id: str, 
-    success: bool, 
-    reason: Optional[str] = None, 
+    agent_run_id: str,
+    success: bool,
+    reason: Optional[str] = None,
     final_status: Optional[str] = None,
-    cleanup_errors: Optional[List[str]] = None
+    cleanup_errors: Optional[List[str]] = None,
 ) -> None:
     """Log when an agent run cleanup completes (success or failure)."""
     start_info = _active_runs.pop(agent_run_id, None)
@@ -50,7 +50,7 @@ def log_run_cleanup(
     else:
         duration = 0.0
         thread_id = "unknown"
-    
+
     if success:
         logger.info(
             f"[LIFECYCLE] CLEANUP_OK agent_run={agent_run_id} "
@@ -74,10 +74,7 @@ def get_active_runs() -> Dict[str, float]:
 def get_stale_runs(max_age_seconds: int = 3600) -> List[str]:
     """Get agent_run_ids that have been running longer than max_age_seconds."""
     now = time.time()
-    return [
-        rid for rid, info in _active_runs.items()
-        if (now - info[0]) > max_age_seconds
-    ]
+    return [rid for rid, info in _active_runs.items() if (now - info[0]) > max_age_seconds]
 
 
 def evict_stale_runs(max_age_seconds: int = 7200) -> int:
@@ -86,10 +83,7 @@ def evict_stale_runs(max_age_seconds: int = 7200) -> int:
     These are zombie entries where cleanup never ran (e.g. process crash mid-run).
     """
     now = time.time()
-    stale = [
-        rid for rid, info in _active_runs.items()
-        if (now - info[0]) > max_age_seconds
-    ]
+    stale = [rid for rid, info in _active_runs.items() if (now - info[0]) > max_age_seconds]
     for rid in stale:
         _active_runs.pop(rid, None)
         logger.warning(f"[LIFECYCLE] Evicted stale run {rid} from _active_runs (zombie)")

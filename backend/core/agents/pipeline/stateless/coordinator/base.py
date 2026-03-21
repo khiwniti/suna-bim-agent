@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from core.agents.pipeline.context import PipelineContext
 from core.agents.pipeline.stateless.state import RunState
 
+
 class BaseCoordinator(ABC):
     def __init__(self):
         self._state: Optional[RunState] = None

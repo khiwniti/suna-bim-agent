@@ -15,7 +15,7 @@ class FastParseError(Exception):
         self.error_code = error_code
         self.details = details or {}
         self.recoverable = recoverable
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "error": self.error_code,
@@ -161,27 +161,26 @@ class TruncationWarning(FastParseError):
 def classify_exception(e: Exception, filename: str = "") -> FastParseError:
     if isinstance(e, FastParseError):
         return e
-    
+
     error_msg = str(e).lower()
-    
+
     if "corrupted" in error_msg or "invalid" in error_msg or "malformed" in error_msg:
         return CorruptedFileError(filename, "unknown", str(e))
-    
+
     if "decode" in error_msg or "encoding" in error_msg or "unicode" in error_msg:
         return EncodingError(filename)
-    
+
     if "not found" in error_msg or "does not exist" in error_msg:
         return FileNotFoundError(filename)
-    
+
     if "timeout" in error_msg or "timed out" in error_msg:
         return TimeoutError("parse", 0)
-    
+
     if "import" in error_msg or "module" in error_msg:
         return DependencyMissingError("unknown", "unknown")
-    
+
     return FastParseError(
         message=str(e),
         error_code="UNKNOWN_ERROR",
         details={"original_type": type(e).__name__, "filename": filename},
     )
-

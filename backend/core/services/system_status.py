@@ -40,24 +40,23 @@ async def get_system_status() -> SystemStatus:
             return SystemStatus(**parsed)
     except Exception as e:
         logger.warning(f"Failed to get system status from Redis: {e}")
-    
+
     return SystemStatus()
 
 
-async def set_system_status(
-    status: SystemStatus,
-    updated_by: Optional[str] = None
-) -> bool:
+async def set_system_status(status: SystemStatus, updated_by: Optional[str] = None) -> bool:
     try:
         status.updated_at = datetime.utcnow().isoformat() + "Z"
         status.updated_by = updated_by
-        
+
         data = status.model_dump_json()
         result = await redis.set(SYSTEM_STATUS_KEY, data, ex=SYSTEM_STATUS_TTL)
-        
+
         if result:
-            logger.info(f"System status updated by {updated_by}: maintenance={status.maintenance_notice.enabled}, technical_issue={status.technical_issue.enabled}")
-        
+            logger.info(
+                f"System status updated by {updated_by}: maintenance={status.maintenance_notice.enabled}, technical_issue={status.technical_issue.enabled}"
+            )
+
         return result
     except Exception as e:
         logger.error(f"Failed to set system status in Redis: {e}")
@@ -68,16 +67,16 @@ async def update_maintenance_notice(
     enabled: bool,
     start_time: Optional[str] = None,
     end_time: Optional[str] = None,
-    updated_by: Optional[str] = None
+    updated_by: Optional[str] = None,
 ) -> SystemStatus:
     status = await get_system_status()
-    
+
     status.maintenance_notice = MaintenanceNotice(
         enabled=enabled,
         start_time=start_time if enabled else None,
-        end_time=end_time if enabled else None
+        end_time=end_time if enabled else None,
     )
-    
+
     await set_system_status(status, updated_by=updated_by)
     return status
 
@@ -90,10 +89,10 @@ async def update_technical_issue(
     description: Optional[str] = None,
     estimated_resolution: Optional[str] = None,
     severity: Optional[Literal["degraded", "outage", "maintenance"]] = None,
-    updated_by: Optional[str] = None
+    updated_by: Optional[str] = None,
 ) -> SystemStatus:
     status = await get_system_status()
-    
+
     if enabled:
         status.technical_issue = TechnicalIssue(
             enabled=True,
@@ -102,11 +101,11 @@ async def update_technical_issue(
             affected_services=affected_services,
             description=description,
             estimated_resolution=estimated_resolution,
-            severity=severity or "degraded"
+            severity=severity or "degraded",
         )
     else:
         status.technical_issue = TechnicalIssue(enabled=False)
-    
+
     await set_system_status(status, updated_by=updated_by)
     return status
 

@@ -204,10 +204,7 @@ class CircuitBreakerRegistry:
             breaker.reset()
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            name: breaker.to_dict()
-            for name, breaker in self._breakers.items()
-        }
+        return {name: breaker.to_dict() for name, breaker in self._breakers.items()}
 
 
 registry = CircuitBreakerRegistry()
@@ -219,7 +216,7 @@ db_breaker = CircuitBreaker(
         failure_threshold=5,
         success_threshold=2,
         timeout_seconds=30.0,
-    )
+    ),
 )
 
 redis_breaker = CircuitBreaker(
@@ -228,7 +225,7 @@ redis_breaker = CircuitBreaker(
         failure_threshold=3,
         success_threshold=2,
         timeout_seconds=15.0,
-    )
+    ),
 )
 
 external_api_breaker = CircuitBreaker(
@@ -237,5 +234,5 @@ external_api_breaker = CircuitBreaker(
         failure_threshold=3,
         success_threshold=2,
         timeout_seconds=60.0,
-    )
+    ),
 )

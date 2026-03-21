@@ -4,6 +4,7 @@ URL refresh utilities for expired Supabase signed URLs.
 This module provides functions to detect expired signed URLs in LLM messages
 and regenerate them before making API calls.
 """
+
 import asyncio
 import base64
 import json
@@ -24,7 +25,7 @@ def is_supabase_signed_url(url: str) -> bool:
     """Check if a URL is a Supabase signed URL."""
     if not url or not isinstance(url, str):
         return False
-    return '/object/sign/' in url or 'token=' in url
+    return "/object/sign/" in url or "token=" in url
 
 
 def extract_storage_path_from_url(url: str) -> Optional[str]:
@@ -44,7 +45,7 @@ def extract_storage_path_from_url(url: str) -> Optional[str]:
         path = parsed.path
 
         # Pattern: /storage/v1/object/sign/{bucket}/{storage_path}
-        match = re.match(r'/storage/v1/object/sign/[^/]+/(.+)', path)
+        match = re.match(r"/storage/v1/object/sign/[^/]+/(.+)", path)
         if match:
             return match.group(1)
 
@@ -73,14 +74,14 @@ def is_signed_url_expired(url: str, buffer_seconds: int = 300) -> bool:
     try:
         parsed = urlparse(url)
         query_params = parse_qs(parsed.query)
-        token = query_params.get('token', [None])[0]
+        token = query_params.get("token", [None])[0]
 
         if not token:
             return True  # No token = invalid
 
         # Decode JWT without verification (we just need the exp claim)
         # JWT format: header.payload.signature
-        parts = token.split('.')
+        parts = token.split(".")
         if len(parts) != 3:
             return True  # Invalid JWT format
 
@@ -88,12 +89,12 @@ def is_signed_url_expired(url: str, buffer_seconds: int = 300) -> bool:
         payload = parts[1]
         padding = 4 - len(payload) % 4
         if padding != 4:
-            payload += '=' * padding
+            payload += "=" * padding
 
         decoded = base64.urlsafe_b64decode(payload)
         claims = json.loads(decoded)
 
-        exp_timestamp = claims.get('exp')
+        exp_timestamp = claims.get("exp")
         if not exp_timestamp:
             return True  # No expiration = treat as expired
 
@@ -124,15 +125,14 @@ async def refresh_signed_url(storage_path: str, bucket: str = STAGED_FILES_BUCKE
         signed = await client.storage.from_(bucket).create_signed_url(
             storage_path, SIGNED_URL_EXPIRY
         )
-        return signed.get('signedURL') or signed.get('signed_url')
+        return signed.get("signedURL") or signed.get("signed_url")
     except Exception as e:
         logger.error(f"Failed to refresh signed URL for {storage_path}: {e}")
         return None
 
 
 async def refresh_image_urls_in_messages(
-    messages: List[Dict[str, Any]],
-    thread_id: Optional[str] = None
+    messages: List[Dict[str, Any]], thread_id: Optional[str] = None
 ) -> Tuple[List[Dict[str, Any]], int]:
     """
     Scan messages for expired image URLs and refresh them.
@@ -149,18 +149,18 @@ async def refresh_image_urls_in_messages(
     urls_to_refresh: List[Tuple[Optional[str], Dict, str]] = []
 
     for msg in messages:
-        content = msg.get('content')
+        content = msg.get("content")
         if not isinstance(content, list):
             continue
 
-        message_id = msg.get('message_id')
+        message_id = msg.get("message_id")
 
         for part in content:
-            if not isinstance(part, dict) or part.get('type') != 'image_url':
+            if not isinstance(part, dict) or part.get("type") != "image_url":
                 continue
 
-            image_url_obj = part.get('image_url', {})
-            url = image_url_obj.get('url', '')
+            image_url_obj = part.get("image_url", {})
+            url = image_url_obj.get("url", "")
 
             if not is_supabase_signed_url(url):
                 continue
@@ -173,7 +173,9 @@ async def refresh_image_urls_in_messages(
             if storage_path:
                 urls_to_refresh.append((message_id, image_url_obj, storage_path))
             else:
-                logger.warning(f"Cannot refresh URL - failed to extract storage path from: {url[:100]}...")
+                logger.warning(
+                    f"Cannot refresh URL - failed to extract storage path from: {url[:100]}..."
+                )
 
     if not urls_to_refresh:
         return messages, 0
@@ -185,7 +187,7 @@ async def refresh_image_urls_in_messages(
         message_id, image_url_obj, storage_path = item
         new_url = await refresh_signed_url(storage_path, STAGED_FILES_BUCKET)
         if new_url:
-            image_url_obj['url'] = new_url
+            image_url_obj["url"] = new_url
             if message_id:
                 refreshed_message_ids.append(message_id)
             return True
@@ -201,9 +203,9 @@ async def refresh_image_urls_in_messages(
         if refreshed_message_ids:
             # Get unique messages that were updated
             msgs_to_persist = {
-                msg['message_id']: msg
+                msg["message_id"]: msg
                 for msg in messages
-                if msg.get('message_id') in refreshed_message_ids
+                if msg.get("message_id") in refreshed_message_ids
             }
             asyncio.create_task(_persist_and_invalidate(msgs_to_persist, thread_id))
 
@@ -211,8 +213,7 @@ async def refresh_image_urls_in_messages(
 
 
 async def _persist_and_invalidate(
-    messages_to_update: Dict[str, Dict],
-    thread_id: Optional[str]
+    messages_to_update: Dict[str, Dict], thread_id: Optional[str]
 ) -> None:
     """Persist refreshed URLs to DB and invalidate cache (background task)."""
     from core.threads.repo import update_message_content
@@ -220,7 +221,7 @@ async def _persist_and_invalidate(
     # Persist messages
     for message_id, msg in messages_to_update.items():
         try:
-            content = msg.get('content')
+            content = msg.get("content")
             if content:
                 await update_message_content(message_id, content)
                 logger.debug(f"💾 Persisted refreshed URL for message {message_id}")
@@ -231,6 +232,7 @@ async def _persist_and_invalidate(
     if thread_id:
         try:
             from core.cache.runtime_cache import invalidate_message_history_cache
+
             await invalidate_message_history_cache(thread_id)
             logger.debug(f"🗑️ Invalidated message cache for thread {thread_id}")
         except Exception as e:

@@ -19,7 +19,7 @@ class WriteBuffer:
     MEMORY_PRESSURE_THRESHOLD = stateless_config.MEMORY_PRESSURE_THRESHOLD_RUNS
 
     def __init__(self):
-        self._runs: Dict[str, 'RunState'] = {}
+        self._runs: Dict[str, "RunState"] = {}
         self._task: Optional[asyncio.Task] = None
         self._running: bool = False
         self._last_cleanup: float = 0
@@ -35,7 +35,7 @@ class WriteBuffer:
     def is_running(self) -> bool:
         return self._running
 
-    def register(self, state: 'RunState') -> None:
+    def register(self, state: "RunState") -> None:
         if len(self._runs) >= self.MAX_BUFFERED_RUNS:
             task = asyncio.create_task(self._evict_oldest_run())
             self._eviction_tasks.add(task)
@@ -50,7 +50,7 @@ class WriteBuffer:
             return
 
         oldest_run_id = None
-        oldest_time = float('inf')
+        oldest_time = float("inf")
 
         for run_id, state in self._runs.items():
             if state._start_time < oldest_time:
@@ -60,7 +60,9 @@ class WriteBuffer:
         if oldest_run_id:
             state = self._runs.get(oldest_run_id)
             if state:
-                logger.warning(f"[WriteBuffer] Evicting oldest run due to memory pressure: {oldest_run_id}")
+                logger.warning(
+                    f"[WriteBuffer] Evicting oldest run due to memory pressure: {oldest_run_id}"
+                )
                 try:
                     await state.flush()
                     await state.cleanup()
@@ -69,7 +71,7 @@ class WriteBuffer:
                 self._runs.pop(oldest_run_id, None)
                 self._eviction_count += 1
 
-    def get(self, run_id: str) -> Optional['RunState']:
+    def get(self, run_id: str) -> Optional["RunState"]:
         return self._runs.get(run_id)
 
     async def start(self) -> None:
@@ -128,36 +130,33 @@ class WriteBuffer:
     async def flush_all(self) -> Dict[str, int]:
         if not self._flush_semaphore:
             self._flush_semaphore = asyncio.Semaphore(self.MAX_CONCURRENT_FLUSHES)
-        
+
         results = {}
-        
+
         if not self._runs:
             return results
-        
-        priority_queue: List[Tuple[int, str, 'RunState']] = [
+
+        priority_queue: List[Tuple[int, str, "RunState"]] = [
             (-state.pending_write_count, run_id, state)
             for run_id, state in self._runs.items()
             if state.pending_write_count > 0
         ]
         heapq.heapify(priority_queue)
-        
+
         if not priority_queue:
             return results
-        
-        async def bounded_flush(run_id: str, state: 'RunState') -> tuple:
+
+        async def bounded_flush(run_id: str, state: "RunState") -> tuple:
             async with self._flush_semaphore:
                 try:
                     count = await state.flush()
                     return run_id, count, None
                 except Exception as e:
                     return run_id, 0, e
-        
-        tasks = [
-            bounded_flush(run_id, state) 
-            for _, run_id, state in priority_queue
-        ]
+
+        tasks = [bounded_flush(run_id, state) for _, run_id, state in priority_queue]
         completed = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         for item in completed:
             if isinstance(item, Exception):
                 logger.error(f"[WriteBuffer] Flush task error: {item}")
@@ -168,7 +167,7 @@ class WriteBuffer:
                     logger.error(f"[WriteBuffer] Flush {run_id} failed: {error}")
                 elif count > 0:
                     results[run_id] = count
-        
+
         return results
 
     async def flush_one(self, run_id: str) -> int:
@@ -189,11 +188,19 @@ class WriteBuffer:
             is_very_old = age > 1800
             is_long_inactive = inactive_time > 300 and is_terminated
 
-            should_clean = (is_old_and_inactive and is_terminated) or is_very_old or is_long_inactive
+            should_clean = (
+                (is_old_and_inactive and is_terminated) or is_very_old or is_long_inactive
+            )
 
             if should_clean:
-                reason = "very_old" if is_very_old else ("terminated" if is_terminated else "stale_inactive")
-                logger.warning(f"[WriteBuffer] Cleaning {reason} run: {run_id} (age: {age:.0f}s, inactive: {inactive_time:.0f}s, active: {state.is_active})")
+                reason = (
+                    "very_old"
+                    if is_very_old
+                    else ("terminated" if is_terminated else "stale_inactive")
+                )
+                logger.warning(
+                    f"[WriteBuffer] Cleaning {reason} run: {run_id} (age: {age:.0f}s, inactive: {inactive_time:.0f}s, active: {state.is_active})"
+                )
                 try:
                     await state.flush()
                     await state.cleanup()
@@ -230,7 +237,9 @@ class WriteBuffer:
         for run_id, state, age, inactive_time in terminated_runs:
             if evicted >= to_evict:
                 break
-            logger.warning(f"[WriteBuffer] Memory pressure eviction (terminated): {run_id} (age: {age:.0f}s)")
+            logger.warning(
+                f"[WriteBuffer] Memory pressure eviction (terminated): {run_id} (age: {age:.0f}s)"
+            )
             try:
                 await state.flush()
                 await state.cleanup()
@@ -245,7 +254,9 @@ class WriteBuffer:
                 if evicted >= to_evict:
                     break
                 if inactive_time > 300 or age > 1800:
-                    logger.warning(f"[WriteBuffer] Memory pressure eviction (inactive active): {run_id} (age: {age:.0f}s, inactive: {inactive_time:.0f}s)")
+                    logger.warning(
+                        f"[WriteBuffer] Memory pressure eviction (inactive active): {run_id} (age: {age:.0f}s, inactive: {inactive_time:.0f}s)"
+                    )
                     try:
                         await state.flush()
                         await state.cleanup()
@@ -256,11 +267,13 @@ class WriteBuffer:
                     self._eviction_count += 1
 
         if evicted > 0:
-            logger.warning(f"[WriteBuffer] Memory pressure: evicted {evicted} runs, remaining: {len(self._runs)}")
+            logger.warning(
+                f"[WriteBuffer] Memory pressure: evicted {evicted} runs, remaining: {len(self._runs)}"
+            )
 
         return evicted
 
-    async def finalize(self, state: 'RunState') -> Dict[str, Any]:
+    async def finalize(self, state: "RunState") -> Dict[str, Any]:
         from core.agents.runner import update_agent_run_status
 
         result = {"run_id": state.run_id, "flushed": 0, "updated": False}

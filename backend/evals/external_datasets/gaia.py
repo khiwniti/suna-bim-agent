@@ -21,6 +21,7 @@ logger = structlog.get_logger(__name__)
 # Cache directory for downloaded datasets - use home directory to avoid conflicts
 CACHE_DIR = Path.home() / ".cache" / "suna_evals" / "datasets"
 
+
 def _cleanup_conflicting_folder():
     """Remove any 'datasets' folder in evals/ that might conflict with imports."""
     evals_dir = Path(__file__).parent.parent
@@ -36,6 +37,7 @@ def _cleanup_conflicting_folder():
 @dataclass
 class GAIAQuestion:
     """A single GAIA benchmark question."""
+
     task_id: str
     question: str
     level: int
@@ -48,33 +50,34 @@ class GAIAQuestion:
 def _ensure_gaia_downloaded() -> Path:
     """Download GAIA dataset if not already cached."""
     gaia_dir = CACHE_DIR / "gaia-benchmark"
-    
+
     if gaia_dir.exists() and (gaia_dir / "2023").exists():
         logger.info(f"GAIA dataset found in cache: {gaia_dir}")
         return gaia_dir
-    
+
     logger.info("Downloading GAIA dataset from HuggingFace...")
-    
+
     try:
         from huggingface_hub import snapshot_download
+
         try:
             from huggingface_hub.errors import GatedRepoError
         except ImportError:
             from huggingface_hub.utils._errors import GatedRepoError
-        
+
         # Create cache directory
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        
+
         # Download the dataset
         data_dir = snapshot_download(
             repo_id="gaia-benchmark/GAIA",
             repo_type="dataset",
             local_dir=gaia_dir,
         )
-        
+
         logger.info(f"GAIA dataset downloaded to: {data_dir}")
         return Path(data_dir)
-        
+
     except ImportError:
         raise ImportError(
             "huggingface_hub is required for GAIA dataset. "
@@ -119,52 +122,53 @@ def load_gaia_dataset(
 ) -> List[GAIAQuestion]:
     """
     Load GAIA benchmark questions.
-    
+
     Args:
         level: Difficulty level (1, 2, or 3)
         split: "validation" for dev set, "test" for test set
         count: Maximum number of questions to load (None for all)
         year: Dataset year (default "2023")
-    
+
     Returns:
         List of GAIAQuestion objects
     """
     # Clean up any conflicting folders first
     _cleanup_conflicting_folder()
-    
+
     if level not in [1, 2, 3]:
         raise ValueError(f"Level must be 1, 2, or 3, got {level}")
-    
+
     if split not in ["validation", "test"]:
         raise ValueError(f"Split must be 'validation' or 'test', got {split}")
-    
+
     data_dir = _ensure_gaia_downloaded()
-    
+
     try:
         import datasets as hf_datasets
+
         load_dataset = hf_datasets.load_dataset
-        
+
         # Load the specific level
         config_name = f"{year}_level{level}"
         logger.info(f"Loading GAIA {config_name} {split} split...")
-        
+
         dataset = load_dataset(
             str(data_dir),
             config_name,
             split=split,
             trust_remote_code=True,
         )
-        
+
         questions = []
         for i, example in enumerate(dataset):
             if count and i >= count:
                 break
-            
+
             # Build file path if there's an attachment
             file_path = None
             if example.get("file_path"):
                 file_path = str(data_dir / example["file_path"])
-            
+
             question = GAIAQuestion(
                 task_id=example.get("task_id", f"gaia-{level}-{i}"),
                 question=example["Question"],
@@ -175,10 +179,10 @@ def load_gaia_dataset(
                 annotator_metadata=example.get("Annotator Metadata"),
             )
             questions.append(question)
-        
+
         logger.info(f"Loaded {len(questions)} GAIA level {level} questions")
         return questions
-        
+
     except Exception as e:
         logger.error(f"Failed to load GAIA dataset: {e}")
         # Fall back to loading from parquet/jsonl directly
@@ -194,12 +198,12 @@ def _load_gaia_fallback(
 ) -> List[GAIAQuestion]:
     """Fallback loader using direct file access."""
     import pandas as pd
-    
+
     # Try parquet first
     parquet_path = data_dir / year / split / f"metadata.level{level}.parquet"
     if not parquet_path.exists():
         parquet_path = data_dir / year / split / "metadata.parquet"
-    
+
     if parquet_path.exists():
         logger.info(f"Loading from parquet: {parquet_path}")
         df = pd.read_parquet(parquet_path)
@@ -212,7 +216,7 @@ def _load_gaia_fallback(
         jsonl_path = data_dir / year / split / "metadata.jsonl"
         if not jsonl_path.exists():
             raise FileNotFoundError(f"No GAIA data found at {data_dir}")
-        
+
         logger.info(f"Loading from JSONL: {jsonl_path}")
         records = []
         with open(jsonl_path, "r") as f:
@@ -221,26 +225,34 @@ def _load_gaia_fallback(
                 if record.get("Level", 1) == level:
                     records.append(record)
         df = pd.DataFrame(records)
-    
+
     if count:
         df = df.head(count)
-    
+
     questions = []
     for idx, row in df.iterrows():
         # Handle file path
-        file_path_val = row.get("file_path") if hasattr(row, 'get') else row["file_path"] if "file_path" in row.index else None
+        file_path_val = (
+            row.get("file_path")
+            if hasattr(row, "get")
+            else row["file_path"]
+            if "file_path" in row.index
+            else None
+        )
         full_file_path = None
         if file_path_val and pd.notna(file_path_val) and str(file_path_val).strip():
             full_file_path = str(data_dir / file_path_val)
-        
+
         # Extract fields safely
         task_id = row["task_id"] if "task_id" in row.index else f"gaia-{level}-{len(questions)}"
         question_text = row["Question"]
         level_val = row["Level"] if "Level" in row.index else level
         final_answer = row["Final answer"] if "Final answer" in row.index else ""
         file_name_val = row["file_name"] if "file_name" in row.index else None
-        annotator_metadata = row["Annotator Metadata"] if "Annotator Metadata" in row.index else None
-        
+        annotator_metadata = (
+            row["Annotator Metadata"] if "Annotator Metadata" in row.index else None
+        )
+
         question = GAIAQuestion(
             task_id=task_id,
             question=question_text,
@@ -251,7 +263,7 @@ def _load_gaia_fallback(
             annotator_metadata=annotator_metadata,
         )
         questions.append(question)
-    
+
     logger.info(f"Loaded {len(questions)} GAIA level {level} questions from fallback")
     return questions
 
@@ -259,7 +271,7 @@ def _load_gaia_fallback(
 def gaia_to_eval_cases(questions: List[GAIAQuestion]) -> List[Dict[str, Any]]:
     """
     Convert GAIA questions to our eval case format.
-    
+
     Returns list of dicts compatible with Braintrust Eval.
     """
     cases = []
@@ -268,7 +280,7 @@ def gaia_to_eval_cases(questions: List[GAIAQuestion]) -> List[Dict[str, Any]]:
         input_text = q.question
         if q.file_path and os.path.exists(q.file_path):
             input_text += f"\n\n[Attached file: {q.file_name or 'file'}]"
-        
+
         case = {
             "input": input_text,
             "expected": q.final_answer,
@@ -282,7 +294,7 @@ def gaia_to_eval_cases(questions: List[GAIAQuestion]) -> List[Dict[str, Any]]:
             "tags": [f"gaia-level{q.level}", "benchmark"],
         }
         cases.append(case)
-    
+
     return cases
 
 
@@ -313,4 +325,3 @@ if __name__ == "__main__":
         print(f"\n--- {q['metadata']['task_id']} ---")
         print(f"Q: {q['input'][:200]}...")
         print(f"A: {q['expected']}")
-

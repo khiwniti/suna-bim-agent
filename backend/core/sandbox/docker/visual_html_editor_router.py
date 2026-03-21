@@ -24,18 +24,47 @@ workspace_dir = "/workspace"
 
 # All text elements that should be editable
 TEXT_ELEMENTS = [
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',  # Headings
-    'p',  # Paragraphs
-    'span', 'strong', 'em', 'b', 'i', 'u',  # Inline text formatting
-    'small', 'mark', 'del', 'ins', 'sub', 'sup',  # Text modifications
-    'code', 'kbd', 'samp', 'var', 'pre',  # Code and preformatted text
-    'blockquote', 'cite', 'q',  # Quotes and citations
-    'abbr', 'dfn', 'time', 'data',  # Semantic text
-    'address', 'figcaption', 'caption',  # Descriptive text
-    'th', 'td',  # Table cells
-    'dt', 'dd',  # Definition lists
-    'li',  # List items
-    'label', 'legend',  # Form text
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",  # Headings
+    "p",  # Paragraphs
+    "span",
+    "strong",
+    "em",
+    "b",
+    "i",
+    "u",  # Inline text formatting
+    "small",
+    "mark",
+    "del",
+    "ins",
+    "sub",
+    "sup",  # Text modifications
+    "code",
+    "kbd",
+    "samp",
+    "var",
+    "pre",  # Code and preformatted text
+    "blockquote",
+    "cite",
+    "q",  # Quotes and citations
+    "abbr",
+    "dfn",
+    "time",
+    "data",  # Semantic text
+    "address",
+    "figcaption",
+    "caption",  # Descriptive text
+    "th",
+    "td",  # Table cells
+    "dt",
+    "dd",  # Definition lists
+    "li",  # List items
+    "label",
+    "legend",  # Form text
 ]
 
 
@@ -66,18 +95,18 @@ async def get_editable_elements(file_path: str):
         full_path = os.path.join(workspace_dir, file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="File not found")
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
+
+        with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
-        soup = BeautifulSoup(content, 'html.parser')
+
+        soup = BeautifulSoup(content, "html.parser")
         elements = []
-        
+
         editable_counter = 0
-        
+
         # Find all elements that could contain text
-        all_elements = soup.find_all(TEXT_ELEMENTS + ['div'])
-        
+        all_elements = soup.find_all(TEXT_ELEMENTS + ["div"])
+
         # Filter out elements that only contain comments
         filtered_elements = []
         for element in all_elements:
@@ -90,65 +119,70 @@ async def get_editable_elements(file_path: str):
                     continue
                 only_comments = False
                 break
-                
+
             if not only_comments:
                 filtered_elements.append(element)
-                
+
         all_elements = filtered_elements
-        
+
         for element in all_elements:
             # Strategy 1: Elements with ONLY text content (no child elements)
             if element.string and element.string.strip():
                 element_id = f"editable-{editable_counter}"
-                element['data-editable-id'] = element_id
-                element['class'] = element.get('class', []) + ['editable-element']
-                
-                elements.append({
-                    'id': element_id,
-                    'tag': element.name,
-                    'text': element.string.strip(),
-                    'selector': f'[data-editable-id="{element_id}"]',
-                    'innerHTML': element.string.strip()
-                })
+                element["data-editable-id"] = element_id
+                element["class"] = element.get("class", []) + ["editable-element"]
+
+                elements.append(
+                    {
+                        "id": element_id,
+                        "tag": element.name,
+                        "text": element.string.strip(),
+                        "selector": f'[data-editable-id="{element_id}"]',
+                        "innerHTML": element.string.strip(),
+                    }
+                )
                 editable_counter += 1
-            
+
             # Strategy 2: Elements with mixed content - wrap raw text nodes individually
             elif element.contents:
                 has_mixed_content = False
                 # Process each child node
-                for child in list(element.contents):  # Use list() to avoid modification during iteration
+                for child in list(
+                    element.contents
+                ):  # Use list() to avoid modification during iteration
                     # Skip comment nodes (Comments are a subclass of NavigableString)
                     if isinstance(child, Comment):
                         continue
                     # Check if it's a NavigableString (raw text) with actual content
-                    if (isinstance(child, NavigableString) and child.strip()):
-                        
+                    if isinstance(child, NavigableString) and child.strip():
                         # This is a raw text node with content
                         text_content = child.strip()
                         if text_content:
                             # Create a wrapper span for the raw text
-                            wrapper_span = soup.new_tag('span')
-                            wrapper_span['data-editable-id'] = f"editable-{editable_counter}"
-                            wrapper_span['class'] = 'editable-element raw-text-wrapper'
+                            wrapper_span = soup.new_tag("span")
+                            wrapper_span["data-editable-id"] = f"editable-{editable_counter}"
+                            wrapper_span["class"] = "editable-element raw-text-wrapper"
                             wrapper_span.string = text_content
-                            
+
                             # Replace the text node with the wrapped span
                             child.replace_with(wrapper_span)
-                            
-                            elements.append({
-                                'id': f"editable-{editable_counter}",
-                                'tag': 'text-node',
-                                'text': text_content,
-                                'selector': f'[data-editable-id="editable-{editable_counter}"]',
-                                'innerHTML': text_content
-                            })
+
+                            elements.append(
+                                {
+                                    "id": f"editable-{editable_counter}",
+                                    "tag": "text-node",
+                                    "text": text_content,
+                                    "selector": f'[data-editable-id="editable-{editable_counter}"]',
+                                    "innerHTML": text_content,
+                                }
+                            )
                             editable_counter += 1
                             has_mixed_content = True
-                
+
                 # Removed fallback - prevents complex containers from becoming editable text
-        
+
         return {"elements": elements}
-        
+
     except Exception as e:
         print(f"Error getting editable elements: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -161,23 +195,25 @@ async def edit_text(request: EditTextRequest):
         full_path = os.path.join(workspace_dir, request.file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="File not found")
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
+
+        with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
-        soup = BeautifulSoup(content, 'html.parser')
-        
+
+        soup = BeautifulSoup(content, "html.parser")
+
         # Extract element ID from selector
-        element_id = request.element_selector.replace('[data-editable-id="', '').replace('"]', '')
-        
+        element_id = request.element_selector.replace('[data-editable-id="', "").replace('"]', "")
+
         # Find the specific editable element by its data-editable-id
-        target_element = soup.find(attrs={'data-editable-id': element_id})
-        
+        target_element = soup.find(attrs={"data-editable-id": element_id})
+
         if not target_element:
             raise HTTPException(status_code=404, detail=f"Element with ID {element_id} not found")
-        
-        print(f"🎯 Found element: {target_element.name} with ID {element_id} - '{target_element.get_text()[:50]}...'")
-        
+
+        print(
+            f"🎯 Found element: {target_element.name} with ID {element_id} - '{target_element.get_text()[:50]}...'"
+        )
+
         # Simple replacement - whether it's a regular element or a wrapped text node
         if target_element.string:
             target_element.string.replace_with(request.new_text)
@@ -185,14 +221,14 @@ async def edit_text(request: EditTextRequest):
             # Clear content and add new text
             target_element.clear()
             target_element.string = request.new_text
-        
+
         # Write back to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(str(soup))
-        
+
         print(f"✅ Successfully updated text in {request.file_path}: '{request.new_text}'")
         return {"success": True, "message": "Text updated successfully"}
-        
+
     except Exception as e:
         print(f"❌ Error editing text: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -205,47 +241,55 @@ async def delete_element(request: DeleteElementRequest):
         full_path = os.path.join(workspace_dir, request.file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="File not found")
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
+
+        with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
-        soup = BeautifulSoup(content, 'html.parser')
-        
+
+        soup = BeautifulSoup(content, "html.parser")
+
         # Handle both editable elements and removable divs
         if '[data-editable-id="' in request.element_selector:
             # Text element deletion
-            element_id = request.element_selector.replace('[data-editable-id="', '').replace('"]', '')
-            
+            element_id = request.element_selector.replace('[data-editable-id="', "").replace(
+                '"]', ""
+            )
+
             # Find the specific editable element by its data-editable-id
-            target_element = soup.find(attrs={'data-editable-id': element_id})
-            
+            target_element = soup.find(attrs={"data-editable-id": element_id})
+
             if not target_element:
-                raise HTTPException(status_code=404, detail=f"Element with ID {element_id} not found")
-                    
+                raise HTTPException(
+                    status_code=404, detail=f"Element with ID {element_id} not found"
+                )
+
         elif '[data-removable-id="' in request.element_selector:
             # Div removal
-            element_id = request.element_selector.replace('[data-removable-id="', '').replace('"]', '')
-            
+            element_id = request.element_selector.replace('[data-removable-id="', "").replace(
+                '"]', ""
+            )
+
             # Find the specific removable element by its data-removable-id
-            target_element = soup.find(attrs={'data-removable-id': element_id})
-            
+            target_element = soup.find(attrs={"data-removable-id": element_id})
+
             if not target_element:
-                raise HTTPException(status_code=404, detail=f"Element with ID {element_id} not found")
+                raise HTTPException(
+                    status_code=404, detail=f"Element with ID {element_id} not found"
+                )
         else:
             raise HTTPException(status_code=400, detail="Invalid element selector")
-        
+
         print(f"🗑️ Deleting element: {target_element.name} - '{target_element.get_text()[:50]}...'")
-        
+
         # Remove element
         target_element.decompose()
-        
+
         # Write back to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(str(soup))
-        
+
         print(f"🗑️ Successfully deleted element from {request.file_path}")
         return {"success": True, "message": "Element deleted successfully"}
-        
+
     except Exception as e:
         print(f"❌ Error deleting element: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -258,53 +302,68 @@ async def save_content(request: SaveContentRequest):
         full_path = os.path.join(workspace_dir, request.file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         # Clean up the HTML content by removing editor-specific classes and attributes
-        soup = BeautifulSoup(request.html_content, 'html.parser')
-        
+        soup = BeautifulSoup(request.html_content, "html.parser")
+
         # Remove editor-specific elements and attributes
         for element in soup.find_all():
             # Remove editor classes
-            if element.get('class'):
-                classes = element['class']
-                classes = [cls for cls in classes if cls not in ['editable-element', 'removable-element', 'raw-text-wrapper', 'selected', 'editing', 'element-modified', 'element-deleted']]
+            if element.get("class"):
+                classes = element["class"]
+                classes = [
+                    cls
+                    for cls in classes
+                    if cls
+                    not in [
+                        "editable-element",
+                        "removable-element",
+                        "raw-text-wrapper",
+                        "selected",
+                        "editing",
+                        "element-modified",
+                        "element-deleted",
+                    ]
+                ]
                 if classes:
-                    element['class'] = classes
+                    element["class"] = classes
                 else:
-                    del element['class']
-            
+                    del element["class"]
+
             # Remove editor data attributes
-            if element.get('data-editable-id'):
-                del element['data-editable-id']
-            if element.get('data-removable-id'):
-                del element['data-removable-id']
-            if element.get('data-original-text'):
-                del element['data-original-text']
-        
+            if element.get("data-editable-id"):
+                del element["data-editable-id"]
+            if element.get("data-removable-id"):
+                del element["data-removable-id"]
+            if element.get("data-original-text"):
+                del element["data-original-text"]
+
         # Remove editor controls
-        for control in soup.find_all(['div'], class_=['edit-controls', 'remove-controls', 'save-cancel-controls']):
+        for control in soup.find_all(
+            ["div"], class_=["edit-controls", "remove-controls", "save-cancel-controls"]
+        ):
             control.decompose()
-        
+
         # Remove editor header
-        for header in soup.find_all(['div'], class_='editor-header'):
+        for header in soup.find_all(["div"], class_="editor-header"):
             header.decompose()
-        
+
         # Remove editor CSS and JS
-        for style in soup.find_all('style'):
-            if 'Visual Editor Styles' in style.get_text():
+        for style in soup.find_all("style"):
+            if "Visual Editor Styles" in style.get_text():
                 style.decompose()
-        
-        for script in soup.find_all('script'):
-            if 'VisualHtmlEditor' in script.get_text():
+
+        for script in soup.find_all("script"):
+            if "VisualHtmlEditor" in script.get_text():
                 script.decompose()
-        
+
         # Write the cleaned HTML back to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(str(soup))
-        
+
         print(f"💾 Successfully saved content to {request.file_path}")
         return {"success": True, "message": "Content saved successfully"}
-        
+
     except Exception as e:
         print(f"❌ Error saving content: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -318,17 +377,17 @@ async def proxy_images(file_path: str, image_path: str):
         # When HTML has ../images/image.jpg from presentations/pres_name/slide.html
         # Browser requests /api/html/presentations/pres_name/slide.html/images/image.jpg
         # We need to serve from /workspace/presentations/images/image.jpg
-        
+
         # workspace_dir is /workspace, so presentations/images/ is the target
         actual_image_path = os.path.join(workspace_dir, "presentations", "images", image_path)
         actual_image_path = os.path.abspath(actual_image_path)
-        
+
         if not os.path.exists(actual_image_path):
             raise HTTPException(status_code=404, detail="Image not found")
-        
+
         # Serve the image file
         return FileResponse(actual_image_path)
-        
+
     except Exception as e:
         print(f"❌ Error serving image: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -341,34 +400,32 @@ async def get_html_editor(file_path: str):
         full_path = os.path.join(workspace_dir, file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="File not found")
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
+
+        with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Inject editor functionality into the HTML
         editor_html = inject_editor_functionality(content, file_path)
-        
+
         return HTMLResponse(content=editor_html)
-        
+
     except Exception as e:
         print(f"❌ Error serving editor: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 def inject_editor_functionality(html_content: str, file_path: str) -> str:
     """Inject visual editor functionality into existing HTML"""
-    
+
     # Parse the HTML
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    
+    soup = BeautifulSoup(html_content, "html.parser")
+
     # Apply the same transformation as the API endpoint
     editable_counter = 0
-    
+
     # Find all elements that could contain text
-    all_elements = soup.find_all(TEXT_ELEMENTS + ['div'])
-    
+    all_elements = soup.find_all(TEXT_ELEMENTS + ["div"])
+
     # Filter out elements that only contain comments
     filtered_elements = []
     for element in all_elements:
@@ -381,59 +438,63 @@ def inject_editor_functionality(html_content: str, file_path: str) -> str:
                 continue
             only_comments = False
             break
-            
+
         if not only_comments:
             filtered_elements.append(element)
-            
+
     all_elements = filtered_elements
-    
+
     for element in all_elements:
         # Strategy 1: Elements with ONLY text content (no child elements)
         if element.string and element.string.strip():
-            element['data-editable-id'] = f"editable-{editable_counter}"
-            element['class'] = element.get('class', []) + ['editable-element']
+            element["data-editable-id"] = f"editable-{editable_counter}"
+            element["class"] = element.get("class", []) + ["editable-element"]
             editable_counter += 1
-        
+
         # Strategy 2: Elements with mixed content - wrap raw text nodes individually
         elif element.contents:
             has_mixed_content = False
             # Process each child node
-            for child in list(element.contents):  # Use list() to avoid modification during iteration
+            for child in list(
+                element.contents
+            ):  # Use list() to avoid modification during iteration
                 # Skip comment nodes (Comments are a subclass of NavigableString)
                 if isinstance(child, Comment):
                     continue
                 # Check if it's a NavigableString (raw text) with actual content
-                if (isinstance(child, NavigableString) and child.strip()):
-                    
+                if isinstance(child, NavigableString) and child.strip():
                     # This is a raw text node with content
                     text_content = child.strip()
                     if text_content:
                         # Create a wrapper span for the raw text
-                        wrapper_span = soup.new_tag('span')
-                        wrapper_span['data-editable-id'] = f"editable-{editable_counter}"
-                        wrapper_span['class'] = 'editable-element raw-text-wrapper'
+                        wrapper_span = soup.new_tag("span")
+                        wrapper_span["data-editable-id"] = f"editable-{editable_counter}"
+                        wrapper_span["class"] = "editable-element raw-text-wrapper"
                         wrapper_span.string = text_content
-                        
+
                         # Replace the text node with the wrapped span
                         child.replace_with(wrapper_span)
                         editable_counter += 1
                         has_mixed_content = True
-            
+
             # Removed fallback - prevents complex containers from becoming editable text
-    
+
     # All divs are removable (except editor control elements)
-    div_elements = soup.find_all('div')
+    div_elements = soup.find_all("div")
     removable_counter = 0
     for element in div_elements:
         # Skip editor control divs
-        element_classes = element.get('class', [])
-        if any(cls in ['edit-controls', 'remove-controls', 'save-cancel-controls', 'editor-header'] for cls in element_classes):
+        element_classes = element.get("class", [])
+        if any(
+            cls in ["edit-controls", "remove-controls", "save-cancel-controls", "editor-header"]
+            for cls in element_classes
+        ):
             continue
-        
-        element['data-removable-id'] = f'div-{removable_counter}'
-        element['class'] = element.get('class', []) + ['removable-element']
+
+        element["data-removable-id"] = f"div-{removable_counter}"
+        element["class"] = element.get("class", []) + ["removable-element"]
         removable_counter += 1
-    
+
     # Add editor CSS
     editor_css = """
     <style>
@@ -771,7 +832,7 @@ def inject_editor_functionality(html_content: str, file_path: str) -> str:
         }
     </style>
     """
-    
+
     # Add editor JavaScript
     editor_js = f"""
     <script>
@@ -1612,12 +1673,12 @@ def inject_editor_functionality(html_content: str, file_path: str) -> str:
         }});
     </script>
     """
-    
+
     # Inject CSS and JS
     if soup.head:
-        soup.head.append(BeautifulSoup(editor_css, 'html.parser'))
-    
+        soup.head.append(BeautifulSoup(editor_css, "html.parser"))
+
     if soup.body:
-        soup.body.append(BeautifulSoup(editor_js, 'html.parser'))
-    
+        soup.body.append(BeautifulSoup(editor_js, "html.parser"))
+
     return str(soup)

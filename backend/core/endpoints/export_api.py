@@ -20,7 +20,9 @@ try:
 except (ImportError, OSError) as e:
     weasyprint_available = False
     print(f"[WARNING] WeasyPrint not available: {e}")
-    print("[INFO] To fix on macOS, run: export DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib:$DYLD_FALLBACK_LIBRARY_PATH")
+    print(
+        "[INFO] To fix on macOS, run: export DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix)/lib:$DYLD_FALLBACK_LIBRARY_PATH"
+    )
 else:
     weasyprint_available = True
 
@@ -46,12 +48,14 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 class ExportRequest(BaseModel):
     """Request model for export endpoints"""
+
     content: str = Field(..., description="HTML content to export")
     fileName: str = Field(..., description="Base filename (without extension)")
 
 
 class ExportResponse(BaseModel):
     """Response model for export endpoints"""
+
     success: bool
     message: str
     filename: Optional[str] = None
@@ -209,7 +213,8 @@ PDF_STYLES = """
 def sanitize_filename(name: str) -> str:
     """Sanitize filename for safe file system use"""
     import re
-    return re.sub(r'[^\w\s-]', '', name).strip()[:100] or 'document'
+
+    return re.sub(r"[^\w\s-]", "", name).strip()[:100] or "document"
 
 
 def preprocess_html(html: str) -> str:
@@ -217,52 +222,52 @@ def preprocess_html(html: str) -> str:
     import re
 
     if not html or not isinstance(html, str):
-        return '<p></p>'
+        return "<p></p>"
 
     # If content is a full HTML document, extract just the body content
     # This prevents nested HTML documents when we wrap it later
-    if '<!DOCTYPE' in html.upper() or '<html' in html.lower():
+    if "<!DOCTYPE" in html.upper() or "<html" in html.lower():
         # Try to extract body content
-        body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.IGNORECASE | re.DOTALL)
+        body_match = re.search(r"<body[^>]*>(.*?)</body>", html, re.IGNORECASE | re.DOTALL)
         if body_match:
             html = body_match.group(1)
 
     # Remove script/style tags
-    html = re.sub(r'<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>', '', html, flags=re.IGNORECASE)
-    html = re.sub(r'<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>', '', html, flags=re.IGNORECASE)
+    html = re.sub(
+        r"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "", html, flags=re.IGNORECASE
+    )
+    html = re.sub(r"<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>", "", html, flags=re.IGNORECASE)
 
     # Clean up empty paragraphs
-    html = re.sub(r'<p>\s*<\/p>', '', html)
+    html = re.sub(r"<p>\s*<\/p>", "", html)
 
     return html.strip()
 
 
 @router.post("/pdf")
 async def export_to_pdf(
-    request: ExportRequest,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: ExportRequest, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """
     Export HTML content to PDF using WeasyPrint
-    
+
     Requires authentication.
     Returns the PDF file directly for download.
     """
     if not weasyprint_available:
         raise HTTPException(
-            status_code=503,
-            detail="PDF export is not available. WeasyPrint is not installed."
+            status_code=503, detail="PDF export is not available. WeasyPrint is not installed."
         )
-    
+
     try:
         content = request.content
         file_name = sanitize_filename(request.fileName)
-        
+
         print(f"[PDF Export] User: {user_id}, File: {file_name}, Content length: {len(content)}")
-        
+
         # Preprocess HTML
         preprocessed_html = preprocess_html(content)
-        
+
         # Create full HTML document with styles
         full_html = f"""<!DOCTYPE html>
 <html>
@@ -275,47 +280,42 @@ async def export_to_pdf(
 {preprocessed_html}
 </body>
 </html>"""
-        
+
         # Generate PDF with WeasyPrint
         pdf_bytes = HTML(string=full_html).write_pdf()
-        
+
         # Return PDF file
         encoded_filename = quote(f"{file_name}.pdf", safe="")
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
-            }
+            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"},
         )
-                
+
     except Exception as e:
         print(f"❌ PDF export error: {e}")
         import traceback
+
         traceback.print_exc()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate PDF: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
 
 
 @router.post("/docx")
 async def export_to_docx(
-    request: ExportRequest,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: ExportRequest, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """
     Export HTML content to DOCX format
-    
+
     Requires authentication.
     Returns the DOCX file directly for download.
     """
     if not docx_available or not beautifulsoup_available:
         raise HTTPException(
             status_code=503,
-            detail="DOCX export is not available. Required libraries are not installed."
+            detail="DOCX export is not available. Required libraries are not installed.",
         )
-    
+
     try:
         content = request.content
         file_name = sanitize_filename(request.fileName)
@@ -329,39 +329,34 @@ async def export_to_docx(
         doc = Document()
 
         # Set default font to clean black/white theme
-        style = doc.styles['Normal']
-        style.font.name = 'Calibri'
+        style = doc.styles["Normal"]
+        style.font.name = "Calibri"
         style.font.size = Pt(11)
         style.font.color.rgb = RGBColor(26, 26, 26)  # #1a1a1a - dark gray/black
 
         # Parse HTML with BeautifulSoup
-        soup = BeautifulSoup(preprocessed_content, 'html.parser')
+        soup = BeautifulSoup(preprocessed_content, "html.parser")
 
         # Convert HTML elements to DOCX
         for element in soup.children:
             process_html_element(element, doc)
-        
+
         # Save to BytesIO buffer
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
-        
+
         # Return DOCX file
         encoded_filename = quote(f"{file_name}.docx", safe="")
         return Response(
             content=buffer.getvalue(),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
-            }
+            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"},
         )
-        
+
     except Exception as e:
         print(f"❌ DOCX export error: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate DOCX: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate DOCX: {str(e)}")
 
 
 def process_html_element(element, doc, parent_paragraph=None):
@@ -372,45 +367,45 @@ def process_html_element(element, doc, parent_paragraph=None):
             parent_paragraph.add_run(text)
         return
 
-    if element.name == 'p':
+    if element.name == "p":
         p = doc.add_paragraph()
         for child in element.children:
             process_inline_element(child, p)
-            
-    elif element.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+
+    elif element.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
         level = int(element.name[1])
         heading = doc.add_heading(element.get_text(), level)
         # Ensure heading is black
         for run in heading.runs:
             run.font.color.rgb = RGBColor(17, 17, 17)  # #111 - dark black for headings
-        
-    elif element.name == 'ul':
-        for li in element.find_all('li', recursive=False):
-            p = doc.add_paragraph(style='List Bullet')
+
+    elif element.name == "ul":
+        for li in element.find_all("li", recursive=False):
+            p = doc.add_paragraph(style="List Bullet")
             for child in li.children:
                 process_inline_element(child, p)
-                
-    elif element.name == 'ol':
-        for li in element.find_all('li', recursive=False):
-            p = doc.add_paragraph(style='List Number')
+
+    elif element.name == "ol":
+        for li in element.find_all("li", recursive=False):
+            p = doc.add_paragraph(style="List Number")
             for child in li.children:
                 process_inline_element(child, p)
-                
-    elif element.name == 'blockquote':
+
+    elif element.name == "blockquote":
         p = doc.add_paragraph()
         p.paragraph_format.left_indent = Inches(0.5)
         run = p.add_run(element.get_text())
         run.font.italic = True
         run.font.color.rgb = RGBColor(85, 85, 85)  # #555 - gray for blockquotes
-        
-    elif element.name == 'pre':
+
+    elif element.name == "pre":
         p = doc.add_paragraph()
         run = p.add_run(element.get_text())
-        run.font.name = 'Courier New'
+        run.font.name = "Courier New"
         run.font.size = Pt(10)
         run.font.color.rgb = RGBColor(26, 26, 26)  # Black for code blocks
-        
-    elif element.name == 'table':
+
+    elif element.name == "table":
         process_table_element(element, doc)
 
 
@@ -421,30 +416,30 @@ def process_inline_element(element, paragraph):
         if text:
             paragraph.add_run(text)
         return
-    
-    if element.name == 'strong' or element.name == 'b':
+
+    if element.name == "strong" or element.name == "b":
         run = paragraph.add_run(element.get_text())
         run.bold = True
-        
-    elif element.name == 'em' or element.name == 'i':
+
+    elif element.name == "em" or element.name == "i":
         run = paragraph.add_run(element.get_text())
         run.italic = True
-        
-    elif element.name == 'u':
+
+    elif element.name == "u":
         run = paragraph.add_run(element.get_text())
         run.underline = True
-        
-    elif element.name == 'code':
+
+    elif element.name == "code":
         run = paragraph.add_run(element.get_text())
-        run.font.name = 'Courier New'
+        run.font.name = "Courier New"
         run.font.size = Pt(10)
         run.font.color.rgb = RGBColor(26, 26, 26)  # Black for inline code
-        
-    elif element.name == 'a':
+
+    elif element.name == "a":
         run = paragraph.add_run(element.get_text())
         run.font.color.rgb = RGBColor(26, 26, 26)  # Black instead of blue
         run.underline = True
-        
+
     else:
         for child in element.children:
             process_inline_element(child, paragraph)
@@ -452,25 +447,25 @@ def process_inline_element(element, paragraph):
 
 def process_table_element(table_element, doc):
     """Process HTML table and add to DOCX document"""
-    rows = table_element.find_all('tr')
+    rows = table_element.find_all("tr")
     if not rows:
         return
-    
-    max_cols = max(len(row.find_all(['td', 'th'])) for row in rows)
+
+    max_cols = max(len(row.find_all(["td", "th"])) for row in rows)
     if max_cols == 0:
         return
-    
+
     table = doc.add_table(rows=len(rows), cols=max_cols)
-    table.style = 'Table Grid'
-    
+    table.style = "Table Grid"
+
     for i, row in enumerate(rows):
-        cells = row.find_all(['td', 'th'])
+        cells = row.find_all(["td", "th"])
         for j, cell in enumerate(cells):
             if j < max_cols:
                 table_cell = table.rows[i].cells[j]
                 table_cell.text = cell.get_text().strip()
-                
-                if cell.name == 'th':
+
+                if cell.name == "th":
                     for paragraph in table_cell.paragraphs:
                         for run in paragraph.runs:
                             run.bold = True

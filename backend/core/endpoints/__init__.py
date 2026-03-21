@@ -28,4 +28,4 @@ router.include_router(vapi_router)
 router.include_router(account_deletion_router)
 router.include_router(feedback_router)
 
-__all__ = ['router']
+__all__ = ["router"]

@@ -4,10 +4,10 @@ from .models import NotificationChannel, NotificationPreference, NotificationEve
 from .presence_service import presence_service
 
 __all__ = [
-    'novu_service',
-    'NotificationService',
-    'NotificationChannel',
-    'NotificationPreference',
-    'NotificationEvent',
-    'presence_service'
+    "novu_service",
+    "NotificationService",
+    "NotificationChannel",
+    "NotificationPreference",
+    "NotificationEvent",
+    "presence_service",
 ]

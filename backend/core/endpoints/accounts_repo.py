@@ -25,12 +25,12 @@ async def get_user_accounts(user_id: str) -> List[Dict[str, Any]]:
         OR (am.user_id = :user_id)
     ORDER BY a.personal_account DESC, a.name ASC
     """
-    
+
     rows = await execute(sql, {"user_id": user_id})
-    
+
     if not rows:
         return []
-    
+
     return [
         {
             "account_id": row["account_id"],

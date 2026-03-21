@@ -146,9 +146,7 @@ async def test_start_stopped_sandbox() -> TimingResult:
                 break
 
         if sandbox.state != SandboxState.STOPPED:
-            result.stop(
-                success=False, error=f"Sandbox didn't stop, state: {sandbox.state}"
-            )
+            result.stop(success=False, error=f"Sandbox didn't stop, state: {sandbox.state}")
             return result
 
         print(f"   Sandbox stopped, now measuring start time...")
@@ -171,9 +169,7 @@ async def test_start_stopped_sandbox() -> TimingResult:
         if sandbox.state == SandboxState.STARTED:
             result.stop(success=True)
         else:
-            result.stop(
-                success=False, error=f"Didn't reach STARTED, got: {sandbox.state}"
-            )
+            result.stop(success=False, error=f"Didn't reach STARTED, got: {sandbox.state}")
 
     except Exception as e:
         result.stop(success=False, error=str(e))
@@ -313,9 +309,7 @@ async def test_ping_keeps_alive():
             result.start()
             sandbox = await daytona.get(sandbox.id)
             result.stop()
-            print(
-                f"   Ping {i + 1}: state={sandbox.state}, ping_time={result.duration_ms:.0f}ms"
-            )
+            print(f"   Ping {i + 1}: state={sandbox.state}, ping_time={result.duration_ms:.0f}ms")
 
         result.details["final_state"] = str(sandbox.state)
         result.details["sandbox_id"] = sandbox.id
@@ -460,9 +454,7 @@ async def run_all_tests():
 
     if create_time and start_time:
         if start_time < create_time * 0.5:
-            print(
-                "✅ Starting STOPPED sandbox is significantly faster than creating new"
-            )
+            print("✅ Starting STOPPED sandbox is significantly faster than creating new")
             print("   → Pool with STOPPED sandboxes still provides benefit")
         else:
             print("⚠️ Starting STOPPED sandbox takes similar time to creating new")

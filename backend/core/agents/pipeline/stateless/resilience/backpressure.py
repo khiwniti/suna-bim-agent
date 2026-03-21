@@ -85,7 +85,9 @@ class BackpressureController:
             if new_level != self._current_level:
                 old_level = self._current_level
                 self._current_level = new_level
-                logger.warning(f"[Backpressure] Level changed: {old_level.value} -> {new_level.value}")
+                logger.warning(
+                    f"[Backpressure] Level changed: {old_level.value} -> {new_level.value}"
+                )
 
                 for callback in self._level_change_callbacks:
                     try:
@@ -171,6 +173,7 @@ class BackpressureController:
     async def _get_memory_percent(self) -> float:
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_percent()
         except Exception:

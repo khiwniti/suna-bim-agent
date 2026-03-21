@@ -78,9 +78,9 @@ def split_text_naturally(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> lis
         # Priority 1: Look for sentence endings (. ! ?) - search from end
         # Check both "punct + space" and "punct at end of chunk"
         best_break = -1
-        for punct in '.!?':
+        for punct in ".!?":
             # Check for punct followed by space or newline
-            for suffix in [' ', '\n']:
+            for suffix in [" ", "\n"]:
                 pos = chunk.rfind(punct + suffix)
                 if pos > 0:
                     best_break = max(best_break, pos + 1)
@@ -94,20 +94,20 @@ def split_text_naturally(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> lis
             continue
 
         # Priority 2: Look for commas
-        comma_pos = chunk.rfind(', ')
+        comma_pos = chunk.rfind(", ")
         if comma_pos > max_chars * 0.3:
-            chunks.append(remaining[:comma_pos + 1].strip())
-            remaining = remaining[comma_pos + 1:].strip()
+            chunks.append(remaining[: comma_pos + 1].strip())
+            remaining = remaining[comma_pos + 1 :].strip()
             continue
 
         # Also check comma at end
-        if chunk.endswith(',') and len(chunk) > max_chars * 0.3:
-            chunks.append(remaining[:len(chunk)].strip())
-            remaining = remaining[len(chunk):].strip()
+        if chunk.endswith(",") and len(chunk) > max_chars * 0.3:
+            chunks.append(remaining[: len(chunk)].strip())
+            remaining = remaining[len(chunk) :].strip()
             continue
 
         # Priority 3: Break at word boundary
-        space_pos = chunk.rfind(' ')
+        space_pos = chunk.rfind(" ")
         if space_pos > max_chars * 0.3:
             chunks.append(remaining[:space_pos].strip())
             remaining = remaining[space_pos:].strip()
@@ -127,7 +127,7 @@ async def generate_voice_chunk(
     temperature: float,
     top_p: float,
     top_k: int,
-    repetition_penalty: float
+    repetition_penalty: float,
 ) -> str:
     """
     Generate audio for a single text chunk using Replicate.
@@ -150,25 +150,21 @@ async def generate_voice_chunk(
         "temperature": temperature,
         "top_p": top_p,
         "top_k": top_k,
-        "repetition_penalty": repetition_penalty
+        "repetition_penalty": repetition_penalty,
     }
 
     if reference_audio:
         input_params["reference_audio"] = reference_audio
 
     # Run Replicate in thread pool to not block event loop
-    output = await asyncio.to_thread(
-        replicate.run,
-        VOICE_MODEL,
-        input=input_params
-    )
+    output = await asyncio.to_thread(replicate.run, VOICE_MODEL, input=input_params)
 
     # Output is typically a URL string
     if isinstance(output, str):
         return output
 
     # Handle FileOutput object
-    if hasattr(output, 'url'):
+    if hasattr(output, "url"):
         return output.url
 
     raise ValueError(f"Unexpected output type from Replicate: {type(output)}")
@@ -185,58 +181,58 @@ def preprocess_text(text: str) -> str:
 
     # Remove markdown formatting
     # Bold: **text** or __text__
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-    text = re.sub(r'__(.+?)__', r'\1', text)
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = re.sub(r"__(.+?)__", r"\1", text)
     # Italic: *text* or _text_
-    text = re.sub(r'\*(.+?)\*', r'\1', text)
-    text = re.sub(r'(?<!\w)_(.+?)_(?!\w)', r'\1', text)
+    text = re.sub(r"\*(.+?)\*", r"\1", text)
+    text = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", text)
     # Strikethrough: ~~text~~
-    text = re.sub(r'~~(.+?)~~', r'\1', text)
+    text = re.sub(r"~~(.+?)~~", r"\1", text)
     # Inline code: `text`
-    text = re.sub(r'`([^`]+)`', r'\1', text)
+    text = re.sub(r"`([^`]+)`", r"\1", text)
     # Code blocks: ```text```
-    text = re.sub(r'```[\s\S]*?```', ' ', text)
+    text = re.sub(r"```[\s\S]*?```", " ", text)
     # Headers: # ## ### etc
-    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
     # Links: [text](url) -> text
-    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
     # Images: ![alt](url) -> remove
-    text = re.sub(r'!\[[^\]]*\]\([^)]+\)', '', text)
+    text = re.sub(r"!\[[^\]]*\]\([^)]+\)", "", text)
     # Bullet points: - or * at start of line
-    text = re.sub(r'^[\-\*]\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^[\-\*]\s+", "", text, flags=re.MULTILINE)
     # Numbered lists: 1. 2. etc
-    text = re.sub(r'^\d+\.\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^\d+\.\s+", "", text, flags=re.MULTILINE)
     # Blockquotes: >
-    text = re.sub(r'^>\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^>\s*", "", text, flags=re.MULTILINE)
     # Horizontal rules: --- or ***
-    text = re.sub(r'^[\-\*]{3,}$', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^[\-\*]{3,}$", "", text, flags=re.MULTILINE)
 
     # Remove emojis - comprehensive pattern
     emoji_pattern = re.compile(
         "["
-        "\U0001F600-\U0001F64F"  # emoticons
-        "\U0001F300-\U0001F5FF"  # symbols & pictographs
-        "\U0001F680-\U0001F6FF"  # transport & map symbols
-        "\U0001F1E0-\U0001F1FF"  # flags
-        "\U0001F900-\U0001F9FF"  # supplemental symbols
-        "\U0001FA00-\U0001FA6F"  # chess symbols
-        "\U0001FA70-\U0001FAFF"  # symbols and pictographs extended-a
-        "\U00002702-\U000027B0"  # dingbats
-        "\U000024C2-\U0001F251"  # enclosed characters
-        "\U00002600-\U000026FF"  # misc symbols (sun, stars, etc)
-        "\U00002700-\U000027BF"  # dingbats
-        "\U0001F000-\U0001F02F"  # mahjong
-        "\U0001F0A0-\U0001F0FF"  # playing cards
+        "\U0001f600-\U0001f64f"  # emoticons
+        "\U0001f300-\U0001f5ff"  # symbols & pictographs
+        "\U0001f680-\U0001f6ff"  # transport & map symbols
+        "\U0001f1e0-\U0001f1ff"  # flags
+        "\U0001f900-\U0001f9ff"  # supplemental symbols
+        "\U0001fa00-\U0001fa6f"  # chess symbols
+        "\U0001fa70-\U0001faff"  # symbols and pictographs extended-a
+        "\U00002702-\U000027b0"  # dingbats
+        "\U000024c2-\U0001f251"  # enclosed characters
+        "\U00002600-\U000026ff"  # misc symbols (sun, stars, etc)
+        "\U00002700-\U000027bf"  # dingbats
+        "\U0001f000-\U0001f02f"  # mahjong
+        "\U0001f0a0-\U0001f0ff"  # playing cards
         "]+",
-        flags=re.UNICODE
+        flags=re.UNICODE,
     )
-    text = emoji_pattern.sub(' ', text)
+    text = emoji_pattern.sub(" ", text)
 
     # Replace newlines and tabs with spaces
-    text = re.sub(r'[\r\n\t]+', ' ', text)
+    text = re.sub(r"[\r\n\t]+", " ", text)
 
     # Collapse multiple spaces
-    text = re.sub(r' +', ' ', text)
+    text = re.sub(r" +", " ", text)
 
     return text.strip()
 
@@ -268,9 +264,7 @@ async def add_paralinguistic_tags(text: str, account_id: str) -> tuple[str, floa
     try:
         response = await litellm.acompletion(
             model=PARALINGUISTIC_MODEL,
-            messages=[
-                {"role": "user", "content": PARALINGUISTIC_PROMPT.format(text=text)}
-            ],
+            messages=[{"role": "user", "content": PARALINGUISTIC_PROMPT.format(text=text)}],
             temperature=0.7,
             max_tokens=len(text) + 500,  # Allow some extra for tags
             stream=False,
@@ -290,7 +284,7 @@ async def add_paralinguistic_tags(text: str, account_id: str) -> tuple[str, floa
                 account_id=account_id,
                 amount=llm_cost,
                 description=f"Voice paralinguistic processing ({prompt_tokens}+{completion_tokens} tokens)",
-                type='usage'
+                type="usage",
             )
 
         return processed_text, float(llm_cost)
@@ -302,8 +296,7 @@ async def add_paralinguistic_tags(text: str, account_id: str) -> tuple[str, floa
 
 @router.post("/voice/generate", response_model=VoiceGenerationResponse)
 async def generate_voice(
-    request: VoiceGenerationRequest,
-    account_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: VoiceGenerationRequest, account_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """
     Generate speech from text using AI voice synthesis.
@@ -359,33 +352,28 @@ async def generate_voice(
                     temperature=request.temperature,
                     top_p=request.top_p,
                     top_k=request.top_k,
-                    repetition_penalty=request.repetition_penalty
+                    repetition_penalty=request.repetition_penalty,
                 )
                 return (idx, url)
 
         # Run chunk generations with rate limiting
-        results = await asyncio.gather(*[
-            generate_chunk_with_index(i, chunk) for i, chunk in enumerate(chunks)
-        ])
+        results = await asyncio.gather(
+            *[generate_chunk_with_index(i, chunk) for i, chunk in enumerate(chunks)]
+        )
         # Sort by index to maintain order
         results.sort(key=lambda x: x[0])
         audio_urls = [url for _, url in results]
 
         # Deduct credits after successful generation
         billing_result = await media_billing.deduct_replicate_voice(
-            account_id=account_id,
-            model=VOICE_MODEL,
-            char_count=char_count
+            account_id=account_id, model=VOICE_MODEL, char_count=char_count
         )
 
-        voice_cost = billing_result.get('cost', 0)
+        voice_cost = billing_result.get("cost", 0)
         total_cost = voice_cost + llm_cost
 
         return VoiceGenerationResponse(
-            audio_urls=audio_urls,
-            char_count=char_count,
-            chunk_count=chunk_count,
-            cost=total_cost
+            audio_urls=audio_urls, char_count=char_count, chunk_count=chunk_count, cost=total_cost
         )
 
     except Exception as e:
@@ -395,8 +383,7 @@ async def generate_voice(
 
 @router.post("/voice/generate/stream")
 async def generate_voice_stream(
-    request: VoiceGenerationRequest,
-    account_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: VoiceGenerationRequest, account_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     """
     Generate speech from text with streaming chunk URLs.
@@ -450,30 +437,29 @@ async def generate_voice_stream(
                     temperature=request.temperature,
                     top_p=request.top_p,
                     top_k=request.top_k,
-                    repetition_penalty=request.repetition_penalty
+                    repetition_penalty=request.repetition_penalty,
                 )
-                yield json.dumps({
-                    "chunk": i + 1,
-                    "total": chunk_count,
-                    "url": url
-                }) + "\n"
+                yield json.dumps({"chunk": i + 1, "total": chunk_count, "url": url}) + "\n"
 
             # Deduct credits after all chunks generated
             billing_result = await media_billing.deduct_replicate_voice(
-                account_id=account_id,
-                model=VOICE_MODEL,
-                char_count=char_count
+                account_id=account_id, model=VOICE_MODEL, char_count=char_count
             )
 
-            voice_cost = billing_result.get('cost', 0)
+            voice_cost = billing_result.get("cost", 0)
             total_cost = voice_cost + llm_cost
 
-            yield json.dumps({
-                "done": True,
-                "char_count": char_count,
-                "chunk_count": chunk_count,
-                "cost": total_cost
-            }) + "\n"
+            yield (
+                json.dumps(
+                    {
+                        "done": True,
+                        "char_count": char_count,
+                        "chunk_count": chunk_count,
+                        "cost": total_cost,
+                    }
+                )
+                + "\n"
+            )
 
         except Exception as e:
             logger.error(f"[VOICE_STREAM] Failed: {e}")
@@ -482,8 +468,5 @@ async def generate_voice_stream(
     return StreamingResponse(
         stream_chunk_urls(),
         media_type="application/x-ndjson",
-        headers={
-            "X-Char-Count": str(char_count),
-            "X-Chunk-Count": str(chunk_count)
-        }
+        headers={"X-Char-Count": str(char_count), "X-Chunk-Count": str(chunk_count)},
     )

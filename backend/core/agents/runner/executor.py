@@ -25,6 +25,7 @@ from core.agents.runner.services import (
     send_completion_notification,
 )
 
+
 async def execute_agent_run(
     agent_run_id: str,
     thread_id: str,
@@ -34,7 +35,7 @@ async def execute_agent_run(
     account_id: str,
     cancellation_event: asyncio.Event,
     is_new_thread: bool = False,
-    user_message: Optional[str] = None
+    user_message: Optional[str] = None,
 ) -> None:
     execution_start = time.time()
 
@@ -49,6 +50,7 @@ async def execute_agent_run(
 
     try:
         from datetime import datetime, timezone
+
         start_time = datetime.now(timezone.utc)
 
         await stream_status_message("initializing", "Starting execution...", stream_key=stream_key)
@@ -60,22 +62,23 @@ async def execute_agent_run(
             pass
 
         from core.ai_models import model_manager
+
         effective_model = model_manager.resolve_model_id(model_name)
 
-        stop_state = {'received': False, 'reason': None}
+        stop_state = {"received": False, "reason": None}
 
         async def check_stop():
-            while not stop_state['received']:
+            while not stop_state["received"]:
                 try:
                     if cancellation_event.is_set():
-                        stop_state['received'] = True
-                        stop_state['reason'] = 'cancellation_event'
+                        stop_state["received"] = True
+                        stop_state["reason"] = "cancellation_event"
                         logger.info(f"🛑 Stop detected via cancellation_event for {agent_run_id}")
                         break
 
                     if await redis.check_stop_signal(agent_run_id):
-                        stop_state['received'] = True
-                        stop_state['reason'] = 'stop_signal'
+                        stop_state["received"] = True
+                        stop_state["reason"] = "stop_signal"
                         cancellation_event.set()
                         logger.info(f"🛑 Stop detected via Redis for {agent_run_id}")
                         break
@@ -103,7 +106,7 @@ async def execute_agent_run(
             is_new_thread=is_new_thread,
             cancellation_event=cancellation_event,
             stream_key=stream_key,
-            user_message=user_message
+            user_message=user_message,
         )
 
         coordinator = StatelessCoordinator()
@@ -115,8 +118,10 @@ async def execute_agent_run(
         error_message = None
 
         async for response in coordinator.execute(ctx):
-            if cancellation_event.is_set() or stop_state['received']:
-                logger.warning(f"🛑 Agent run stopped: {stop_state.get('reason', 'cancellation_event')}")
+            if cancellation_event.is_set() or stop_state["received"]:
+                logger.warning(
+                    f"🛑 Agent run stopped: {stop_state.get('reason', 'cancellation_event')}"
+                )
                 final_status = "stopped"
                 error_message = f"Stopped by {stop_state.get('reason', 'cancellation_event')}"
                 break
@@ -131,26 +136,35 @@ async def execute_agent_run(
                         "type": "timing",
                         "first_response_ms": round(first_response_time_ms, 1),
                         "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "pipeline": "stateless"
+                        "pipeline": "stateless",
                     }
-                    await redis.stream_add(stream_key, {"data": json.dumps(timing_msg)}, maxlen=200, approximate=True)
+                    await redis.stream_add(
+                        stream_key, {"data": json.dumps(timing_msg)}, maxlen=200, approximate=True
+                    )
                 except Exception:
                     pass
 
             from core.services.db import serialize_row
+
             if isinstance(response, dict):
                 response = serialize_row(response)
-                if response.get('type') == 'assistant':
-                    metadata = response.get('metadata', '')
-                    if isinstance(metadata, str) and 'complete' in metadata:
-                        logger.debug(f"[STREAM] Sending assistant complete: message_id={response.get('message_id')}")
+                if response.get("type") == "assistant":
+                    metadata = response.get("metadata", "")
+                    if isinstance(metadata, str) and "complete" in metadata:
+                        logger.debug(
+                            f"[STREAM] Sending assistant complete: message_id={response.get('message_id')}"
+                        )
 
             try:
-                await redis.stream_add(stream_key, {"data": json.dumps(response)}, maxlen=200, approximate=True)
+                await redis.stream_add(
+                    stream_key, {"data": json.dumps(response)}, maxlen=200, approximate=True
+                )
 
                 if not stream_ttl_set:
                     try:
-                        await asyncio.wait_for(redis.expire(stream_key, REDIS_STREAM_TTL_SECONDS), timeout=2.0)
+                        await asyncio.wait_for(
+                            redis.expire(stream_key, REDIS_STREAM_TTL_SECONDS), timeout=2.0
+                        )
                         stream_ttl_set = True
                     except:
                         pass
@@ -160,41 +174,51 @@ async def execute_agent_run(
             total_responses += 1
 
             terminating = check_terminating_tool_call(response)
-            if terminating == 'complete':
+            if terminating == "complete":
                 complete_tool_called = True
 
-            if response.get('type') == 'status':
-                status = response.get('status')
-                if status in ['completed', 'failed', 'stopped', 'error']:
-                    final_status = status if status != 'error' else 'failed'
-                    if status in ['failed', 'error']:
-                        error_message = response.get('message') or response.get('error')
+            if response.get("type") == "status":
+                status = response.get("status")
+                if status in ["completed", "failed", "stopped", "error"]:
+                    final_status = status if status != "error" else "failed"
+                    if status in ["failed", "error"]:
+                        error_message = response.get("message") or response.get("error")
                         logger.error(f"Agent run error: {error_message}")
                     break
 
-            if response.get('type') == 'error':
-                final_status = 'failed'
-                error_message = response.get('error')
+            if response.get("type") == "error":
+                final_status = "failed"
+                error_message = response.get("error")
                 logger.error(f"Agent run error: {error_message}")
                 break
 
         if final_status == "failed" and not error_message:
             final_status = "completed"
             duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-            logger.info(f"Agent run completed (duration: {duration:.2f}s, responses: {total_responses})")
+            logger.info(
+                f"Agent run completed (duration: {duration:.2f}s, responses: {total_responses})"
+            )
 
-            completion_msg = {"type": "status", "status": "completed", "message": "Completed successfully"}
+            completion_msg = {
+                "type": "status",
+                "status": "completed",
+                "message": "Completed successfully",
+            }
             try:
-                await redis.stream_add(stream_key, {'data': json.dumps(completion_msg)}, maxlen=200, approximate=True)
+                await redis.stream_add(
+                    stream_key, {"data": json.dumps(completion_msg)}, maxlen=200, approximate=True
+                )
             except:
                 pass
 
             await send_completion_notification(thread_id, agent_config, complete_tool_called)
 
-        if stop_state['reason']:
+        if stop_state["reason"]:
             final_status = "stopped"
 
-        await update_agent_run_status(agent_run_id, final_status, error=error_message, account_id=account_id)
+        await update_agent_run_status(
+            agent_run_id, final_status, error=error_message, account_id=account_id
+        )
 
         logger.info(f"✅ Agent run completed: {agent_run_id} | status={final_status}")
 
@@ -204,6 +228,7 @@ async def execute_agent_run(
 
     finally:
         from core.utils.lifecycle_tracker import log_cleanup_error
+
         cleanup_errors = []
 
         try:

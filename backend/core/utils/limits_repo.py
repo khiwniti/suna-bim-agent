@@ -14,25 +14,22 @@ async def count_running_agent_runs(account_id: str) -> Dict[str, Any]:
     WHERE t.account_id = :account_id 
       AND ar.status = 'running'
     """
-    
+
     result = await execute_one(sql, {"account_id": account_id})
-    
+
     if not result:
         return {"running_count": 0, "running_thread_ids": []}
-    
+
     # Convert UUIDs to strings for JSON serialization
     thread_ids = result["running_thread_ids"] or []
     thread_ids_str = [str(tid) for tid in thread_ids] if thread_ids else []
-    
-    return {
-        "running_count": result["running_count"] or 0,
-        "running_thread_ids": thread_ids_str
-    }
+
+    return {"running_count": result["running_count"] or 0, "running_thread_ids": thread_ids_str}
 
 
 async def count_agent_runs_24h(account_id: str) -> int:
     twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
-    
+
     sql = """
     SELECT COUNT(*) as count
     FROM agent_runs ar
@@ -40,12 +37,9 @@ async def count_agent_runs_24h(account_id: str) -> int:
     WHERE t.account_id = :account_id 
       AND ar.started_at >= :since
     """
-    
-    result = await execute_one(sql, {
-        "account_id": account_id,
-        "since": twenty_four_hours_ago
-    })
-    
+
+    result = await execute_one(sql, {"account_id": account_id, "since": twenty_four_hours_ago})
+
     return result["count"] if result else 0
 
 
@@ -76,7 +70,7 @@ async def get_all_limits_counts(account_id: str) -> Dict[str, Any]:
     """
     Get all limit counts in a SINGLE query instead of 6 separate queries.
     This reduces DB round-trips from 6 to 1 for the account-state endpoint.
-    
+
     Returns counts for: agents, threads, projects, running_runs, triggers (scheduled/app)
     """
     sql = """
@@ -98,22 +92,22 @@ async def get_all_limits_counts(account_id: str) -> Dict[str, Any]:
          WHERE a.account_id = :account_id) as custom_mcp_count
     """
     result = await execute_one(sql, {"account_id": account_id})
-    
+
     if not result:
         return {
             "agent_count": 0,
             "thread_count": 0,
             "project_count": 0,
             "running_runs_count": 0,
-            "custom_mcp_count": 0
+            "custom_mcp_count": 0,
         }
-    
+
     return {
         "agent_count": result["agent_count"] or 0,
         "thread_count": result["thread_count"] or 0,
         "project_count": result["project_count"] or 0,
         "running_runs_count": result["running_runs_count"] or 0,
-        "custom_mcp_count": result["custom_mcp_count"] or 0
+        "custom_mcp_count": result["custom_mcp_count"] or 0,
     }
 
 
@@ -136,21 +130,21 @@ async def count_agent_triggers(agent_id: str) -> Dict[str, int]:
     WHERE agent_id = :agent_id
     GROUP BY trigger_type
     """
-    
+
     rows = await execute(sql, {"agent_id": agent_id})
-    
+
     result = {"scheduled": 0, "webhook": 0, "app": 0, "event": 0}
-    
+
     if rows:
         for row in rows:
             trigger_type = row["trigger_type"]
             count = row["count"]
-            
+
             if trigger_type == "schedule":
                 result["scheduled"] = count
             elif trigger_type in ["webhook", "app", "event"]:
                 result["app"] += count
-    
+
     return result
 
 
@@ -164,21 +158,21 @@ async def count_all_triggers_for_account(account_id: str) -> Dict[str, int]:
     WHERE a.account_id = :account_id
     GROUP BY at.trigger_type
     """
-    
+
     rows = await execute(sql, {"account_id": account_id})
-    
+
     result = {"scheduled": 0, "app": 0}
-    
+
     if rows:
         for row in rows:
             trigger_type = row["trigger_type"]
             count = row["count"]
-            
+
             if trigger_type == "schedule":
                 result["scheduled"] = count
             elif trigger_type in ["webhook", "app", "event"]:
                 result["app"] += count
-    
+
     return result
 
 
@@ -201,6 +195,6 @@ async def count_custom_mcps_for_account(account_id: str) -> int:
     LEFT JOIN agent_versions av ON a.current_version_id = av.version_id
     WHERE a.account_id = :account_id
     """
-    
+
     result = await execute_one(sql, {"account_id": account_id})
     return result["total_custom_mcps"] if result else 0

@@ -43,7 +43,7 @@ def AnswerCorrectness(
 ) -> Dict[str, Any]:
     """
     Uses LiteLLM + Gemini to check if the output is factually correct.
-    
+
     This uses an LLM to determine if the agent's answer matches the expected answer,
     handling paraphrasing, different formats, etc.
     """
@@ -52,21 +52,21 @@ def AnswerCorrectness(
         output_text = output.get("output", str(output))
     else:
         output_text = str(output)
-    
+
     # Extract input text
     if isinstance(input, dict):
         input_text = input.get("input", str(input))
     else:
         input_text = str(input) if input else ""
-    
+
     # If no expected answer, can't score
     if not expected:
         return {
             "name": "AnswerCorrectness",
             "score": None,
-            "metadata": {"reason": "No expected answer provided"}
+            "metadata": {"reason": "No expected answer provided"},
         }
-    
+
     # Use LiteLLM with Gemini for scoring
     try:
         prompt = FACTUALITY_PROMPT.format(
@@ -74,16 +74,16 @@ def AnswerCorrectness(
             expected=expected,
             output=output_text[:2000],  # Limit output length
         )
-        
+
         response = litellm.completion(
             model="gemini/gemini-2.0-flash",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=150,
             temperature=0,
         )
-        
+
         result_text = response.choices[0].message.content.strip()
-        
+
         # Parse JSON response
         try:
             # Handle potential markdown code blocks
@@ -105,15 +105,15 @@ def AnswerCorrectness(
             else:
                 score = 0.0
                 reason = result_text
-        
+
         return {
-            "name": "AnswerCorrectness", 
+            "name": "AnswerCorrectness",
             "score": score,
             "metadata": {
                 "expected": expected,
                 "output_preview": output_text[:300] if output_text else "EMPTY",
                 "reason": reason,
-            }
+            },
         }
     except Exception as e:
         logger.warning(f"LLM scorer failed: {e}, falling back to substring match")
@@ -122,7 +122,7 @@ def AnswerCorrectness(
         return {
             "name": "AnswerCorrectness",
             "score": score,
-            "metadata": {"expected": expected, "fallback": True, "error": str(e)}
+            "metadata": {"expected": expected, "fallback": True, "error": str(e)},
         }
 
 
@@ -133,9 +133,9 @@ def TaskCompletionScorer(
 ) -> Dict[str, Any]:
     """
     Score whether the agent successfully completed the task.
-    
+
     Uses an LLM to judge if the output indicates successful task completion.
-    
+
     Returns:
         Dict with 'score' (0-1) and 'metadata' with reasoning
     """
@@ -143,22 +143,22 @@ def TaskCompletionScorer(
     if isinstance(output, dict):
         output_str = output.get("output", str(output))
         error = output.get("error")
-        
+
         # Immediate failure if there was an error
         if error:
             return {
                 "name": "TaskCompletion",
                 "score": 0.0,
-                "metadata": {"reason": f"Agent error: {error}"}
+                "metadata": {"reason": f"Agent error: {error}"},
             }
     else:
         output_str = str(output)
-    
+
     # Check for completion indicators
     completion_signals = [
         "completed",
         "done",
-        "finished", 
+        "finished",
         "successfully",
         "here is",
         "here's",
@@ -166,15 +166,15 @@ def TaskCompletionScorer(
         "created",
         "implemented",
     ]
-    
+
     # Simple heuristic check first
     output_lower = output_str.lower()
     has_completion_signal = any(sig in output_lower for sig in completion_signals)
-    
+
     # Check for failure signals
     failure_signals = [
         "i cannot",
-        "i can't", 
+        "i can't",
         "unable to",
         "failed to",
         "error",
@@ -182,7 +182,7 @@ def TaskCompletionScorer(
         "unfortunately",
     ]
     has_failure_signal = any(sig in output_lower for sig in failure_signals)
-    
+
     if has_failure_signal and not has_completion_signal:
         score = 0.2
         reason = "Output contains failure indicators"
@@ -195,12 +195,8 @@ def TaskCompletionScorer(
     else:
         score = 0.5
         reason = "Ambiguous completion status"
-    
-    return {
-        "name": "TaskCompletion",
-        "score": score,
-        "metadata": {"reason": reason}
-    }
+
+    return {"name": "TaskCompletion", "score": score, "metadata": {"reason": reason}}
 
 
 def ToolUsageScorer(
@@ -211,14 +207,14 @@ def ToolUsageScorer(
 ) -> Dict[str, Any]:
     """
     Score whether the agent used tools appropriately.
-    
+
     Checks if the agent called tools when needed.
-    
+
     Args:
         output: Agent output (dict with 'tools_called' key)
         expected: The expected answer (NOT expected tools - we look in input for that)
         input: The input dict which may contain 'expected_tools'
-        
+
     Returns:
         Dict with 'score' (0-1) and 'metadata'
     """
@@ -229,12 +225,12 @@ def ToolUsageScorer(
     else:
         tools_called = set()
         tool_calls_count = 0
-    
+
     # Get expected tools from INPUT (not expected, which is the answer)
     expected_tools = None
     if isinstance(input, dict):
         expected_tools = input.get("expected_tools")
-    
+
     # If no expected tools specified in input
     if expected_tools is None:
         # Score based on whether tools were used at all
@@ -245,27 +241,27 @@ def ToolUsageScorer(
                 "metadata": {
                     "tools_called": list(tools_called),
                     "tool_calls_count": tool_calls_count,
-                    "reason": f"Agent used {len(tools_called)} tools ({tool_calls_count} calls)"
-                }
+                    "reason": f"Agent used {len(tools_called)} tools ({tool_calls_count} calls)",
+                },
             }
         else:
             return {
                 "name": "ToolUsage",
                 "score": 0.5,
-                "metadata": {"reason": "No tools called (may be correct for simple tasks)"}
+                "metadata": {"reason": "No tools called (may be correct for simple tasks)"},
             }
-    
+
     # Parse expected tools from string or list
     if isinstance(expected_tools, str):
         expected_tools_set = set(t.strip() for t in expected_tools.split(","))
     else:
         expected_tools_set = set(expected_tools)
-    
+
     # Calculate overlap
     correct_tools = tools_called & expected_tools_set
     missing_tools = expected_tools_set - tools_called
     extra_tools = tools_called - expected_tools_set
-    
+
     # Score based on how many expected tools were called
     if not expected_tools_set:
         score = 1.0 if not tools_called else 0.8
@@ -273,7 +269,7 @@ def ToolUsageScorer(
         precision = len(correct_tools) / len(tools_called) if tools_called else 0
         recall = len(correct_tools) / len(expected_tools_set)
         score = (precision + recall) / 2
-    
+
     return {
         "name": "ToolUsage",
         "score": score,
@@ -283,7 +279,7 @@ def ToolUsageScorer(
             "correct": list(correct_tools),
             "missing": list(missing_tools),
             "extra": list(extra_tools),
-        }
+        },
     }
 
 
@@ -295,12 +291,12 @@ def ResponseQualityScorer(
 ) -> Dict[str, Any]:
     """
     Score the overall quality of the agent's response.
-    
+
     Evaluates:
     - Response length (not too short, not too verbose)
     - Presence of substantive content
     - Professional tone
-    
+
     Returns:
         Dict with 'score' (0-1) and 'metadata'
     """
@@ -309,10 +305,10 @@ def ResponseQualityScorer(
         output_str = output.get("output", str(output))
     else:
         output_str = str(output)
-    
+
     scores = []
     reasons = []
-    
+
     # Length check
     word_count = len(output_str.split())
     if word_count < 5:
@@ -327,7 +323,7 @@ def ResponseQualityScorer(
     else:
         scores.append(1.0)
         reasons.append("Appropriate length")
-    
+
     # Check for substantive content (not just filler)
     filler_phrases = [
         "let me think",
@@ -342,23 +338,23 @@ def ResponseQualityScorer(
     scores.append(max(0.3, non_filler_ratio))
     if non_filler_ratio < 0.8:
         reasons.append("Contains filler phrases")
-    
+
     # Check for code/structured output if relevant
     has_code = "```" in output_str or output_str.count("\n") > 5
     if has_code:
         scores.append(0.9)
         reasons.append("Contains structured content")
-    
+
     # Average scores
     final_score = sum(scores) / len(scores)
-    
+
     return {
         "name": "ResponseQuality",
         "score": final_score,
         "metadata": {
             "word_count": word_count,
             "reasons": reasons,
-        }
+        },
     }
 
 
@@ -369,35 +365,37 @@ def ResponseTimeScorer(
 ) -> Dict[str, Any]:
     """
     Score based on response time.
-    
+
     Faster responses get higher scores (within acceptable range).
-    
+
     Args:
         output: Agent output (dict with 'duration_ms' key)
         expected: Expected output (unused, but Braintrust passes it)
-        
+
     Returns:
         Dict with 'score' (0-1) and 'metadata'
     """
     # Max acceptable time (30 seconds)
     max_acceptable_ms = 30000.0
-    
+
     # Get duration_ms from output
     if isinstance(output, dict):
         duration_ms = output.get("duration_ms")
     else:
         duration_ms = None
-    
+
     # Robust conversion to float with fallback
     if duration_ms is not None:
         try:
             duration_ms = float(duration_ms)
         except (ValueError, TypeError, AttributeError):
-            logger.warning(f"Could not convert duration_ms to float: {duration_ms} (type: {type(duration_ms)})")
+            logger.warning(
+                f"Could not convert duration_ms to float: {duration_ms} (type: {type(duration_ms)})"
+            )
             duration_ms = max_acceptable_ms
     else:
         duration_ms = max_acceptable_ms
-    
+
     # Linear scoring: 1.0 at 0ms, 0.0 at max_acceptable_ms
     if duration_ms <= 0:
         score = 1.0
@@ -405,14 +403,14 @@ def ResponseTimeScorer(
         score = 0.0
     else:
         score = 1.0 - (duration_ms / max_acceptable_ms)
-    
+
     return {
         "name": "ResponseTime",
         "score": score,
         "metadata": {
             "duration_ms": duration_ms,
             "max_acceptable_ms": max_acceptable_ms,
-        }
+        },
     }
 
 
@@ -420,12 +418,12 @@ def ResponseTimeScorer(
 def create_behavior_scorer(criteria: str):
     """
     Create an LLM-based scorer for specific behavioral criteria.
-    
+
     Uses autoevals LLMClassifier under the hood.
-    
+
     Args:
         criteria: Description of what behavior to evaluate
-        
+
     Returns:
         Scorer function compatible with Braintrust
     """
@@ -445,7 +443,7 @@ Rate from 0 (completely fails) to 1 (perfectly meets criteria).
 Provide your rating as a single number between 0 and 1.""",
         choice_scores={"0": 0, "0.25": 0.25, "0.5": 0.5, "0.75": 0.75, "1": 1},
     )
-    
+
     return classifier
 
 
@@ -468,4 +466,3 @@ __all__ = [
     "ExactMatch",
     "LLMClassifier",
 ]
-

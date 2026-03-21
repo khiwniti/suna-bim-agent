@@ -9,12 +9,14 @@ from core.agents.pipeline.stateless.persistence.wal import wal, WALEntry, WriteT
 from core.agents.pipeline.stateless.persistence.dlq import dlq
 from core.agents.pipeline.stateless.persistence.retry import ExponentialBackoff, with_retry
 
+
 @dataclass
 class BatchResult:
     success_count: int
     failed_count: int
     dlq_count: int
     duration_ms: float
+
 
 class BatchWriter:
     MAX_RETRIES = 3
@@ -42,7 +44,7 @@ class BatchWriter:
             return BatchResult(0, 0, 0, 0)
 
         messages = [e for e in entries if e.write_type == WriteType.MESSAGE]
-        
+
         results = await asyncio.gather(
             self._flush_messages(messages, account_id),
             return_exceptions=True,
@@ -113,16 +115,16 @@ class BatchWriter:
                     logger.error(f"[BatchWriter] Flush error: {result}")
                     failed.append((entry.entry_id, str(result)))
                     continue
-                
+
                 if isinstance(result, tuple) and len(result) == 3:
                     entry_id, success, error = result
                     if success:
                         succeeded.append(entry_id)
-                        
+
                         # Track llm_response_end messages for billing
                         if entry.data.get("type") == "llm_response_end":
                             llm_response_end_entries.append(entry)
-                        
+
                         if entry.data.get("is_llm_message", True):
                             batch_messages_to_cache.append(entry.data)
                     else:
@@ -134,18 +136,23 @@ class BatchWriter:
             if batch_messages_to_cache:
                 try:
                     from core.cache.runtime_cache import append_to_cached_message_history
+
                     for data in batch_messages_to_cache:
-                        message_payload = data["content"].copy() if isinstance(data["content"], dict) else {"content": data["content"]}
+                        message_payload = (
+                            data["content"].copy()
+                            if isinstance(data["content"], dict)
+                            else {"content": data["content"]}
+                        )
                         if "message_id" not in message_payload and "message_id" in data:
                             message_payload["message_id"] = data["message_id"]
-                        
+
                         if "role" not in message_payload and "type" in data:
                             message_payload["role"] = data["type"]
 
                         await append_to_cached_message_history(data["thread_id"], message_payload)
                 except Exception as e:
                     logger.warning(f"Failed to update message cache during flush: {e}")
-        
+
         # Process billing for llm_response_end messages
         if llm_response_end_entries:
             await self._process_billing(llm_response_end_entries, account_id)
@@ -174,38 +181,44 @@ class BatchWriter:
     async def _process_billing(self, entries: List[WALEntry], account_id: str) -> None:
         if not entries:
             return
-        
+
         from core.billing.credits.integration import billing_integration
-        
+
         for entry in entries:
             try:
                 data = entry.data
                 content = data.get("content", {})
-                
+
                 usage = content.get("usage", {})
                 if not usage:
-                    logger.warning(f"[BatchWriter] No usage data in llm_response_end message {data.get('message_id')}")
+                    logger.warning(
+                        f"[BatchWriter] No usage data in llm_response_end message {data.get('message_id')}"
+                    )
                     continue
-                
+
                 prompt_tokens = int(usage.get("prompt_tokens", 0) or 0)
                 completion_tokens = int(usage.get("completion_tokens", 0) or 0)
-                
+
                 if prompt_tokens == 0 and completion_tokens == 0:
                     logger.warning(f"[BatchWriter] Zero tokens in usage data, skipping billing")
                     continue
-                
+
                 cache_read_tokens = int(usage.get("cache_read_input_tokens", 0) or 0)
                 if cache_read_tokens == 0:
-                    cache_read_tokens = int((usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0) or 0)
-                
+                    cache_read_tokens = int(
+                        (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0) or 0
+                    )
+
                 cache_creation_tokens = int(usage.get("cache_creation_input_tokens", 0) or 0)
-                
+
                 model = content.get("model", "unknown")
                 thread_id = data.get("thread_id")
                 message_id = data.get("message_id")
-                
-                logger.debug(f"💰 [BatchWriter] Billing: prompt={prompt_tokens}, completion={completion_tokens}, cache_read={cache_read_tokens}, cache_create={cache_creation_tokens}, model={model}")
-                
+
+                logger.debug(
+                    f"💰 [BatchWriter] Billing: prompt={prompt_tokens}, completion={completion_tokens}, cache_read={cache_read_tokens}, cache_create={cache_creation_tokens}, model={model}"
+                )
+
                 result = await billing_integration.deduct_usage(
                     account_id=account_id,
                     prompt_tokens=prompt_tokens,
@@ -214,16 +227,21 @@ class BatchWriter:
                     message_id=str(message_id),
                     thread_id=str(thread_id),
                     cache_read_tokens=cache_read_tokens,
-                    cache_creation_tokens=cache_creation_tokens
+                    cache_creation_tokens=cache_creation_tokens,
                 )
-                
-                if result.get('success'):
-                    logger.info(f"✅ [BatchWriter] Successfully billed ${result.get('cost', 0):.6f} for {prompt_tokens + completion_tokens} tokens")
+
+                if result.get("success"):
+                    logger.info(
+                        f"✅ [BatchWriter] Successfully billed ${result.get('cost', 0):.6f} for {prompt_tokens + completion_tokens} tokens"
+                    )
                 else:
                     logger.error(f"❌ [BatchWriter] Billing failed: {result}")
-                    
+
             except Exception as e:
-                logger.error(f"[BatchWriter] Error processing billing for entry {entry.entry_id}: {e}", exc_info=True)
+                logger.error(
+                    f"[BatchWriter] Error processing billing for entry {entry.entry_id}: {e}",
+                    exc_info=True,
+                )
 
     async def _handle_failure(self, entry: WALEntry, error: str) -> None:
         entry.attempt_count += 1

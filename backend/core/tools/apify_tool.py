@@ -16,7 +16,12 @@ from core.utils.logger import logger
 from core.billing.credits.manager import CreditManager
 from core.billing.shared.config import TOKEN_PRICE_MULTIPLIER
 from core.services.supabase import DBConnection
-from core.services.redis import get_client, set as redis_set, get as redis_get, delete as redis_delete
+from core.services.redis import (
+    get_client,
+    set as redis_set,
+    get as redis_get,
+    delete as redis_delete,
+)
 from core.sandbox.tool_base import SandboxToolsBase
 
 
@@ -190,14 +195,14 @@ from core.sandbox.tool_base import SandboxToolsBase
   7. use get_actor_run_status with run_id parameter - poll until SUCCEEDED
   8. **MANDATORY:** use get_actor_run_results with run_id parameter - fetch and display actual restaurant data
   9. Present data: "I found 25 restaurants in NYC: [show actual restaurant names, addresses, ratings]"
-"""
+""",
 )
 class ApifyTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_manager: Optional[ThreadManager] = None):
         super().__init__(project_id, thread_manager)
         self.credit_manager = CreditManager()
         self.db = thread_manager.db if thread_manager else DBConnection()
-        
+
         if config.APIFY_API_TOKEN:
             # Initialize Apify client with token
             # The client handles retries automatically (up to 8 retries with exponential backoff)
@@ -206,30 +211,35 @@ class ApifyTool(SandboxToolsBase):
         else:
             self.client = None
             logger.warning("APIFY_API_TOKEN not configured - Apify Tool will not be available")
-    
-    def _is_rental_actor(self, pricing_model: Optional[str] = None, pricing_infos: Optional[List[Any]] = None, current_pricing_info: Optional[Any] = None) -> bool:
+
+    def _is_rental_actor(
+        self,
+        pricing_model: Optional[str] = None,
+        pricing_infos: Optional[List[Any]] = None,
+        current_pricing_info: Optional[Any] = None,
+    ) -> bool:
         """
         Check if an actor is a rental actor (FLAT_PRICE_PER_MONTH).
         Only programmatically purchasable models are allowed:
         - PRICE_PER_DATASET_ITEM (pay per result)
         - PRICE_PER_EVENT (pay per event)
         - null/None (free actors)
-        
+
         Returns True if actor is a rental (should be blocked), False otherwise.
         """
         # Check main pricing model
         if pricing_model == "FLAT_PRICE_PER_MONTH":
             return True
-        
+
         # Check currentPricingInfo
         if current_pricing_info:
             if isinstance(current_pricing_info, dict):
                 if current_pricing_info.get("pricingModel") == "FLAT_PRICE_PER_MONTH":
                     return True
-            elif hasattr(current_pricing_info, 'pricingModel'):
-                if getattr(current_pricing_info, 'pricingModel', None) == "FLAT_PRICE_PER_MONTH":
+            elif hasattr(current_pricing_info, "pricingModel"):
+                if getattr(current_pricing_info, "pricingModel", None) == "FLAT_PRICE_PER_MONTH":
                     return True
-        
+
         # Check pricingInfos array (most comprehensive check)
         if pricing_infos:
             if isinstance(pricing_infos, list):
@@ -237,48 +247,56 @@ class ApifyTool(SandboxToolsBase):
                     if isinstance(pricing_info, dict):
                         if pricing_info.get("pricingModel") == "FLAT_PRICE_PER_MONTH":
                             return True
-                    elif hasattr(pricing_info, 'pricingModel'):
-                        if getattr(pricing_info, 'pricingModel', None) == "FLAT_PRICE_PER_MONTH":
+                    elif hasattr(pricing_info, "pricingModel"):
+                        if getattr(pricing_info, "pricingModel", None) == "FLAT_PRICE_PER_MONTH":
                             return True
-        
+
         return False
-    
+
     async def _get_current_thread_and_user(self) -> tuple[Optional[str], Optional[str]]:
         """Get thread_id and account_id from context."""
         try:
             context_vars = structlog.contextvars.get_contextvars()
-            thread_id = context_vars.get('thread_id')
-            
+            thread_id = context_vars.get("thread_id")
+
             if not thread_id:
                 logger.warning("No thread_id in execution context")
                 return None, None
-            
+
             client = await self.db.client
-            thread = await client.from_('threads').select('account_id').eq('thread_id', thread_id).single().execute()
+            thread = (
+                await client.from_("threads")
+                .select("account_id")
+                .eq("thread_id", thread_id)
+                .single()
+                .execute()
+            )
             if thread.data:
-                return thread_id, thread.data.get('account_id')
-                
+                return thread_id, thread.data.get("account_id")
+
         except Exception as e:
             logger.error(f"Failed to get thread context: {e}")
         return None, None
-    
+
     def _resolve_actor_id(self, actor_id: str) -> str:
         """Return actor ID as-is (no shortcuts)."""
         return actor_id
-    
-    async def _get_run_cost(self, run_info: dict, approval_id: Optional[str] = None, run_id: Optional[str] = None) -> Decimal:
+
+    async def _get_run_cost(
+        self, run_info: dict, approval_id: Optional[str] = None, run_id: Optional[str] = None
+    ) -> Decimal:
         """
         Calculate actual cost from Apify run info.
-        
+
         CRITICAL DISCOVERY: Apify API does NOT return usageTotalUsd in the run response.
         Cost must be CALCULATED from:
         - pricingInfo.pricePerUnitUsd * dataset.itemCount (for PRICE_PER_DATASET_ITEM)
         - pricingInfo.pricePerUnitUsd * event_count (for PRICE_PER_EVENT)
         - Or other pricing models as appropriate
-        
+
         CRITICAL: Cost is only available AFTER the run completes (status: SUCCEEDED, FAILED, ABORTED, TIMED-OUT).
         For RUNNING status, this returns 0 to prevent premature deduction.
-        
+
         Falls back to:
         1. Checking approval record for actual_cost_usd (if already calculated)
         2. Calculating from pricingInfo and dataset item count
@@ -289,22 +307,22 @@ class ApifyTool(SandboxToolsBase):
                 if approval_id:
                     try:
                         approval = await self._get_approval_request(approval_id)
-                        if approval and approval.get('actual_cost_usd') is not None:
-                            return Decimal(str(approval['actual_cost_usd']))
+                        if approval and approval.get("actual_cost_usd") is not None:
+                            return Decimal(str(approval["actual_cost_usd"]))
                     except Exception:
                         pass
                 return Decimal("0")
-            
+
             # METHOD 1: Calculate from pricingInfo and dataset item count
             # This is the CORRECT way - Apify doesn't return usageTotalUsd in the API response
             pricing_info = run_info.get("pricingInfo")
             dataset_id = run_info.get("defaultDatasetId")
-            
+
             if pricing_info and dataset_id:
                 try:
                     pricing_model = pricing_info.get("pricingModel")
                     price_per_unit = pricing_info.get("pricePerUnitUsd")
-                    
+
                     if price_per_unit is not None:
                         # Get item count from dataset
                         if self.client:
@@ -313,57 +331,64 @@ class ApifyTool(SandboxToolsBase):
                                 if isinstance(dataset_info, dict):
                                     item_count = dataset_info.get("itemCount", 0)
                                 else:
-                                    item_count = getattr(dataset_info, 'itemCount', 0)
-                                
+                                    item_count = getattr(dataset_info, "itemCount", 0)
+
                                 if item_count and item_count > 0:
                                     # Calculate cost based on pricing model
                                     if pricing_model == "PRICE_PER_DATASET_ITEM":
-                                        calculated_cost = Decimal(str(price_per_unit)) * Decimal(str(item_count))
-                                        logger.info(f"✅ Calculated cost from pricingInfo: ${price_per_unit} * {item_count} items = ${calculated_cost}")
+                                        calculated_cost = Decimal(str(price_per_unit)) * Decimal(
+                                            str(item_count)
+                                        )
+                                        logger.info(
+                                            f"✅ Calculated cost from pricingInfo: ${price_per_unit} * {item_count} items = ${calculated_cost}"
+                                        )
                                         return calculated_cost
                                     elif pricing_model == "PRICE_PER_EVENT":
                                         # For event-based pricing, we'd need event count (not available in dataset)
                                         # Fall through to other methods
-                                        logger.debug(f"PRICE_PER_EVENT model - cannot calculate without event count")
+                                        logger.debug(
+                                            f"PRICE_PER_EVENT model - cannot calculate without event count"
+                                        )
                                     else:
                                         logger.debug(f"Unknown pricing model: {pricing_model}")
                             except Exception as e:
                                 logger.debug(f"Could not get dataset item count: {e}")
                 except Exception as e:
                     logger.debug(f"Error calculating cost from pricingInfo: {e}")
-            
+
             # METHOD 2: Check for usageTotalUsd (legacy - may not exist, but check anyway)
             usage_total_usd = (
-                run_info.get("usageTotalUsd") or
-                run_info.get("usageTotalUSD") or
-                run_info.get("usage_total_usd") or
-                run_info.get("cost") or
-                run_info.get("totalCost") or
-                run_info.get("total_cost") or
+                run_info.get("usageTotalUsd")
+                or run_info.get("usageTotalUSD")
+                or run_info.get("usage_total_usd")
+                or run_info.get("cost")
+                or run_info.get("totalCost")
+                or run_info.get("total_cost")
+                or
                 # Check nested structures
-                (run_info.get("usage") or {}).get("totalUsd") or
-                (run_info.get("usage") or {}).get("totalUSD") or
-                (run_info.get("stats") or {}).get("usageTotalUsd") or
-                (run_info.get("stats") or {}).get("usageTotalUSD")
+                (run_info.get("usage") or {}).get("totalUsd")
+                or (run_info.get("usage") or {}).get("totalUSD")
+                or (run_info.get("stats") or {}).get("usageTotalUsd")
+                or (run_info.get("stats") or {}).get("usageTotalUSD")
             )
-            
+
             if usage_total_usd is not None:
                 cost = Decimal(str(usage_total_usd))
                 if cost > 0:
                     logger.info(f"Found cost in run_info (usageTotalUsd): ${cost}")
                     return cost
-            
+
             # If not found in run_info, check approval record
             if approval_id:
                 try:
                     approval = await self._get_approval_request(approval_id)
-                    if approval and approval.get('actual_cost_usd') is not None:
-                        cost = Decimal(str(approval['actual_cost_usd']))
+                    if approval and approval.get("actual_cost_usd") is not None:
+                        cost = Decimal(str(approval["actual_cost_usd"]))
                         logger.info(f"Found cost in approval record: ${cost}")
                         return cost
                 except Exception as e:
                     logger.debug(f"Could not get cost from approval {approval_id}: {e}")
-            
+
             # METHOD 3: If calculation failed, try to get dataset item count via direct API call
             # (fallback if client.dataset() failed above)
             if run_id and dataset_id and pricing_info:
@@ -371,7 +396,9 @@ class ApifyTool(SandboxToolsBase):
                     api_token = config.APIFY_API_TOKEN
                     if api_token:
                         # Get dataset info directly (async to avoid blocking)
-                        dataset_url = f"https://api.apify.com/v2/datasets/{dataset_id}?token={api_token}"
+                        dataset_url = (
+                            f"https://api.apify.com/v2/datasets/{dataset_id}?token={api_token}"
+                        )
                         logger.debug(f"Fetching dataset info directly from API for run {run_id}")
                         timeout = aiohttp.ClientTimeout(total=10)
                         async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -380,19 +407,29 @@ class ApifyTool(SandboxToolsBase):
                                     dataset_data = await response.json()
                                     dataset_info = dataset_data.get("data", dataset_data)
                                     item_count = dataset_info.get("itemCount", 0)
-                                    
+
                                     price_per_unit = pricing_info.get("pricePerUnitUsd")
                                     pricing_model = pricing_info.get("pricingModel")
-                                    
-                                    if price_per_unit and item_count and pricing_model == "PRICE_PER_DATASET_ITEM":
-                                        calculated_cost = Decimal(str(price_per_unit)) * Decimal(str(item_count))
-                                        logger.info(f"✅ Calculated cost via direct API: ${price_per_unit} * {item_count} = ${calculated_cost}")
+
+                                    if (
+                                        price_per_unit
+                                        and item_count
+                                        and pricing_model == "PRICE_PER_DATASET_ITEM"
+                                    ):
+                                        calculated_cost = Decimal(str(price_per_unit)) * Decimal(
+                                            str(item_count)
+                                        )
+                                        logger.info(
+                                            f"✅ Calculated cost via direct API: ${price_per_unit} * {item_count} = ${calculated_cost}"
+                                        )
                                         return calculated_cost
                 except Exception as e:
                     logger.debug(f"Could not calculate cost via direct API for run {run_id}: {e}")
-            
+
             # Log what fields are available for debugging
-            logger.warning(f"Cost not found in run_info for run {run_id or 'unknown'}. Available keys: {list(run_info.keys())[:30]}")
+            logger.warning(
+                f"Cost not found in run_info for run {run_id or 'unknown'}. Available keys: {list(run_info.keys())[:30]}"
+            )
             # Log the full run_info for debugging (first 500 chars to avoid huge logs)
             run_info_str = json.dumps(run_info, default=str)[:500]
             logger.debug(f"Run info sample (first 500 chars): {run_info_str}")
@@ -400,7 +437,7 @@ class ApifyTool(SandboxToolsBase):
         except Exception as e:
             logger.error(f"Error extracting run cost: {e}")
             return Decimal("0")
-    
+
     def _format_cost_display(self, cost_usd: Decimal) -> str:
         """
         Format cost for display in UI.
@@ -408,12 +445,12 @@ class ApifyTool(SandboxToolsBase):
         """
         if cost_usd is None or cost_usd == 0:
             return "0 credits"
-        
+
         # Convert to credits (1 credit = $0.01, with 20% markup)
         # Ensure all operands are Decimal to avoid type errors
-        credits_decimal = cost_usd * TOKEN_PRICE_MULTIPLIER * Decimal('100')
+        credits_decimal = cost_usd * TOKEN_PRICE_MULTIPLIER * Decimal("100")
         credits = float(credits_decimal)
-        
+
         # Format USD nicely
         if cost_usd < 0.01:
             usd_str = f"${float(cost_usd):.4f}"
@@ -421,7 +458,7 @@ class ApifyTool(SandboxToolsBase):
             usd_str = f"${float(cost_usd):.2f}"
         else:
             usd_str = f"${float(cost_usd):.2f}"
-        
+
         # Format credits
         if credits < 1:
             credits_str = f"{credits:.2f}"
@@ -429,21 +466,24 @@ class ApifyTool(SandboxToolsBase):
             credits_str = f"{int(credits)}"
         else:
             credits_str = f"{credits:.2f}"
-        
+
         return f"{credits_str} credits ({usd_str} USD)"
-    
+
     async def _has_deduction_for_run(self, user_id: str, run_id: str) -> bool:
         """Check if credits have already been deducted for this run_id (database check)."""
         try:
             client = await self.db.client
             # Check if a deduction already exists for this run_id
             # The description format is: "Apify: {actor_id} (run: {run_id})"
-            result = await client.from_('credit_ledger').select('id').eq(
-                'account_id', user_id
-            ).eq('type', 'usage').like(
-                'description', f'%run: {run_id}%'
-            ).execute()
-            
+            result = (
+                await client.from_("credit_ledger")
+                .select("id")
+                .eq("account_id", user_id)
+                .eq("type", "usage")
+                .like("description", f"%run: {run_id}%")
+                .execute()
+            )
+
             has_deduction = result.data and len(result.data) > 0
             if has_deduction:
                 logger.debug(f"Found existing deduction for run {run_id} in database")
@@ -452,12 +492,9 @@ class ApifyTool(SandboxToolsBase):
             logger.warning(f"Error checking for existing deduction for run {run_id}: {e}")
             # If we can't check, assume no deduction exists (safer to try deducting)
             return False
-    
+
     async def _estimate_actor_cost(
-        self,
-        actor_id: str,
-        run_input: dict,
-        max_cost_usd: Decimal
+        self, actor_id: str, run_input: dict, max_cost_usd: Decimal
     ) -> tuple[Decimal, Decimal]:
         """
         Estimate cost for an actor run based on pricing model and input.
@@ -470,20 +507,24 @@ class ApifyTool(SandboxToolsBase):
                 store_actor_info = self.client.store().get(actor_id)
                 pricing_model = None
                 pricing_infos = None
-                
+
                 if isinstance(store_actor_info, dict):
                     pricing_model = store_actor_info.get("pricingModel")
                     pricing_infos = store_actor_info.get("pricingInfos", [])
                 else:
-                    pricing_model = getattr(store_actor_info, 'pricingModel', None)
-                    pricing_infos = getattr(store_actor_info, 'pricingInfos', None)
+                    pricing_model = getattr(store_actor_info, "pricingModel", None)
+                    pricing_infos = getattr(store_actor_info, "pricingInfos", None)
             except Exception:
                 # If we can't get pricing info, use max_cost_usd as estimate
-                logger.debug(f"Could not get pricing info for {actor_id}, using max_cost_usd as estimate")
+                logger.debug(
+                    f"Could not get pricing info for {actor_id}, using max_cost_usd as estimate"
+                )
                 estimated_usd = max_cost_usd
-                estimated_credits = max_cost_usd * TOKEN_PRICE_MULTIPLIER * Decimal("100")  # Convert to credits (1 credit = $0.01)
+                estimated_credits = (
+                    max_cost_usd * TOKEN_PRICE_MULTIPLIER * Decimal("100")
+                )  # Convert to credits (1 credit = $0.01)
                 return estimated_usd, estimated_credits
-            
+
             # Estimate based on pricing model
             if pricing_model == "PRICE_PER_DATASET_ITEM":
                 # Try to estimate based on input (e.g., maxTweets, maxResults)
@@ -493,21 +534,21 @@ class ApifyTool(SandboxToolsBase):
                     first_pricing = pricing_infos[0]
                     if isinstance(first_pricing, dict):
                         price_per_item = Decimal(str(first_pricing.get("priceUsd", 0.01)))
-                    elif hasattr(first_pricing, 'priceUsd'):
-                        price_per_item = Decimal(str(getattr(first_pricing, 'priceUsd', 0.01)))
-                
+                    elif hasattr(first_pricing, "priceUsd"):
+                        price_per_item = Decimal(str(getattr(first_pricing, "priceUsd", 0.01)))
+
                 # Estimate items based on input
                 estimated_items = 100  # Default conservative estimate
                 if isinstance(run_input, dict):
                     # Look for common input fields that indicate result count
-                    for key in ['maxTweets', 'maxResults', 'maxItems', 'limit', 'count']:
+                    for key in ["maxTweets", "maxResults", "maxItems", "limit", "count"]:
                         if key in run_input:
                             try:
                                 estimated_items = min(int(run_input[key]), 1000)  # Cap at 1000
                                 break
                             except (ValueError, TypeError):
                                 pass
-                
+
                 estimated_usd = Decimal(str(estimated_items)) * price_per_item
             elif pricing_model == "PRICE_PER_EVENT":
                 # Estimate based on events (harder to predict)
@@ -516,36 +557,35 @@ class ApifyTool(SandboxToolsBase):
                     first_pricing = pricing_infos[0]
                     if isinstance(first_pricing, dict):
                         price_per_event = Decimal(str(first_pricing.get("priceUsd", 0.01)))
-                    elif hasattr(first_pricing, 'priceUsd'):
-                        price_per_event = Decimal(str(getattr(first_pricing, 'priceUsd', 0.01)))
-                
+                    elif hasattr(first_pricing, "priceUsd"):
+                        price_per_event = Decimal(str(getattr(first_pricing, "priceUsd", 0.01)))
+
                 # Conservative estimate: assume 10-50 events
                 estimated_events = 25
                 estimated_usd = Decimal(str(estimated_events)) * price_per_event
             else:
                 # Free actor or unknown pricing - use max_cost_usd as conservative estimate
                 estimated_usd = max_cost_usd
-            
+
             # Cap at max_cost_usd
             estimated_usd = min(estimated_usd, max_cost_usd)
-            
+
             # Convert to credits with markup (1 credit = $0.01 USD)
             estimated_credits = estimated_usd * TOKEN_PRICE_MULTIPLIER * Decimal("100")
-            
+
             return estimated_usd, estimated_credits
-            
+
         except Exception as e:
             logger.warning(f"Error estimating cost for {actor_id}: {e}")
             # Fallback to max_cost_usd
             estimated_usd = max_cost_usd
             estimated_credits = max_cost_usd * TOKEN_PRICE_MULTIPLIER * Decimal("100")
             return estimated_usd, estimated_credits
-    
+
     def _get_approval_key(self, approval_id: str) -> str:
         """Get Redis key for approval request."""
         return f"apify:approval:{approval_id}"
-    
-    
+
     async def _create_approval_request(
         self,
         account_id: str,
@@ -554,45 +594,47 @@ class ApifyTool(SandboxToolsBase):
         run_input: dict,
         estimated_cost_usd: Decimal,
         estimated_cost_credits: Decimal,
-        max_cost_usd: Decimal
+        max_cost_usd: Decimal,
     ) -> Optional[str]:
         """
         Create an approval request in Redis with 24h TTL. Returns approval_id.
-        
+
         CRITICAL: This function ONLY creates the approval request - it does NOT deduct credits.
         Credits are ONLY deducted when the user approves via the UI (in apify_approvals_api.py).
         """
         try:
             approval_id = str(uuid.uuid4())
             expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
-            
+
             approval_data = {
-                'id': approval_id,
-                'account_id': account_id,
-                'thread_id': thread_id,
-                'actor_id': actor_id,
-                'run_input': run_input,
-                'estimated_cost_usd': float(estimated_cost_usd),
-                'estimated_cost_credits': float(estimated_cost_credits),
-                'max_cost_usd': float(max_cost_usd),
-                'status': 'pending',
-                'expires_at': expires_at.isoformat(),
-                'created_at': datetime.now(timezone.utc).isoformat(),
-                'updated_at': datetime.now(timezone.utc).isoformat()
+                "id": approval_id,
+                "account_id": account_id,
+                "thread_id": thread_id,
+                "actor_id": actor_id,
+                "run_input": run_input,
+                "estimated_cost_usd": float(estimated_cost_usd),
+                "estimated_cost_credits": float(estimated_cost_credits),
+                "max_cost_usd": float(max_cost_usd),
+                "status": "pending",
+                "expires_at": expires_at.isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-            
+
             # Store in Redis with 24 hour TTL (86400 seconds)
             # CRITICAL: NO credit deduction happens here - only when user approves via UI
             key = self._get_approval_key(approval_id)
             await redis_set(key, json.dumps(approval_data), ex=86400)
-            
-            logger.info(f"Created approval request {approval_id} for actor {actor_id} (estimated: ${estimated_cost_usd:.4f} / {estimated_cost_credits:.2f} credits). Status: PENDING - NO credits deducted yet.")
+
+            logger.info(
+                f"Created approval request {approval_id} for actor {actor_id} (estimated: ${estimated_cost_usd:.4f} / {estimated_cost_credits:.2f} credits). Status: PENDING - NO credits deducted yet."
+            )
             return approval_id
-                
+
         except Exception as e:
             logger.error(f"Error creating approval request: {e}")
             return None
-    
+
     async def _get_approval_request(self, approval_id: str) -> Optional[dict]:
         """Get an approval request by ID from Redis."""
         try:
@@ -604,8 +646,10 @@ class ApifyTool(SandboxToolsBase):
         except Exception as e:
             logger.debug(f"Error getting approval request {approval_id}: {e}")
             return None
-    
-    async def _find_approval_by_run_id(self, run_id: str, user_id: Optional[str] = None) -> Optional[dict]:
+
+    async def _find_approval_by_run_id(
+        self, run_id: str, user_id: Optional[str] = None
+    ) -> Optional[dict]:
         """Find approval request by run_id. Optionally filter by user_id."""
         try:
             redis_client = await get_client()
@@ -614,16 +658,16 @@ class ApifyTool(SandboxToolsBase):
             keys = []
             async for key in redis_client.scan_iter(match=pattern):
                 keys.append(key.decode() if isinstance(key, bytes) else key)
-            
+
             # Check each approval for matching run_id
             for key in keys:
                 try:
                     data = await redis_get(key)
                     if data:
                         approval = json.loads(data)
-                        if approval.get('run_id') == run_id:
+                        if approval.get("run_id") == run_id:
                             # If user_id provided, also check it matches
-                            if user_id and approval.get('account_id') != user_id:
+                            if user_id and approval.get("account_id") != user_id:
                                 continue
                             return approval
                 except Exception:
@@ -631,12 +675,9 @@ class ApifyTool(SandboxToolsBase):
         except Exception as e:
             logger.debug(f"Error finding approval by run_id {run_id}: {e}")
         return None
-    
+
     async def _check_existing_approval(
-        self,
-        account_id: str,
-        actor_id: str,
-        run_input: dict
+        self, account_id: str, actor_id: str, run_input: dict
     ) -> Optional[str]:
         """Check if there's an existing pending approval for the same actor/input. Returns approval_id if found."""
         try:
@@ -646,66 +687,73 @@ class ApifyTool(SandboxToolsBase):
             try:
                 pattern = "apify:approval:*"
                 async for key in redis_client.scan_iter(match=pattern):
-                    approval_id = key.split(':')[-1]
+                    approval_id = key.split(":")[-1]
                     approval = await self._get_approval_request(approval_id)
-                    if approval and approval.get('account_id') == account_id:
+                    if approval and approval.get("account_id") == account_id:
                         approval_ids.append(approval_id)
             except Exception as e:
                 logger.debug(f"Error scanning approvals: {e}")
                 return None
-            
+
             # Check each approval
             for approval_id in approval_ids:
                 approval = await self._get_approval_request(approval_id)
-                if approval and approval.get('status') == 'pending':
-                    if approval.get('actor_id') == actor_id and approval.get('run_input') == run_input:
+                if approval and approval.get("status") == "pending":
+                    if (
+                        approval.get("actor_id") == actor_id
+                        and approval.get("run_input") == run_input
+                    ):
                         # Check if not expired
-                        expires_at_str = approval.get('expires_at')
+                        expires_at_str = approval.get("expires_at")
                         if expires_at_str:
                             try:
-                                expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                                expires_at = datetime.fromisoformat(
+                                    expires_at_str.replace("Z", "+00:00")
+                                )
                                 if datetime.now(timezone.utc) <= expires_at:
                                     return approval_id
                             except Exception:
                                 pass
                         else:
                             return approval_id
-            
+
             return None
         except Exception as e:
             logger.debug(f"Error checking existing approval: {e}")
             return None
-    
+
     async def _deduct_apify_credits(
-        self, 
-        user_id: str, 
-        cost: Decimal, 
-        actor_id: str, 
-        run_id: str, 
+        self,
+        user_id: str,
+        cost: Decimal,
+        actor_id: str,
+        run_id: str,
         thread_id: Optional[str] = None,
         approval_id: Optional[str] = None,
-        max_cost_usd: Optional[Decimal] = None
+        max_cost_usd: Optional[Decimal] = None,
     ) -> bool:
         """
-        Deduct credits for Apify usage with markup. 
+        Deduct credits for Apify usage with markup.
         CRITICAL: Enforces max_cost_usd cap - never charges more than approved maximum.
         Checks database first to avoid duplicate deductions. Only deducts if approval exists.
         """
         if config.ENV_MODE == EnvMode.LOCAL:
             logger.info(f"LOCAL mode - skipping billing for Apify run {run_id}")
             return True
-        
+
         # CRITICAL: Only deduct if approval exists and is approved
         if approval_id:
             approval = await self._get_approval_request(approval_id)
-            if not approval or approval.get('status') != 'approved':
-                logger.warning(f"Cannot deduct credits - approval {approval_id} not found or not approved")
+            if not approval or approval.get("status") != "approved":
+                logger.warning(
+                    f"Cannot deduct credits - approval {approval_id} not found or not approved"
+                )
                 return False
-            
+
             # Get max_cost_usd from approval if not provided
             if max_cost_usd is None:
-                max_cost_usd = Decimal(str(approval.get('max_cost_usd', 0)))
-        
+                max_cost_usd = Decimal(str(approval.get("max_cost_usd", 0)))
+
         # CRITICAL: Enforce max_cost_usd cap - never charge more than approved maximum
         if max_cost_usd and max_cost_usd > 0:
             if cost > max_cost_usd:
@@ -714,42 +762,47 @@ class ApifyTool(SandboxToolsBase):
                     f"Capping at max_cost_usd to protect user."
                 )
                 cost = max_cost_usd
-        
+
         # Check if deduction already exists (database is source of truth)
         if await self._has_deduction_for_run(user_id, run_id):
-            logger.info(f"Credits already deducted for run {run_id} (found in database), skipping duplicate deduction")
+            logger.info(
+                f"Credits already deducted for run {run_id} (found in database), skipping duplicate deduction"
+            )
             return True
-        
+
         marked_up_cost = cost * TOKEN_PRICE_MULTIPLIER
-        
+
         try:
             result = await self.credit_manager.deduct_credits(
                 account_id=user_id,
                 amount=marked_up_cost,
-                description=f"Apify: {actor_id} (run: {run_id})" + (f" [approval: {approval_id}]" if approval_id else ""),
-                type='usage',
-                thread_id=thread_id
+                description=f"Apify: {actor_id} (run: {run_id})"
+                + (f" [approval: {approval_id}]" if approval_id else ""),
+                type="usage",
+                thread_id=thread_id,
             )
-            
-            if result.get('success'):
-                logger.info(f"Deducted ${marked_up_cost:.6f} for Apify run {run_id} (base: ${cost:.6f}, max: ${max_cost_usd:.6f if max_cost_usd else 'N/A'})")
-                
+
+            if result.get("success"):
+                logger.info(
+                    f"Deducted ${marked_up_cost:.6f} for Apify run {run_id} (base: ${cost:.6f}, max: ${max_cost_usd:.6f if max_cost_usd else 'N/A'})"
+                )
+
                 # Update approval request with actual cost
                 if approval_id:
                     try:
                         approval = await self._get_approval_request(approval_id)
                         if approval:
-                            approval['actual_cost_usd'] = float(cost)
-                            approval['actual_cost_credits'] = float(marked_up_cost)
-                            approval['status'] = 'executed'
-                            approval['executed_at'] = datetime.now(timezone.utc).isoformat()
-                            approval['updated_at'] = datetime.now(timezone.utc).isoformat()
+                            approval["actual_cost_usd"] = float(cost)
+                            approval["actual_cost_credits"] = float(marked_up_cost)
+                            approval["status"] = "executed"
+                            approval["executed_at"] = datetime.now(timezone.utc).isoformat()
+                            approval["updated_at"] = datetime.now(timezone.utc).isoformat()
                             key = self._get_approval_key(approval_id)
                             # Keep for 7 days after execution for audit trail
                             await redis_set(key, json.dumps(approval), ex=604800)  # 7 days
                     except Exception as e:
                         logger.warning(f"Failed to update approval request with actual cost: {e}")
-                
+
                 return True
             else:
                 logger.warning(f"Failed to deduct credits: {result.get('error')}")
@@ -757,7 +810,7 @@ class ApifyTool(SandboxToolsBase):
         except Exception as e:
             logger.error(f"Error deducting Apify credits: {e}")
             return False
-    
+
     async def _adjust_apify_credits_after_run(
         self,
         user_id: str,
@@ -766,7 +819,7 @@ class ApifyTool(SandboxToolsBase):
         run_id: str,
         approval_id: Optional[str],
         thread_id: Optional[str] = None,
-        run_status: Optional[str] = None
+        run_status: Optional[str] = None,
     ) -> bool:
         """
         Adjust credits after run completes based on actual cost vs. what was deducted on approve.
@@ -776,29 +829,35 @@ class ApifyTool(SandboxToolsBase):
         if config.ENV_MODE == EnvMode.LOCAL:
             logger.info(f"LOCAL mode - skipping credit adjustment for Apify run {run_id}")
             return True
-        
+
         if not approval_id:
             logger.warning(f"Cannot adjust credits - no approval_id for run {run_id}")
             return False
-        
+
         approval = await self._get_approval_request(approval_id)
         if not approval:
             logger.warning(f"Cannot adjust credits - approval {approval_id} not found")
             return False
-        
+
         # Check if already adjusted (prevent double adjustment)
-        if approval.get('credits_adjusted'):
-            logger.info(f"Credits already adjusted for run {run_id} (approval: {approval_id}), skipping duplicate adjustment")
+        if approval.get("credits_adjusted"):
+            logger.info(
+                f"Credits already adjusted for run {run_id} (approval: {approval_id}), skipping duplicate adjustment"
+            )
             return True
-        
-        max_cost_usd = Decimal(str(approval.get('max_cost_usd', 0)))
-        deducted_on_approve_usd = Decimal(str(approval.get('deducted_on_approve_credits', 0)))  # Note: stored as USD with markup despite name
-        
+
+        max_cost_usd = Decimal(str(approval.get("max_cost_usd", 0)))
+        deducted_on_approve_usd = Decimal(
+            str(approval.get("deducted_on_approve_credits", 0))
+        )  # Note: stored as USD with markup despite name
+
         # If no deduction happened on approve (legacy approval), skip adjustment
         if deducted_on_approve_usd == 0:
-            logger.debug(f"No deduction on approve for approval {approval_id} - skipping adjustment (legacy approval)")
+            logger.debug(
+                f"No deduction on approve for approval {approval_id} - skipping adjustment (legacy approval)"
+            )
             return True
-        
+
         # If run failed, refund everything that was deducted on approve
         if run_status in ["FAILED", "ABORTED", "TIMED-OUT"]:
             if deducted_on_approve_usd > 0:
@@ -809,71 +868,77 @@ class ApifyTool(SandboxToolsBase):
                         amount=refund_amount,
                         is_expiring=False,
                         description=f"Apify refund: {actor_id} (run: {run_id}) - run {run_status}",
-                        type='refund'
+                        type="refund",
                     )
-                    if result.get('success'):
-                        logger.info(f"✅ Refunded ${refund_amount:.6f} USD for failed run {run_id} (status: {run_status})")
+                    if result.get("success"):
+                        logger.info(
+                            f"✅ Refunded ${refund_amount:.6f} USD for failed run {run_id} (status: {run_status})"
+                        )
                         # Update approval
-                        approval['refunded_credits'] = float(refund_amount)
-                        approval['refund_reason'] = f"Run {run_status}"
-                        approval['credits_adjusted'] = True
-                        approval['updated_at'] = datetime.now(timezone.utc).isoformat()
+                        approval["refunded_credits"] = float(refund_amount)
+                        approval["refund_reason"] = f"Run {run_status}"
+                        approval["credits_adjusted"] = True
+                        approval["updated_at"] = datetime.now(timezone.utc).isoformat()
                         key = self._get_approval_key(approval_id)
                         await redis_set(key, json.dumps(approval), ex=604800)
                         return True
                     else:
-                        error_msg = result.get('error', 'Unknown error')
-                        logger.error(f"Failed to refund credits for failed run {run_id}: {error_msg}")
+                        error_msg = result.get("error", "Unknown error")
+                        logger.error(
+                            f"Failed to refund credits for failed run {run_id}: {error_msg}"
+                        )
                         return False
                 except Exception as e:
                     error_details = str(e)
                     logger.error(
                         f"Exception refunding credits for failed run {run_id}: {error_details}",
-                        exc_info=True
+                        exc_info=True,
                     )
                     return False
             return True
-        
+
         # Enforce max_cost_usd cap
         if actual_cost > max_cost_usd:
             actual_cost = max_cost_usd
-        
+
         # Calculate what should be charged (actual cost with markup)
         should_charge_usd_with_markup = actual_cost * TOKEN_PRICE_MULTIPLIER
-        
+
         # Use deducted_on_approve_usd directly (already in USD with markup)
         deducted_usd_with_markup = deducted_on_approve_usd
-        
+
         # If actual cost is less than what was deducted, refund the difference
         if should_charge_usd_with_markup < deducted_usd_with_markup:
             refund_amount = deducted_usd_with_markup - should_charge_usd_with_markup
             if refund_amount <= 0:
-                logger.warning(f"Invalid refund amount calculated: ${refund_amount:.6f} for run {run_id}")
+                logger.warning(
+                    f"Invalid refund amount calculated: ${refund_amount:.6f} for run {run_id}"
+                )
                 return False
-            
+
             try:
                 result = await self.credit_manager.add_credits(
                     account_id=user_id,
                     amount=refund_amount,
                     is_expiring=False,
                     description=f"Apify refund: {actor_id} (run: {run_id}) - actual cost less than max",
-                    type='refund'
+                    type="refund",
                 )
-                if result.get('success'):
+                if result.get("success"):
                     logger.info(
                         f"✅ Refunded ${refund_amount:.6f} USD for run {run_id} "
                         f"(deducted: ${deducted_usd_with_markup:.6f}, actual: ${should_charge_usd_with_markup:.6f})"
                     )
                     # Update approval
-                    approval['refunded_credits'] = float(refund_amount)
-                    approval['refund_reason'] = "Actual cost less than max"
-                    approval['credits_adjusted'] = True
-                    approval['updated_at'] = datetime.now(timezone.utc).isoformat()
+                    approval["refunded_credits"] = float(refund_amount)
+                    approval["refund_reason"] = "Actual cost less than max"
+                    approval["credits_adjusted"] = True
+                    approval["updated_at"] = datetime.now(timezone.utc).isoformat()
                     key = self._get_approval_key(approval_id)
                     await redis_set(key, json.dumps(approval), ex=604800)
                     return True
                 else:
-                    error_msg = result.get('error', 'Unknown error')
+                    error_msg = result.get("error", "Unknown error")
                     logger.error(
                         f"Failed to refund excess credits for run {run_id}: {error_msg}. "
                         f"Refund amount: ${refund_amount:.6f}, deducted: ${deducted_usd_with_markup:.6f}, actual: ${should_charge_usd_with_markup:.6f}"
@@ -884,78 +949,82 @@ class ApifyTool(SandboxToolsBase):
                 logger.error(
                     f"Exception refunding excess credits for run {run_id}: {error_details}. "
                     f"Refund amount: ${refund_amount:.6f}",
-                    exc_info=True
+                    exc_info=True,
                 )
                 return False
         else:
             # Actual cost equals or exceeds what was deducted (but capped at max)
             # No refund needed, mark as adjusted
-            approval['credits_adjusted'] = True
-            approval['updated_at'] = datetime.now(timezone.utc).isoformat()
+            approval["credits_adjusted"] = True
+            approval["updated_at"] = datetime.now(timezone.utc).isoformat()
             key = self._get_approval_key(approval_id)
             await redis_set(key, json.dumps(approval), ex=604800)
-            logger.info(f"✅ Credits confirmed for run {run_id} (deducted: ${deducted_usd_with_markup:.6f}, actual: ${should_charge_usd_with_markup:.6f})")
-        
+            logger.info(
+                f"✅ Credits confirmed for run {run_id} (deducted: ${deducted_usd_with_markup:.6f}, actual: ${should_charge_usd_with_markup:.6f})"
+            )
+
         return True
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "search_apify_actors",
-            "description": "Search the Apify Store for actors. Use this to find scrapers for specific platforms or websites.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Search query (e.g., 'twitter scraper', 'youtube video')"
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "search_apify_actors",
+                "description": "Search the Apify Store for actors. Use this to find scrapers for specific platforms or websites.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query (e.g., 'twitter scraper', 'youtube video')",
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Filter by category (optional)",
+                            "enum": [
+                                "SOCIAL_MEDIA",
+                                "E_COMMERCE",
+                                "TRAVEL",
+                                "SEARCH_ENGINES",
+                                "NEWS",
+                            ],
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "Max results (default 10)",
+                            "default": 10,
+                        },
                     },
-                    "category": {
-                        "type": "string",
-                        "description": "Filter by category (optional)",
-                        "enum": ["SOCIAL_MEDIA", "E_COMMERCE", "TRAVEL", "SEARCH_ENGINES", "NEWS"]
-                    },
-                    "limit": {
-                        "type": "integer",
-                        "description": "Max results (default 10)",
-                        "default": 10
-                    }
+                    "required": ["query"],
                 },
-                "required": ["query"]
-            }
+            },
         }
-    })
+    )
     async def search_apify_actors(
-        self, 
-        query: str, 
-        category: Optional[str] = None, 
-        limit: int = 10
+        self, query: str, category: Optional[str] = None, limit: int = 10
     ) -> ToolResult:
         """Search the Apify Store for actors."""
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             if not query:
                 return self.fail_response("Search query is required")
-            
+
             # Search the Apify store
-            store_response = self.client.store().list(
-                search=query,
-                limit=limit
-            )
-            
+            store_response = self.client.store().list(search=query, limit=limit)
+
             # Handle both dict and object responses
-            if hasattr(store_response, 'items'):
+            if hasattr(store_response, "items"):
                 items = store_response.items
-                total = getattr(store_response, 'total', len(items))
+                total = getattr(store_response, "total", len(items))
             elif isinstance(store_response, dict):
                 items = store_response.get("items", [])
                 total = store_response.get("total", len(items))
             else:
                 items = []
                 total = 0
-            
+
             actors = []
             for item in items:
                 # Handle both dict and object item responses
@@ -967,22 +1036,25 @@ class ApifyTool(SandboxToolsBase):
                     pricing_infos = item.get("pricingInfos", [])
                 else:
                     # Object response
-                    pricing_model = getattr(item, 'pricingModel', None)
-                    current_pricing_info = getattr(item, 'currentPricingInfo', None)
+                    pricing_model = getattr(item, "pricingModel", None)
+                    current_pricing_info = getattr(item, "currentPricingInfo", None)
                     if current_pricing_info:
                         if isinstance(current_pricing_info, dict):
-                            pricing_model = current_pricing_info.get("pricingModel") or pricing_model
-                        elif hasattr(current_pricing_info, 'pricingModel'):
-                            pricing_model = getattr(current_pricing_info, 'pricingModel', None) or pricing_model
-                    pricing_infos = getattr(item, 'pricingInfos', None)
-                
+                            pricing_model = (
+                                current_pricing_info.get("pricingModel") or pricing_model
+                            )
+                        elif hasattr(current_pricing_info, "pricingModel"):
+                            pricing_model = (
+                                getattr(current_pricing_info, "pricingModel", None) or pricing_model
+                            )
+                    pricing_infos = getattr(item, "pricingInfos", None)
+
                 # Skip rental actors (FLAT_PRICE_PER_MONTH - not programmatically purchasable)
                 if self._is_rental_actor(pricing_model, pricing_infos, current_pricing_info):
                     continue
-                
+
                 # Extract actor data
                 if isinstance(item, dict):
-                    
                     actor_data = {
                         "actor_id": item.get("id"),
                         "name": item.get("name"),
@@ -990,31 +1062,31 @@ class ApifyTool(SandboxToolsBase):
                         "username": item.get("username"),
                         "description": (item.get("description") or "")[:200],
                         "pricing_model": pricing_model,
-                        "run_count": item.get("stats", {}).get("runsCounter", 0) if isinstance(item.get("stats"), dict) else 0,
+                        "run_count": item.get("stats", {}).get("runsCounter", 0)
+                        if isinstance(item.get("stats"), dict)
+                        else 0,
                         "is_featured": item.get("isFeatured", False),
                         "is_premium": item.get("isPremium", False),
                     }
                 else:
                     # Object response - pricing_model already extracted above
                     actor_data = {
-                        "actor_id": getattr(item, 'id', ''),
-                        "name": getattr(item, 'name', ''),
-                        "title": getattr(item, 'title', ''),
-                        "username": getattr(item, 'username', ''),
-                        "description": (getattr(item, 'description', None) or "")[:200],
+                        "actor_id": getattr(item, "id", ""),
+                        "name": getattr(item, "name", ""),
+                        "title": getattr(item, "title", ""),
+                        "username": getattr(item, "username", ""),
+                        "description": (getattr(item, "description", None) or "")[:200],
                         "pricing_model": pricing_model,
-                        "run_count": getattr(getattr(item, 'stats', None), 'runsCounter', 0) if hasattr(item, 'stats') else 0,
-                        "is_featured": getattr(item, 'isFeatured', False),
-                        "is_premium": getattr(item, 'isPremium', False),
+                        "run_count": getattr(getattr(item, "stats", None), "runsCounter", 0)
+                        if hasattr(item, "stats")
+                        else 0,
+                        "is_featured": getattr(item, "isFeatured", False),
+                        "is_premium": getattr(item, "isPremium", False),
                     }
                 actors.append(actor_data)
-            
-            return self.success_response({
-                "actors": actors,
-                "total": total,
-                "query": query
-            })
-            
+
+            return self.success_response({"actors": actors, "total": total, "query": query})
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error searching Apify actors: {error_message}")
@@ -1022,32 +1094,34 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "get_actor_details",
-            "description": "Get detailed information about an Apify actor including input schema and pricing.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "actor_id": {
-                        "type": "string",
-                        "description": "Actor ID (e.g., 'apify/twitter-scraper')"
-                    }
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "get_actor_details",
+                "description": "Get detailed information about an Apify actor including input schema and pricing.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "actor_id": {
+                            "type": "string",
+                            "description": "Actor ID (e.g., 'apify/twitter-scraper')",
+                        }
+                    },
+                    "required": ["actor_id"],
                 },
-                "required": ["actor_id"]
-            }
+            },
         }
-    })
+    )
     async def get_actor_details(self, actor_id: str) -> ToolResult:
         """Get detailed information about an Apify actor. Returns full API response as-is."""
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             resolved_id = self._resolve_actor_id(actor_id)
-            
+
             # Helper function to serialize datetime objects to ISO strings
             def serialize_datetime(obj):
                 """Recursively convert datetime objects to ISO strings."""
@@ -1061,7 +1135,7 @@ class ApifyTool(SandboxToolsBase):
                     return float(obj)
                 else:
                     return obj
-            
+
             # Get actor details (works for both store and user actors)
             # Returns full actor object with all fields including inputSchema
             try:
@@ -1069,20 +1143,20 @@ class ApifyTool(SandboxToolsBase):
                 # Convert to dict if it's an object
                 if isinstance(actor_info_response, dict):
                     actor_info = actor_info_response
-                elif hasattr(actor_info_response, '__dict__'):
+                elif hasattr(actor_info_response, "__dict__"):
                     actor_info = actor_info_response.__dict__
                 else:
                     actor_info = {}
             except Exception as e:
                 return self.fail_response(f"Actor '{resolved_id}' not found: {str(e)}")
-            
+
             # Check actor API response for rental pricing (before checking store)
             actor_pricing_infos = None
             if isinstance(actor_info, dict):
                 actor_pricing_infos = actor_info.get("pricingInfos", [])
-            elif hasattr(actor_info_response, 'pricingInfos'):
-                actor_pricing_infos = getattr(actor_info_response, 'pricingInfos', None)
-            
+            elif hasattr(actor_info_response, "pricingInfos"):
+                actor_pricing_infos = getattr(actor_info_response, "pricingInfos", None)
+
             # If actor is a rental, block it immediately
             if self._is_rental_actor(None, actor_pricing_infos, None):
                 return self.fail_response(
@@ -1093,7 +1167,7 @@ class ApifyTool(SandboxToolsBase):
                     f"- Free actors (no pricing model)\n\n"
                     f"Rental actors are automatically filtered out from search results."
                 )
-            
+
             # Fetch input schema from actor build (ONLY WORKING METHOD)
             # The documented endpoint GET /v2/actors/{ACTOR_ID}/input-schema returns 404 - it doesn't work.
             # Working solution:
@@ -1108,42 +1182,49 @@ class ApifyTool(SandboxToolsBase):
                         logger.warning("APIFY_API_TOKEN not configured - cannot fetch input schema")
                     else:
                         import urllib.parse
+
                         # Ensure json module is accessible (imported at top of file)
                         # Reference it here to avoid scoping issues
                         _json_module = json
-                        
+
                         # Extract username/name from actor_info
                         username = None
                         name = None
-                        
+
                         if actor_info:
                             if isinstance(actor_info, dict):
                                 username = actor_info.get("username")
                                 name = actor_info.get("name")
                             else:
-                                username = getattr(actor_info_response, 'username', None)
-                                name = getattr(actor_info_response, 'name', None)
-                        
+                                username = getattr(actor_info_response, "username", None)
+                                name = getattr(actor_info_response, "name", None)
+
                         # Build actor identifier candidates (try both slash and tilde formats)
                         actor_id_candidates = []
                         if username and name:
-                            actor_id_candidates.append(f"{username}/{name}")  # e.g., "lukaskrivka/google-maps-with-contact-details"
-                            actor_id_candidates.append(f"{username}~{name}")  # e.g., "lukaskrivka~google-maps-with-contact-details"
+                            actor_id_candidates.append(
+                                f"{username}/{name}"
+                            )  # e.g., "lukaskrivka/google-maps-with-contact-details"
+                            actor_id_candidates.append(
+                                f"{username}~{name}"
+                            )  # e.g., "lukaskrivka~google-maps-with-contact-details"
                         actor_id_candidates.append(resolved_id)  # Fallback to original ID
-                        
-                        logger.info(f"Fetching input schema via build endpoint - resolved_id: {resolved_id}, username: {username}, name: {name}")
-                        
+
+                        logger.info(
+                            f"Fetching input schema via build endpoint - resolved_id: {resolved_id}, username: {username}, name: {name}"
+                        )
+
                         # Step 1: Get actor info to extract latest build ID
                         # Try each actor ID format until one works
                         build_id = None
                         for actor_id_attempt in actor_id_candidates:
                             if not actor_id_attempt:
                                 continue
-                            
-                            encoded_actor_id = urllib.parse.quote(actor_id_attempt, safe='/~')
+
+                            encoded_actor_id = urllib.parse.quote(actor_id_attempt, safe="/~")
                             actor_url = f"https://api.apify.com/v2/acts/{encoded_actor_id}?token={api_token}"
                             logger.info(f"Trying to get actor info: {actor_url}")
-                            
+
                             try:
                                 timeout = aiohttp.ClientTimeout(total=10)
                                 async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -1151,28 +1232,42 @@ class ApifyTool(SandboxToolsBase):
                                         if actor_response.status == 200:
                                             actor_data = await actor_response.json()
                                             # Extract build ID from data.taggedBuilds.latest.buildId
-                                            if isinstance(actor_data, dict) and actor_data.get("data"):
-                                                tagged_builds = actor_data.get("data", {}).get("taggedBuilds", {})
+                                            if isinstance(actor_data, dict) and actor_data.get(
+                                                "data"
+                                            ):
+                                                tagged_builds = actor_data.get("data", {}).get(
+                                                    "taggedBuilds", {}
+                                                )
                                                 if tagged_builds and tagged_builds.get("latest"):
-                                                    build_id = tagged_builds.get("latest", {}).get("buildId")
+                                                    build_id = tagged_builds.get("latest", {}).get(
+                                                        "buildId"
+                                                    )
                                                     if build_id:
-                                                        logger.info(f"✅ Found latest build ID: {build_id} for actor: {actor_id_attempt}")
+                                                        logger.info(
+                                                            f"✅ Found latest build ID: {build_id} for actor: {actor_id_attempt}"
+                                                        )
                                                         break
-                                        
+
                                         elif actor_response.status == 404:
-                                            logger.debug(f"Actor endpoint returned 404 for {actor_id_attempt}, trying next format")
+                                            logger.debug(
+                                                f"Actor endpoint returned 404 for {actor_id_attempt}, trying next format"
+                                            )
                                             continue
                                         else:
-                                            logger.warning(f"Actor endpoint returned HTTP {actor_response.status} for {actor_id_attempt}")
+                                            logger.warning(
+                                                f"Actor endpoint returned HTTP {actor_response.status} for {actor_id_attempt}"
+                                            )
                             except Exception as e:
-                                logger.debug(f"Error fetching actor info for {actor_id_attempt}: {e}")
+                                logger.debug(
+                                    f"Error fetching actor info for {actor_id_attempt}: {e}"
+                                )
                                 continue
-                        
+
                         # Step 2: Get input schema from build if we found a build ID
                         if build_id:
                             build_url = f"https://api.apify.com/v2/actor-builds/{build_id}?token={api_token}"
                             logger.info(f"Fetching input schema from build: {build_url}")
-                            
+
                             try:
                                 timeout = aiohttp.ClientTimeout(total=10)
                                 async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -1180,64 +1275,86 @@ class ApifyTool(SandboxToolsBase):
                                         if build_response.status == 200:
                                             build_data = await build_response.json()
                                             # Extract inputSchema from data.inputSchema (it's a JSON string)
-                                            if isinstance(build_data, dict) and build_data.get("data"):
-                                                input_schema_str = build_data.get("data", {}).get("inputSchema")
+                                            if isinstance(build_data, dict) and build_data.get(
+                                                "data"
+                                            ):
+                                                input_schema_str = build_data.get("data", {}).get(
+                                                    "inputSchema"
+                                                )
                                                 if input_schema_str:
                                                     try:
                                                         # Parse the JSON string to get the actual schema object
                                                         if isinstance(input_schema_str, str):
-                                                            input_schema = _json_module.loads(input_schema_str)
+                                                            input_schema = _json_module.loads(
+                                                                input_schema_str
+                                                            )
                                                         else:
                                                             input_schema = input_schema_str
-                                                        logger.info(f"✅ Successfully fetched and parsed input schema from build {build_id}")
+                                                        logger.info(
+                                                            f"✅ Successfully fetched and parsed input schema from build {build_id}"
+                                                        )
                                                     except ValueError as e:
                                                         # json.JSONDecodeError is a subclass of ValueError
-                                                        logger.warning(f"Failed to parse inputSchema JSON string: {e}")
+                                                        logger.warning(
+                                                            f"Failed to parse inputSchema JSON string: {e}"
+                                                        )
                                             else:
-                                                logger.debug(f"Build {build_id} does not have inputSchema field")
+                                                logger.debug(
+                                                    f"Build {build_id} does not have inputSchema field"
+                                                )
                                         elif build_response.status == 404:
-                                            logger.warning(f"Build endpoint returned 404 for build ID: {build_id}")
+                                            logger.warning(
+                                                f"Build endpoint returned 404 for build ID: {build_id}"
+                                            )
                                         else:
                                             response_text = await build_response.text()
-                                            logger.warning(f"Build endpoint returned HTTP {build_response.status} - Response: {response_text[:200]}")
+                                            logger.warning(
+                                                f"Build endpoint returned HTTP {build_response.status} - Response: {response_text[:200]}"
+                                            )
                             except Exception as e:
                                 logger.warning(f"Error fetching build info: {e}")
                         else:
-                            logger.warning(f"Could not find latest build ID for actor {resolved_id} - input schema not available")
-                            
+                            logger.warning(
+                                f"Could not find latest build ID for actor {resolved_id} - input schema not available"
+                            )
+
                 except Exception as e:
-                    logger.warning(f"Exception fetching input schema from build endpoint: {e}", exc_info=True)
-            
+                    logger.warning(
+                        f"Exception fetching input schema from build endpoint: {e}", exc_info=True
+                    )
+
             # Build full response with all actor details from API + inputSchema from build endpoint
             # Start with full actor_info response
             if isinstance(actor_info, dict):
                 response_data = actor_info.copy()
-            elif hasattr(actor_info_response, '__dict__'):
+            elif hasattr(actor_info_response, "__dict__"):
                 response_data = actor_info_response.__dict__.copy()
             else:
                 response_data = {}
-            
+
             # Ensure actor_id is set
             if not response_data.get("actor_id"):
                 response_data["actor_id"] = resolved_id
-            
+
             # CRITICAL: Add input schema if available (from build endpoint)
             if input_schema:
                 response_data["inputSchema"] = input_schema
                 logger.info(f"✅ Added inputSchema to response for actor {resolved_id}")
             else:
-                logger.warning(f"⚠️ No inputSchema available for actor {resolved_id} - agent may not know required inputs")
+                logger.warning(
+                    f"⚠️ No inputSchema available for actor {resolved_id} - agent may not know required inputs"
+                )
                 # Don't fail - still return actor details even without input schema
-            
+
             # Ensure imageUrl/pictureUrl is available (use pictureUrl from API if imageUrl not set)
             if not response_data.get("imageUrl") and response_data.get("pictureUrl"):
                 response_data["imageUrl"] = response_data["pictureUrl"]
-            
+
             # Serialize datetime objects to ISO strings for JSON compatibility
             response_data = serialize_datetime(response_data)
-            
+
             return self.success_response(response_data)
-            
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error getting actor details: {error_message}")
@@ -1245,38 +1362,34 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "request_apify_approval",
-            "description": "Create an approval request for running an Apify actor. REQUIRED before running any actor. Estimates cost and creates a pending approval request that must be approved by the user before execution.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "actor_id": {
-                        "type": "string",
-                        "description": "Actor ID"
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "request_apify_approval",
+                "description": "Create an approval request for running an Apify actor. REQUIRED before running any actor. Estimates cost and creates a pending approval request that must be approved by the user before execution.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "actor_id": {"type": "string", "description": "Actor ID"},
+                        "run_input": {
+                            "type": "object",
+                            "description": "Input for the actor (check get_actor_details for schema). Can be passed as a dict/object or JSON string.",
+                        },
+                        "max_cost_usd": {
+                            "type": "number",
+                            "description": "Maximum cost limit in USD (default: 1.0)",
+                            "default": 1.0,
+                        },
                     },
-                    "run_input": {
-                        "type": "object",
-                        "description": "Input for the actor (check get_actor_details for schema). Can be passed as a dict/object or JSON string."
-                    },
-                    "max_cost_usd": {
-                        "type": "number",
-                        "description": "Maximum cost limit in USD (default: 1.0)",
-                        "default": 1.0
-                    }
+                    "required": ["actor_id", "run_input"],
                 },
-                "required": ["actor_id", "run_input"]
-            }
+            },
         }
-    })
+    )
     async def request_apify_approval(
-        self,
-        actor_id: str,
-        run_input: Union[dict, str],
-        max_cost_usd: Union[float, str] = 1.0
+        self, actor_id: str, run_input: Union[dict, str], max_cost_usd: Union[float, str] = 1.0
     ) -> ToolResult:
         """
         Create an approval request for running an Apify actor.
@@ -1284,7 +1397,7 @@ class ApifyTool(SandboxToolsBase):
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             # Parse run_input if it's a JSON string
             if isinstance(run_input, str):
                 try:
@@ -1292,47 +1405,53 @@ class ApifyTool(SandboxToolsBase):
                 except json.JSONDecodeError as e:
                     return self.fail_response(f"Invalid JSON in run_input: {str(e)}")
             elif not isinstance(run_input, dict):
-                return self.fail_response(f"run_input must be a dict or JSON string, got {type(run_input).__name__}")
-            
+                return self.fail_response(
+                    f"run_input must be a dict or JSON string, got {type(run_input).__name__}"
+                )
+
             # Parse max_cost_usd if it's a string
             if isinstance(max_cost_usd, str):
                 try:
                     max_cost_usd = float(max_cost_usd)
                 except ValueError:
                     return self.fail_response(f"Invalid max_cost_usd value: {max_cost_usd}")
-            
+
             max_cost_usd_decimal = Decimal(str(max_cost_usd))
-            
+
             # Get user context
             thread_id, user_id = await self._get_current_thread_and_user()
-            
+
             if not user_id and config.ENV_MODE != EnvMode.LOCAL:
                 return self.fail_response(
                     "No active session context. This tool requires an active agent session."
                 )
-            
+
             resolved_id = self._resolve_actor_id(actor_id)
-            
+
             # Check for existing pending approval
-            existing_approval_id = await self._check_existing_approval(user_id, resolved_id, run_input)
+            existing_approval_id = await self._check_existing_approval(
+                user_id, resolved_id, run_input
+            )
             if existing_approval_id:
                 approval = await self._get_approval_request(existing_approval_id)
                 if approval:
-                    return self.success_response({
-                        "approval_id": existing_approval_id,
-                        "status": "pending",
-                        "message": f"Found existing pending approval request. User must approve via UI before execution.",
-                        "estimated_cost_usd": approval.get('estimated_cost_usd'),
-                        "estimated_cost_credits": approval.get('estimated_cost_credits'),
-                        "max_cost_usd": approval.get('max_cost_usd'),
-                        "actor_id": resolved_id
-                    })
-            
+                    return self.success_response(
+                        {
+                            "approval_id": existing_approval_id,
+                            "status": "pending",
+                            "message": f"Found existing pending approval request. User must approve via UI before execution.",
+                            "estimated_cost_usd": approval.get("estimated_cost_usd"),
+                            "estimated_cost_credits": approval.get("estimated_cost_credits"),
+                            "max_cost_usd": approval.get("max_cost_usd"),
+                            "actor_id": resolved_id,
+                        }
+                    )
+
             # Estimate cost
             estimated_cost_usd, estimated_cost_credits = await self._estimate_actor_cost(
                 resolved_id, run_input, max_cost_usd_decimal
             )
-            
+
             # Create approval request
             approval_id = await self._create_approval_request(
                 account_id=user_id,
@@ -1341,26 +1460,30 @@ class ApifyTool(SandboxToolsBase):
                 run_input=run_input,
                 estimated_cost_usd=estimated_cost_usd,
                 estimated_cost_credits=estimated_cost_credits,
-                max_cost_usd=max_cost_usd_decimal
+                max_cost_usd=max_cost_usd_decimal,
             )
-            
+
             if not approval_id:
                 return self.fail_response("Failed to create approval request")
-            
+
             # Calculate max_cost_credits (max_cost_usd * 100 * 1.2 for markup)
-            max_cost_credits = float(max_cost_usd_decimal * Decimal('100') * Decimal(str(TOKEN_PRICE_MULTIPLIER)))
-            
-            return self.success_response({
-                "approval_id": approval_id,
-                "status": "pending",
-                "message": f"✅ Approval request created. Estimated cost: ${estimated_cost_usd:.4f} ({estimated_cost_credits:.2f} credits). Maximum cost: ${max_cost_usd:.4f} ({max_cost_credits:.2f} credits). **CRITICAL: Use ASK tool immediately to tell user: 'Please click the Approve button in the approval card above to approve this request. I cannot approve it for you - only you can approve via the UI.' DO NOT try to call any approve tool - it does NOT exist. Use get_apify_approval_status(approval_id='{approval_id}') to check if user has approved after they click the button.**",
-                "estimated_cost_usd": float(estimated_cost_usd),
-                "estimated_cost_credits": float(estimated_cost_credits),
-                "max_cost_usd": float(max_cost_usd_decimal),
-                "actor_id": resolved_id,
-                "expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
-            })
-            
+            max_cost_credits = float(
+                max_cost_usd_decimal * Decimal("100") * Decimal(str(TOKEN_PRICE_MULTIPLIER))
+            )
+
+            return self.success_response(
+                {
+                    "approval_id": approval_id,
+                    "status": "pending",
+                    "message": f"✅ Approval request created. Estimated cost: ${estimated_cost_usd:.4f} ({estimated_cost_credits:.2f} credits). Maximum cost: ${max_cost_usd:.4f} ({max_cost_credits:.2f} credits). **CRITICAL: Use ASK tool immediately to tell user: 'Please click the Approve button in the approval card above to approve this request. I cannot approve it for you - only you can approve via the UI.' DO NOT try to call any approve tool - it does NOT exist. Use get_apify_approval_status(approval_id='{approval_id}') to check if user has approved after they click the button.**",
+                    "estimated_cost_usd": float(estimated_cost_usd),
+                    "estimated_cost_credits": float(estimated_cost_credits),
+                    "max_cost_usd": float(max_cost_usd_decimal),
+                    "actor_id": resolved_id,
+                    "expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
+                }
+            )
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error creating approval request: {error_message}")
@@ -1368,97 +1491,102 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "get_apify_approval_status",
-            "description": "Get the status of an Apify approval request (OPTIONAL). Use this to check if an approval is pending, approved, rejected, or expired. NOTE: Not required before running - run_apify_actor will automatically return an error if approval is not approved, so you can directly use run_apify_actor without checking status first.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "approval_id": {
-                        "type": "string",
-                        "description": "Approval ID from request_apify_approval"
-                    }
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "get_apify_approval_status",
+                "description": "Get the status of an Apify approval request (OPTIONAL). Use this to check if an approval is pending, approved, rejected, or expired. NOTE: Not required before running - run_apify_actor will automatically return an error if approval is not approved, so you can directly use run_apify_actor without checking status first.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "approval_id": {
+                            "type": "string",
+                            "description": "Approval ID from request_apify_approval",
+                        }
+                    },
+                    "required": ["approval_id"],
                 },
-                "required": ["approval_id"]
-            }
+            },
         }
-    })
+    )
     async def get_apify_approval_status(self, approval_id: str) -> ToolResult:
         """Get the status of an Apify approval request."""
         try:
             # Get user context
             thread_id, user_id = await self._get_current_thread_and_user()
-            
+
             if not user_id and config.ENV_MODE != EnvMode.LOCAL:
                 return self.fail_response("No active session context")
-            
+
             # Get approval request
             approval = await self._get_approval_request(approval_id)
             if not approval:
                 # If Redis key doesn't exist, treat as expired
-                return self.success_response({
-                    "approval_id": approval_id,
-                    "status": "expired",
-                    "message": f"Approval {approval_id} has expired or been removed. Create a new approval request.",
-                    "actor_id": None,
-                    "estimated_cost_usd": None,
-                    "estimated_cost_credits": None,
-                    "max_cost_usd": None,
-                    "actual_cost_usd": None,
-                    "actual_cost_credits": None,
-                    "run_id": None,
-                    "created_at": None,
-                    "approved_at": None,
-                    "expires_at": None
-                })
-            
+                return self.success_response(
+                    {
+                        "approval_id": approval_id,
+                        "status": "expired",
+                        "message": f"Approval {approval_id} has expired or been removed. Create a new approval request.",
+                        "actor_id": None,
+                        "estimated_cost_usd": None,
+                        "estimated_cost_credits": None,
+                        "max_cost_usd": None,
+                        "actual_cost_usd": None,
+                        "actual_cost_credits": None,
+                        "run_id": None,
+                        "created_at": None,
+                        "approved_at": None,
+                        "expires_at": None,
+                    }
+                )
+
             # Verify ownership
-            if approval.get('account_id') != user_id:
+            if approval.get("account_id") != user_id:
                 return self.fail_response("You can only view your own approval requests")
-            
+
             # Check if expired by timestamp (even if status isn't set to expired)
-            status = approval.get('status')
-            expires_at_str = approval.get('expires_at')
+            status = approval.get("status")
+            expires_at_str = approval.get("expires_at")
             if expires_at_str:
                 try:
-                    expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    expires_at = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00"))
                     if datetime.now(timezone.utc) > expires_at:
-                        status = 'expired'
+                        status = "expired"
                 except Exception:
                     pass
             message = f"Approval {approval_id} status: {status}"
-            
-            if status == 'pending':
+
+            if status == "pending":
                 message += ". **CRITICAL: The user must click the 'Approve' button in the UI to approve this request. Tell the user: 'Please click the Approve button in the approval card above. I cannot approve it for you - only you can approve via the UI.' DO NOT try to call any approve tool - it does NOT exist.**"
-            elif status == 'approved':
+            elif status == "approved":
                 message += ". You can now use run_apify_actor with this approval_id."
-            elif status == 'rejected':
+            elif status == "rejected":
                 message += ". This approval was rejected by the user."
-            elif status == 'expired':
+            elif status == "expired":
                 message += ". **This approval has expired. Tell the user you'll create a new approval request, then use request_apify_approval again.**"
-            elif status == 'executed':
+            elif status == "executed":
                 message += ". This approval has been executed."
-            
-            return self.success_response({
-                "approval_id": approval_id,
-                "status": status,
-                "message": message,
-                "actor_id": approval.get('actor_id'),
-                "estimated_cost_usd": approval.get('estimated_cost_usd'),
-                "estimated_cost_credits": approval.get('estimated_cost_credits'),
-                "max_cost_usd": approval.get('max_cost_usd'),
-                "actual_cost_usd": approval.get('actual_cost_usd'),
-                "actual_cost_credits": approval.get('actual_cost_credits'),
-                "run_id": approval.get('run_id'),
-                "created_at": approval.get('created_at'),
-                "approved_at": approval.get('approved_at'),
-                "expires_at": approval.get('expires_at')
-            })
-            
+
+            return self.success_response(
+                {
+                    "approval_id": approval_id,
+                    "status": status,
+                    "message": message,
+                    "actor_id": approval.get("actor_id"),
+                    "estimated_cost_usd": approval.get("estimated_cost_usd"),
+                    "estimated_cost_credits": approval.get("estimated_cost_credits"),
+                    "max_cost_usd": approval.get("max_cost_usd"),
+                    "actual_cost_usd": approval.get("actual_cost_usd"),
+                    "actual_cost_credits": approval.get("actual_cost_credits"),
+                    "run_id": approval.get("run_id"),
+                    "created_at": approval.get("created_at"),
+                    "approved_at": approval.get("approved_at"),
+                    "expires_at": approval.get("expires_at"),
+                }
+            )
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error getting approval status: {error_message}")
@@ -1466,51 +1594,50 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "run_apify_actor",
-            "description": "Start an Apify actor run (non-blocking). REQUIRES APPROVAL FIRST - use request_apify_approval before using this. Returns immediately with run_id. Use get_actor_run_status to check progress and get logs. ⚠️ CRITICAL: After run completes successfully, you MUST use get_actor_run_results to fetch and display the actual data to the user. Never just confirm completion - always show the actual results. IMPORTANT: All runs require approval before execution. Credits are only deducted after approval.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "actor_id": {
-                        "type": "string",
-                        "description": "Actor ID"
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "run_apify_actor",
+                "description": "Start an Apify actor run (non-blocking). REQUIRES APPROVAL FIRST - use request_apify_approval before using this. Returns immediately with run_id. Use get_actor_run_status to check progress and get logs. ⚠️ CRITICAL: After run completes successfully, you MUST use get_actor_run_results to fetch and display the actual data to the user. Never just confirm completion - always show the actual results. IMPORTANT: All runs require approval before execution. Credits are only deducted after approval.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "actor_id": {"type": "string", "description": "Actor ID"},
+                        "run_input": {
+                            "type": "object",
+                            "description": "Input for the actor (check get_actor_details for schema). Can be passed as a dict/object or JSON string (will be parsed automatically).",
+                        },
+                        "max_cost_usd": {
+                            "type": "number",
+                            "description": "Maximum cost limit in USD (default: 1.0)",
+                            "default": 1.0,
+                        },
+                        "approval_id": {
+                            "type": "string",
+                            "description": "Approval ID from request_apify_approval - REQUIRED for execution",
+                        },
                     },
-                    "run_input": {
-                        "type": "object",
-                        "description": "Input for the actor (check get_actor_details for schema). Can be passed as a dict/object or JSON string (will be parsed automatically)."
-                    },
-                    "max_cost_usd": {
-                        "type": "number",
-                        "description": "Maximum cost limit in USD (default: 1.0)",
-                        "default": 1.0
-                    },
-                    "approval_id": {
-                        "type": "string",
-                        "description": "Approval ID from request_apify_approval - REQUIRED for execution"
-                    }
+                    "required": ["actor_id", "run_input", "approval_id"],
                 },
-                "required": ["actor_id", "run_input", "approval_id"]
-            }
+            },
         }
-    })
+    )
     async def run_apify_actor(
-        self, 
-        actor_id: str, 
-        run_input: Union[dict, str], 
+        self,
+        actor_id: str,
+        run_input: Union[dict, str],
         max_cost_usd: Union[float, str] = 1.0,
         approval_id: Optional[str] = None,
-        **kwargs  # Ignore unexpected args
+        **kwargs,  # Ignore unexpected args
     ) -> ToolResult:
         """Run an Apify actor (blocking, 60s timeout). REQUIRES APPROVAL FIRST. Waits up to 60 seconds for completion."""
-        
+
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             # Parse run_input if it's a JSON string (common when LLM passes it as string)
             if isinstance(run_input, str):
                 try:
@@ -1519,28 +1646,30 @@ class ApifyTool(SandboxToolsBase):
                 except json.JSONDecodeError as e:
                     return self.fail_response(f"Invalid JSON in run_input: {str(e)}")
             elif not isinstance(run_input, dict):
-                return self.fail_response(f"run_input must be a dict or JSON string, got {type(run_input).__name__}")
-            
+                return self.fail_response(
+                    f"run_input must be a dict or JSON string, got {type(run_input).__name__}"
+                )
+
             # Parse max_cost_usd if it's a string
             if isinstance(max_cost_usd, str):
                 try:
                     max_cost_usd = float(max_cost_usd)
                 except ValueError:
                     return self.fail_response(f"Invalid max_cost_usd value: {max_cost_usd}")
-            
+
             max_cost_usd_decimal = Decimal(str(max_cost_usd))
-            
+
             # Store max_cost_usd_decimal for use in response (needed even if run times out)
             max_cost_usd_for_response = max_cost_usd_decimal
-            
+
             # Get user context for billing
             thread_id, user_id = await self._get_current_thread_and_user()
-            
+
             if not user_id and config.ENV_MODE != EnvMode.LOCAL:
                 return self.fail_response(
                     "No active session context for billing. This tool requires an active agent session."
                 )
-            
+
             # CRITICAL: Require approval before running
             if not approval_id:
                 return self.fail_response(
@@ -1551,7 +1680,7 @@ class ApifyTool(SandboxToolsBase):
                     "3. Use run_apify_actor with actor_id, run_input, max_cost_usd, approval_id parameters\n\n"
                     "This ensures users control their spending and approve costs before execution."
                 )
-            
+
             # Verify approval exists and is approved
             approval = await self._get_approval_request(approval_id)
             if not approval:
@@ -1559,12 +1688,12 @@ class ApifyTool(SandboxToolsBase):
                     f"Approval request {approval_id} has expired or been removed. "
                     f"Please create a new approval request using request_apify_approval."
                 )
-            
+
             # Check if expired by timestamp (even if status isn't set to expired)
-            expires_at_str = approval.get('expires_at')
+            expires_at_str = approval.get("expires_at")
             if expires_at_str:
                 try:
-                    expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    expires_at = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00"))
                     if datetime.now(timezone.utc) > expires_at:
                         return self.fail_response(
                             f"Approval request {approval_id} has expired. "
@@ -1572,41 +1701,41 @@ class ApifyTool(SandboxToolsBase):
                         )
                 except Exception:
                     pass
-            
-            if approval.get('status') != 'approved':
+
+            if approval.get("status") != "approved":
                 return self.fail_response(
                     f"Approval request {approval_id} is not approved (status: {approval.get('status')}). "
                     f"User must approve the request via UI before execution."
                 )
-            
+
             # Verify approval matches the request
-            if approval.get('actor_id') != actor_id:
+            if approval.get("actor_id") != actor_id:
                 return self.fail_response(
                     f"Approval {approval_id} is for actor '{approval.get('actor_id')}', not '{actor_id}'. "
                     f"Please use the correct approval_id for this actor."
                 )
-            
+
             # Check if approval expired
-            expires_at_str = approval.get('expires_at')
+            expires_at_str = approval.get("expires_at")
             if expires_at_str:
                 try:
-                    expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00'))
+                    expires_at = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00"))
                     if datetime.now(expires_at.tzinfo) > expires_at:
                         return self.fail_response(
                             f"Approval {approval_id} has expired. Please create a new approval request."
                         )
                 except Exception as e:
                     logger.warning(f"Error checking approval expiration: {e}")
-            
+
             resolved_id = self._resolve_actor_id(actor_id)
-            
+
             # Check if actor is a rental actor before running (CRITICAL: ensure we only run programmatically purchasable actors)
             try:
                 store_actor_info = self.client.store().get(resolved_id)
                 pricing_model = None
                 pricing_infos = None
                 current_pricing_info = None
-                
+
                 if isinstance(store_actor_info, dict):
                     pricing_model = store_actor_info.get("pricingModel")
                     current_pricing_info = store_actor_info.get("currentPricingInfo", {})
@@ -1614,15 +1743,19 @@ class ApifyTool(SandboxToolsBase):
                         pricing_model = current_pricing_info.get("pricingModel") or pricing_model
                     pricing_infos = store_actor_info.get("pricingInfos", [])
                 else:
-                    pricing_model = getattr(store_actor_info, 'pricingModel', None)
-                    current_pricing_info = getattr(store_actor_info, 'currentPricingInfo', None)
+                    pricing_model = getattr(store_actor_info, "pricingModel", None)
+                    current_pricing_info = getattr(store_actor_info, "currentPricingInfo", None)
                     if current_pricing_info:
                         if isinstance(current_pricing_info, dict):
-                            pricing_model = current_pricing_info.get("pricingModel") or pricing_model
-                        elif hasattr(current_pricing_info, 'pricingModel'):
-                            pricing_model = getattr(current_pricing_info, 'pricingModel', None) or pricing_model
-                    pricing_infos = getattr(store_actor_info, 'pricingInfos', None)
-                
+                            pricing_model = (
+                                current_pricing_info.get("pricingModel") or pricing_model
+                            )
+                        elif hasattr(current_pricing_info, "pricingModel"):
+                            pricing_model = (
+                                getattr(current_pricing_info, "pricingModel", None) or pricing_model
+                            )
+                    pricing_infos = getattr(store_actor_info, "pricingInfos", None)
+
                 # Use centralized rental check function
                 if self._is_rental_actor(pricing_model, pricing_infos, current_pricing_info):
                     return self.fail_response(
@@ -1640,8 +1773,8 @@ class ApifyTool(SandboxToolsBase):
                     if isinstance(actor_info, dict):
                         pricing_infos = actor_info.get("pricingInfos", [])
                     else:
-                        pricing_infos = getattr(actor_info, 'pricingInfos', None)
-                    
+                        pricing_infos = getattr(actor_info, "pricingInfos", None)
+
                     # Check if rental actor via actor API
                     if self._is_rental_actor(None, pricing_infos, None):
                         return self.fail_response(
@@ -1650,89 +1783,100 @@ class ApifyTool(SandboxToolsBase):
                         )
                 except Exception as e2:
                     # If we can't check either, log but continue (actor might be private/user-owned)
-                    logger.debug(f"Could not check actor pricing info from store or actor API: {e}, {e2}, proceeding with run")
-            
+                    logger.debug(
+                        f"Could not check actor pricing info from store or actor API: {e}, {e2}, proceeding with run"
+                    )
+
             logger.info(f"Running Apify actor: {resolved_id} (blocking, 60s timeout)")
-            
+
             # Start the actor run
             try:
                 run = self.client.actor(resolved_id).start(run_input=run_input)
-                logger.info(f"Apify run started, response keys: {list(run.keys()) if isinstance(run, dict) else 'object'}")
-                
+                logger.info(
+                    f"Apify run started, response keys: {list(run.keys()) if isinstance(run, dict) else 'object'}"
+                )
+
             except Exception as e:
                 error_message = str(e)
                 logger.error(f"Error calling Apify actor: {error_message}")
-                
+
                 # Check for rental/trial expiration errors
-                if "rent" in error_message.lower() or "trial" in error_message.lower() or "subscription" in error_message.lower():
+                if (
+                    "rent" in error_message.lower()
+                    or "trial" in error_message.lower()
+                    or "subscription" in error_message.lower()
+                ):
                     return self.fail_response(
                         f"❌ Actor '{resolved_id}' requires a rental subscription: {error_message}\n\n"
                         f"💡 Tip: Use search_apify_actors to find actors that don't require rentals. "
                         f"Rental actors are automatically filtered out from search results."
                     )
-                
+
                 # If it's an input validation error, suggest getting actor details first
-                if "input" in error_message.lower() and ("required" in error_message.lower() or "not allowed" in error_message.lower()):
+                if "input" in error_message.lower() and (
+                    "required" in error_message.lower() or "not allowed" in error_message.lower()
+                ):
                     helpful_message = (
                         f"❌ Invalid input for actor '{resolved_id}': {error_message}\n\n"
                         f"💡 Tip: Use get_actor_details with actor_id '{resolved_id}' first to see the required input schema."
                     )
                     return self.fail_response(helpful_message)
-                
+
                 # Simplify other error messages
                 simplified_message = f"Error calling actor: {error_message[:200]}"
                 if len(error_message) > 200:
                     simplified_message += "..."
                 return self.fail_response(simplified_message)
-            
+
             # Extract run information (handle both dict and object responses)
             if isinstance(run, dict):
                 run_id = run.get("id")
                 status = run.get("status")
                 dataset_id = run.get("defaultDatasetId")
             else:
-                run_id = getattr(run, 'id', None)
-                status = getattr(run, 'status', None)
-                dataset_id = getattr(run, 'defaultDatasetId', None)
-            
+                run_id = getattr(run, "id", None)
+                status = getattr(run, "status", None)
+                dataset_id = getattr(run, "defaultDatasetId", None)
+
             if not run_id:
                 return self.fail_response("Actor run started but no run ID returned")
-            
+
             logger.info(f"✅ Apify run ID: {run_id}, initial status: {status}")
-            
+
             # Poll for completion with 60 second timeout
             import asyncio
             import time
+
             start_time = time.time()
             timeout_seconds = 60
             poll_interval = 2  # Check every 2 seconds
-            
+
             while time.time() - start_time < timeout_seconds:
                 try:
                     run_info = self.client.run(run_id).get()
                     if isinstance(run_info, dict):
                         status = run_info.get("status")
                     else:
-                        status = getattr(run_info, 'status', status)
-                    
+                        status = getattr(run_info, "status", status)
+
                     # If run finished, break out of loop
                     if status in ["SUCCEEDED", "FAILED", "ABORTED", "TIMED-OUT"]:
                         logger.info(f"Run {run_id} finished with status: {status}")
                         break
-                    
+
                     # Wait before next poll
                     await asyncio.sleep(poll_interval)
                 except Exception as e:
                     logger.warning(f"Error polling run status: {e}")
                     await asyncio.sleep(poll_interval)
-            
+
             # Check if we timed out
             elapsed = time.time() - start_time
             timed_out = elapsed >= timeout_seconds and status == "RUNNING"
-            
+
             if timed_out:
                 logger.warning(f"Run {run_id} timed out after {elapsed:.1f}s (still RUNNING)")
-            
+
             # Get final run info and cost (CRITICAL: Always check one more time after timeout
             # to catch runs that completed during the timeout period)
             try:
@@ -1740,21 +1884,27 @@ class ApifyTool(SandboxToolsBase):
                 if isinstance(run_info_final, dict):
                     final_status = run_info_final.get("status")
                 else:
-                    final_status = getattr(run_info_final, 'status', status)
-                
+                    final_status = getattr(run_info_final, "status", status)
+
                 # Update status if run completed during timeout
                 if timed_out and final_status != "RUNNING":
                     logger.info(f"Run {run_id} completed during timeout check: {final_status}")
                     status = final_status
                     timed_out = False  # No longer timed out if it completed
-                
-                run_info_dict = run_info_final if isinstance(run_info_final, dict) else (run_info_final.__dict__ if hasattr(run_info_final, '__dict__') else {})
-                actual_cost = await self._get_run_cost(run_info_dict, approval_id=approval_id, run_id=run_id)
+
+                run_info_dict = (
+                    run_info_final
+                    if isinstance(run_info_final, dict)
+                    else (run_info_final.__dict__ if hasattr(run_info_final, "__dict__") else {})
+                )
+                actual_cost = await self._get_run_cost(
+                    run_info_dict, approval_id=approval_id, run_id=run_id
+                )
             except Exception as e:
                 logger.debug(f"Could not get final run info: {e}")
                 actual_cost = Decimal("0")
                 final_status = status
-            
+
             # Get logs (always fetch for timeout or failures)
             log_text = ""
             if timed_out or status in ["FAILED", "ABORTED", "TIMED-OUT"]:
@@ -1763,20 +1913,20 @@ class ApifyTool(SandboxToolsBase):
                     if isinstance(log_response, str):
                         log_text = log_response
                     elif isinstance(log_response, bytes):
-                        log_text = log_response.decode('utf-8', errors='ignore')
+                        log_text = log_response.decode("utf-8", errors="ignore")
                     elif log_response is not None:
                         log_text = str(log_response)
                     logger.info(f"Fetched logs for run {run_id} (status: {status})")
                 except Exception as e:
                     logger.debug(f"Could not fetch logs: {e}")
-            
+
             # Update approval request with run_id
             if approval_id:
                 try:
                     approval = await self._get_approval_request(approval_id)
                     if approval:
-                        approval['run_id'] = run_id
-                        approval['updated_at'] = datetime.now(timezone.utc).isoformat()
+                        approval["run_id"] = run_id
+                        approval["updated_at"] = datetime.now(timezone.utc).isoformat()
                         key = self._get_approval_key(approval_id)
                         # Get remaining TTL to preserve it
                         redis_client = await get_client()
@@ -1784,10 +1934,12 @@ class ApifyTool(SandboxToolsBase):
                         if ttl > 0:
                             await redis_set(key, json.dumps(approval), ex=ttl)
                         else:
-                            await redis_set(key, json.dumps(approval), ex=86400)  # Re-set 24h if expired
+                            await redis_set(
+                                key, json.dumps(approval), ex=86400
+                            )  # Re-set 24h if expired
                 except Exception as e:
                     logger.warning(f"Failed to update approval request with run_id: {e}")
-            
+
             # Adjust credits after run completes (credits were already deducted on approve)
             # CRITICAL: This adjusts the hold to actual cost and handles refunds
             # CRITICAL: Deduct for all finished statuses (SUCCEEDED, FAILED, ABORTED, TIMED-OUT)
@@ -1798,12 +1950,14 @@ class ApifyTool(SandboxToolsBase):
                     try:
                         approval_for_adjustment = await self._get_approval_request(approval_id)
                         if approval_for_adjustment:
-                            max_cost_usd_from_approval = Decimal(str(approval_for_adjustment.get('max_cost_usd', 0)))
+                            max_cost_usd_from_approval = Decimal(
+                                str(approval_for_adjustment.get("max_cost_usd", 0))
+                            )
                             if max_cost_usd_from_approval > 0:
                                 max_cost_usd_for_response = max_cost_usd_from_approval
                     except Exception as e:
                         logger.warning(f"Could not get max_cost_usd from approval: {e}")
-                    
+
                     # Adjust credits based on actual cost vs. what was deducted on approve
                     adjustment_result = await self._adjust_apify_credits_after_run(
                         user_id=user_id,
@@ -1812,33 +1966,49 @@ class ApifyTool(SandboxToolsBase):
                         run_id=run_id,
                         approval_id=approval_id,
                         thread_id=thread_id,
-                        run_status=status
+                        run_status=status,
                     )
-                    
+
                     if adjustment_result:
-                        max_cost_str = f"{max_cost_usd_for_response:.6f}" if max_cost_usd_for_response else 'N/A'
-                        logger.info(f"✅ Credits adjusted for run {run_id}: actual=${actual_cost:.6f}, max=${max_cost_str} (status: {status})")
+                        max_cost_str = (
+                            f"{max_cost_usd_for_response:.6f}"
+                            if max_cost_usd_for_response
+                            else "N/A"
+                        )
+                        logger.info(
+                            f"✅ Credits adjusted for run {run_id}: actual=${actual_cost:.6f}, max=${max_cost_str} (status: {status})"
+                        )
                     else:
-                        logger.warning(f"⚠️ Failed to adjust credits for run {run_id} (status: {status}, cost: ${actual_cost:.6f})")
+                        logger.warning(
+                            f"⚠️ Failed to adjust credits for run {run_id} (status: {status}, cost: ${actual_cost:.6f})"
+                        )
                 else:
-                    logger.debug(f"No user_id or approval_id for run {run_id} - skipping credit adjustment")
+                    logger.debug(
+                        f"No user_id or approval_id for run {run_id} - skipping credit adjustment"
+                    )
             elif timed_out:
                 # Run is still RUNNING after timeout - credits already deducted on approve, will be adjusted when status is checked later
-                logger.info(f"⏳ Run {run_id} still RUNNING after timeout - credits already deducted on approve, will be adjusted when run completes (check status with get_actor_run_status)")
-            
+                logger.info(
+                    f"⏳ Run {run_id} still RUNNING after timeout - credits already deducted on approve, will be adjusted when run completes (check status with get_actor_run_status)"
+                )
+
             # Ensure max_cost_usd_for_response is set (fallback to approval if not set)
             if max_cost_usd_for_response is None or max_cost_usd_for_response == 0:
                 try:
-                    approval_for_response = await self._get_approval_request(approval_id) if approval_id else None
+                    approval_for_response = (
+                        await self._get_approval_request(approval_id) if approval_id else None
+                    )
                     if approval_for_response:
-                        max_cost_usd_for_response = Decimal(str(approval_for_response.get('max_cost_usd', 0)))
+                        max_cost_usd_for_response = Decimal(
+                            str(approval_for_response.get("max_cost_usd", 0))
+                        )
                 except Exception:
                     pass
-            
+
             # Final fallback to parameter
             if max_cost_usd_for_response is None or max_cost_usd_for_response == 0:
                 max_cost_usd_for_response = max_cost_usd_decimal
-            
+
             # Build response message
             if timed_out:
                 message = f"⏱️ Run timed out after 60 seconds (still RUNNING). Check logs below. Use get_actor_run_status with run_id '{run_id}' to check progress."
@@ -1854,10 +2024,10 @@ class ApifyTool(SandboxToolsBase):
                 message = f"⏳ Run is still in progress. Use get_actor_run_status with run_id '{run_id}' to check progress."
             else:
                 message = f"Run status: {status}"
-            
+
             # Format cost for display
             cost_deducted_str = self._format_cost_display(actual_cost)
-            
+
             response_data = {
                 "run_id": run_id,
                 "actor_id": resolved_id,
@@ -1867,11 +2037,11 @@ class ApifyTool(SandboxToolsBase):
                 "cost_deducted": cost_deducted_str,
                 "max_cost_usd": float(max_cost_usd_for_response),
                 "message": message,
-                "logs": log_text if log_text else None  # Include logs if timed out
+                "logs": log_text if log_text else None,  # Include logs if timed out
             }
-            
+
             return self.success_response(response_data)
-            
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error running Apify actor: {error_message}")
@@ -1879,45 +2049,44 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "get_actor_run_results",
-            "description": "⚠️ MANDATORY: Retrieve ALL results from a completed actor run and save them to disk. You MUST use this function immediately after run_apify_actor completes successfully (status: SUCCEEDED). You MUST present the actual received data to the user in your response - never just say 'run completed'. Always show item counts, key data points, and examples from the results. Results are saved as JSON to /workspace/apify_results/. IMPORTANT: Use the 'absolute_file_path' returned (e.g., /workspace/apify_results/...) for all shell commands like cat, jq, python - do NOT use relative paths as your shell cwd may be /app, not /workspace. This is a COMPLETE tool call requirement - users expect to see the data immediately.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "run_id": {
-                        "type": "string",
-                        "description": "The run ID returned from run_apify_actor"
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "get_actor_run_results",
+                "description": "⚠️ MANDATORY: Retrieve ALL results from a completed actor run and save them to disk. You MUST use this function immediately after run_apify_actor completes successfully (status: SUCCEEDED). You MUST present the actual received data to the user in your response - never just say 'run completed'. Always show item counts, key data points, and examples from the results. Results are saved as JSON to /workspace/apify_results/. IMPORTANT: Use the 'absolute_file_path' returned (e.g., /workspace/apify_results/...) for all shell commands like cat, jq, python - do NOT use relative paths as your shell cwd may be /app, not /workspace. This is a COMPLETE tool call requirement - users expect to see the data immediately.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "run_id": {
+                            "type": "string",
+                            "description": "The run ID returned from run_apify_actor",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "DEPRECATED: All items are now saved to disk. This parameter is ignored.",
+                            "default": None,
+                        },
+                        "offset": {
+                            "type": "integer",
+                            "description": "DEPRECATED: All items are now saved to disk. This parameter is ignored.",
+                            "default": 0,
+                        },
                     },
-                    "limit": {
-                        "type": "integer",
-                        "description": "DEPRECATED: All items are now saved to disk. This parameter is ignored.",
-                        "default": None
-                    },
-                    "offset": {
-                        "type": "integer",
-                        "description": "DEPRECATED: All items are now saved to disk. This parameter is ignored.",
-                        "default": 0
-                    }
+                    "required": ["run_id"],
                 },
-                "required": ["run_id"]
-            }
+            },
         }
-    })
+    )
     async def get_actor_run_results(
-        self, 
-        run_id: str, 
-        limit: Optional[int] = None, 
-        offset: int = 0
+        self, run_id: str, limit: Optional[int] = None, offset: int = 0
     ) -> ToolResult:
         """Retrieve results from a completed actor run and save to file."""
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             # Get run info to find dataset
             try:
                 run_info_response = self.client.run(run_id).get()
@@ -1925,64 +2094,84 @@ class ApifyTool(SandboxToolsBase):
                 if isinstance(run_info_response, dict):
                     dataset_id = run_info_response.get("defaultDatasetId")
                     actor_id = run_info_response.get("actId")
-                elif hasattr(run_info_response, 'defaultDatasetId'):
+                elif hasattr(run_info_response, "defaultDatasetId"):
                     dataset_id = run_info_response.defaultDatasetId
-                    actor_id = getattr(run_info_response, 'actId', None)
+                    actor_id = getattr(run_info_response, "actId", None)
                 else:
                     dataset_id = None
                     actor_id = None
             except Exception as e:
                 return self.fail_response(f"Failed to get run info: {str(e)}")
-            
+
             if not dataset_id:
                 return self.fail_response(f"Run {run_id} has no dataset")
-            
+
             # Get cost from run info - try multiple sources
             actual_cost = Decimal("0")
             approval_for_cost = None
-            
+
             # Try to find approval by run_id to get actual cost
             try:
                 thread_id, user_id = await self._get_current_thread_and_user()
                 if user_id:
                     approval_for_cost = await self._find_approval_by_run_id(run_id, user_id=user_id)
-                    if approval_for_cost and approval_for_cost.get('actual_cost_usd') is not None:
-                        actual_cost = Decimal(str(approval_for_cost['actual_cost_usd']))
-                        logger.info(f"Found cost from approval record: ${actual_cost} for run {run_id}")
+                    if approval_for_cost and approval_for_cost.get("actual_cost_usd") is not None:
+                        actual_cost = Decimal(str(approval_for_cost["actual_cost_usd"]))
+                        logger.info(
+                            f"Found cost from approval record: ${actual_cost} for run {run_id}"
+                        )
             except Exception as e:
                 logger.debug(f"Could not find approval by run_id: {e}")
-            
+
             # If not found in approval, try to get from run_info
             if actual_cost == 0:
                 try:
-                    approval_id_for_cost = approval_for_cost.get('approval_id') if approval_for_cost else None
+                    approval_id_for_cost = (
+                        approval_for_cost.get("approval_id") if approval_for_cost else None
+                    )
                     # Apify SDK returns dict, extract cost directly
                     if isinstance(run_info_response, dict):
-                        cost_from_run = await self._get_run_cost(run_info_response, approval_id=approval_id_for_cost, run_id=run_id)
+                        cost_from_run = await self._get_run_cost(
+                            run_info_response, approval_id=approval_id_for_cost, run_id=run_id
+                        )
                         if cost_from_run > 0:
                             actual_cost = cost_from_run
-                            logger.info(f"Found cost from run_info: ${actual_cost} for run {run_id}")
+                            logger.info(
+                                f"Found cost from run_info: ${actual_cost} for run {run_id}"
+                            )
                     else:
                         # Fallback for object responses (shouldn't happen, but handle gracefully)
-                        run_info_dict = run_info_response.__dict__ if hasattr(run_info_response, '__dict__') else {}
-                        cost_from_run = await self._get_run_cost(run_info_dict, approval_id=approval_id_for_cost, run_id=run_id)
+                        run_info_dict = (
+                            run_info_response.__dict__
+                            if hasattr(run_info_response, "__dict__")
+                            else {}
+                        )
+                        cost_from_run = await self._get_run_cost(
+                            run_info_dict, approval_id=approval_id_for_cost, run_id=run_id
+                        )
                         if cost_from_run > 0:
                             actual_cost = cost_from_run
-                            logger.info(f"Found cost from run_info (object): ${actual_cost} for run {run_id}")
+                            logger.info(
+                                f"Found cost from run_info (object): ${actual_cost} for run {run_id}"
+                            )
                 except Exception as e:
                     logger.warning(f"Could not get cost from run_info for run {run_id}: {e}")
-            
+
             # If still 0, log what we have for debugging
             if actual_cost == 0:
                 if isinstance(run_info_response, dict):
-                    logger.warning(f"Cost is 0 for run {run_id}. Run info keys: {list(run_info_response.keys())[:30]}. Approval actual_cost_usd: {approval_for_cost.get('actual_cost_usd') if approval_for_cost else 'N/A'}")
+                    logger.warning(
+                        f"Cost is 0 for run {run_id}. Run info keys: {list(run_info_response.keys())[:30]}. Approval actual_cost_usd: {approval_for_cost.get('actual_cost_usd') if approval_for_cost else 'N/A'}"
+                    )
                 else:
-                    logger.warning(f"Cost is 0 for run {run_id}. Run info is object type. Approval actual_cost_usd: {approval_for_cost.get('actual_cost_usd') if approval_for_cost else 'N/A'}")
-            
+                    logger.warning(
+                        f"Cost is 0 for run {run_id}. Run info is object type. Approval actual_cost_usd: {approval_for_cost.get('actual_cost_usd') if approval_for_cost else 'N/A'}"
+                    )
+
             # Get ALL dataset items (not paginated - save everything to file)
             dataset_client = self.client.dataset(dataset_id)
             all_items = []
-            
+
             try:
                 # Fetch all items using iterate_items (no limit)
                 logger.info(f"Fetching all items from dataset {dataset_id} for run {run_id}")
@@ -1991,45 +2180,51 @@ class ApifyTool(SandboxToolsBase):
             except Exception as e:
                 logger.error(f"Error fetching dataset items: {e}")
                 return self.fail_response(f"Failed to retrieve dataset items: {str(e)}")
-            
+
             # Format cost for display
             cost_deducted_str = self._format_cost_display(actual_cost)
-            
+
             if not all_items:
-                return self.success_response({
-                    "run_id": run_id,
-                    "actor_id": actor_id,
-                    "dataset_id": dataset_id,
-                    "saved_to_disk": False,
-                    "file_path": None,
-                    "item_count": 0,
-                    "cost_usd": float(actual_cost),
-                    "cost_deducted": cost_deducted_str,
-                    "message": "No items found in dataset"
-                })
-            
+                return self.success_response(
+                    {
+                        "run_id": run_id,
+                        "actor_id": actor_id,
+                        "dataset_id": dataset_id,
+                        "saved_to_disk": False,
+                        "file_path": None,
+                        "item_count": 0,
+                        "cost_usd": float(actual_cost),
+                        "cost_deducted": cost_deducted_str,
+                        "message": "No items found in dataset",
+                    }
+                )
+
             # Save results to file in sandbox workspace - use SandboxToolsBase._ensure_sandbox()
             sandbox = await self._ensure_sandbox()
-            
+
             # Create apify_results directory - use workspace_path from SandboxToolsBase
             workspace_path = self.workspace_path
             results_dir = f"{workspace_path}/apify_results"
             await sandbox.fs.create_folder(results_dir, "755")
-            
+
             # Generate filename with timestamp and run_id
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            safe_actor_id = (actor_id or "unknown").replace("/", "_").replace("~", "_") if actor_id else "unknown"
+            safe_actor_id = (
+                (actor_id or "unknown").replace("/", "_").replace("~", "_")
+                if actor_id
+                else "unknown"
+            )
             filename = f"apify_results_{safe_actor_id}_{run_id[:12]}_{timestamp}.json"
             file_path = f"{results_dir}/{filename}"
-            
+
             # Serialize items to JSON
             json_content = json.dumps(all_items, indent=2, ensure_ascii=False, default=str)
-            json_bytes = json_content.encode('utf-8')
-            
+            json_bytes = json_content.encode("utf-8")
+
             # Save to file - this is a regular sandbox operation, should always work
             await sandbox.fs.upload_file(json_bytes, file_path)
             logger.info(f"✅ Saved {len(all_items)} items to {file_path} ({len(json_bytes)} bytes)")
-            
+
             # Return both absolute and relative paths
             # - absolute_file_path: for shell commands (agent may be in /app, not /workspace)
             # - file_path: relative path for frontend attachments
@@ -2037,23 +2232,25 @@ class ApifyTool(SandboxToolsBase):
                 relative_path = file_path.replace("/workspace/", "")
             else:
                 relative_path = file_path.replace("/workspace", "").lstrip("/")
-            
+
             # IMPORTANT: Return absolute path for shell access since agent's cwd may not be /workspace
             absolute_file_path = file_path  # Already absolute: /workspace/apify_results/...
-            
-            return self.success_response({
-                "run_id": run_id,
-                "actor_id": actor_id,
-                "dataset_id": dataset_id,
-                "saved_to_disk": True,
-                "file_path": relative_path,  # For frontend attachments
-                "absolute_file_path": absolute_file_path,  # For shell commands
-                "item_count": len(all_items),
-                "cost_usd": float(actual_cost),
-                "cost_deducted": cost_deducted_str,
-                "message": f"✅ Retrieved {len(all_items)} items. Data saved to: {absolute_file_path} (use this absolute path for shell commands like cat, jq, python scripts). For the 'complete' tool attachment, use relative path: '{relative_path}'"
-            })
-            
+
+            return self.success_response(
+                {
+                    "run_id": run_id,
+                    "actor_id": actor_id,
+                    "dataset_id": dataset_id,
+                    "saved_to_disk": True,
+                    "file_path": relative_path,  # For frontend attachments
+                    "absolute_file_path": absolute_file_path,  # For shell commands
+                    "item_count": len(all_items),
+                    "cost_usd": float(actual_cost),
+                    "cost_deducted": cost_deducted_str,
+                    "message": f"✅ Retrieved {len(all_items)} items. Data saved to: {absolute_file_path} (use this absolute path for shell commands like cat, jq, python scripts). For the 'complete' tool attachment, use relative path: '{relative_path}'",
+                }
+            )
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error getting actor run results: {error_message}")
@@ -2061,30 +2258,32 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "get_actor_run_status",
-            "description": "Get detailed status, logs, and information about an actor run. Useful for monitoring long-running actors or debugging failures.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "run_id": {
-                        "type": "string",
-                        "description": "The run ID from run_apify_actor"
-                    }
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "get_actor_run_status",
+                "description": "Get detailed status, logs, and information about an actor run. Useful for monitoring long-running actors or debugging failures.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "run_id": {
+                            "type": "string",
+                            "description": "The run ID from run_apify_actor",
+                        }
+                    },
+                    "required": ["run_id"],
                 },
-                "required": ["run_id"]
-            }
+            },
         }
-    })
+    )
     async def get_actor_run_status(self, run_id: str) -> ToolResult:
         """Get detailed status, logs, and information about an actor run."""
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             # Helper function to serialize datetime objects
             def serialize_datetime(obj):
                 """Recursively convert datetime objects to ISO strings."""
@@ -2098,31 +2297,59 @@ class ApifyTool(SandboxToolsBase):
                     return float(obj)
                 else:
                     return obj
-            
+
             # Get run info
             try:
                 run_info_response = self.client.run(run_id).get()
                 if isinstance(run_info_response, dict):
                     run_info = run_info_response
-                elif hasattr(run_info_response, '__dict__'):
+                elif hasattr(run_info_response, "__dict__"):
                     run_info = run_info_response.__dict__
                 else:
                     run_info = {}
             except Exception as e:
                 return self.fail_response(f"Failed to get run info: {str(e)}")
-            
+
             # Extract run details
-            status = run_info.get("status") if isinstance(run_info, dict) else getattr(run_info_response, 'status', None)
-            actor_id = run_info.get("actId") if isinstance(run_info, dict) else getattr(run_info_response, 'actId', None)
-            started_at = run_info.get("startedAt") if isinstance(run_info, dict) else getattr(run_info_response, 'startedAt', None)
-            finished_at = run_info.get("finishedAt") if isinstance(run_info, dict) else getattr(run_info_response, 'finishedAt', None)
-            status_message = run_info.get("statusMessage") if isinstance(run_info, dict) else getattr(run_info_response, 'statusMessage', None)
-            dataset_id = run_info.get("defaultDatasetId") if isinstance(run_info, dict) else getattr(run_info_response, 'defaultDatasetId', None)
-            
+            status = (
+                run_info.get("status")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "status", None)
+            )
+            actor_id = (
+                run_info.get("actId")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "actId", None)
+            )
+            started_at = (
+                run_info.get("startedAt")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "startedAt", None)
+            )
+            finished_at = (
+                run_info.get("finishedAt")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "finishedAt", None)
+            )
+            status_message = (
+                run_info.get("statusMessage")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "statusMessage", None)
+            )
+            dataset_id = (
+                run_info.get("defaultDatasetId")
+                if isinstance(run_info, dict)
+                else getattr(run_info_response, "defaultDatasetId", None)
+            )
+
             # Get cost info using usageTotalUsd
-            run_info_dict = run_info_response if isinstance(run_info_response, dict) else (run_info_response.__dict__ if hasattr(run_info_response, '__dict__') else {})
+            run_info_dict = (
+                run_info_response
+                if isinstance(run_info_response, dict)
+                else (run_info_response.__dict__ if hasattr(run_info_response, "__dict__") else {})
+            )
             actual_cost = await self._get_run_cost(run_info_dict)
-            
+
             # Adjust credits after run completes (credits were already deducted on approve)
             # CRITICAL: This ensures credits are ALWAYS adjusted when checking status of completed runs
             # This is a safety net for cases where run_apify_actor timed out or wasn't checked
@@ -2137,15 +2364,18 @@ class ApifyTool(SandboxToolsBase):
                         redis_client = await get_client()
                         pattern = "apify:approval:*"
                         async for key in redis_client.scan_iter(match=pattern):
-                            approval_id = key.split(':')[-1]
+                            approval_id = key.split(":")[-1]
                             approval = await self._get_approval_request(approval_id)
-                            if approval and approval.get('account_id') == user_id:
-                                if approval.get('run_id') == run_id and approval.get('status') == 'approved':
+                            if approval and approval.get("account_id") == user_id:
+                                if (
+                                    approval.get("run_id") == run_id
+                                    and approval.get("status") == "approved"
+                                ):
                                     approval_id_for_adjustment = approval_id
                                     break
                     except Exception:
                         pass
-                    
+
                     if approval_id_for_adjustment:
                         # Adjust credits based on actual cost vs. what was deducted on approve
                         adjustment_result = await self._adjust_apify_credits_after_run(
@@ -2155,15 +2385,21 @@ class ApifyTool(SandboxToolsBase):
                             run_id=run_id,
                             approval_id=approval_id_for_adjustment,
                             thread_id=thread_id,
-                            run_status=status
+                            run_status=status,
                         )
                         if adjustment_result:
-                            logger.info(f"✅ Credits adjusted via get_actor_run_status for run {run_id}: ${actual_cost:.6f} (status: {status})")
+                            logger.info(
+                                f"✅ Credits adjusted via get_actor_run_status for run {run_id}: ${actual_cost:.6f} (status: {status})"
+                            )
                         else:
-                            logger.warning(f"⚠️ Failed to adjust credits via get_actor_run_status for run {run_id} (status: {status}, cost: ${actual_cost:.6f})")
+                            logger.warning(
+                                f"⚠️ Failed to adjust credits via get_actor_run_status for run {run_id} (status: {status}, cost: ${actual_cost:.6f})"
+                            )
                     else:
-                        logger.debug(f"No approval found for run {run_id} - credits may have been deducted on approve")
-            
+                        logger.debug(
+                            f"No approval found for run {run_id} - credits may have been deducted on approve"
+                        )
+
             # Get logs (plain text from Apify API)
             log_text = ""
             try:
@@ -2171,12 +2407,12 @@ class ApifyTool(SandboxToolsBase):
                 if isinstance(log_response, str):
                     log_text = log_response
                 elif isinstance(log_response, bytes):
-                    log_text = log_response.decode('utf-8', errors='ignore')
+                    log_text = log_response.decode("utf-8", errors="ignore")
                 elif log_response is not None:
                     log_text = str(log_response)
             except Exception as e:
                 logger.debug(f"Could not fetch run logs: {e}")
-            
+
             # Get dataset item count if available
             item_count = 0
             if dataset_id:
@@ -2184,11 +2420,11 @@ class ApifyTool(SandboxToolsBase):
                     dataset_info = self.client.dataset(dataset_id).get()
                     if isinstance(dataset_info, dict):
                         item_count = dataset_info.get("itemCount", 0)
-                    elif hasattr(dataset_info, 'itemCount'):
-                        item_count = getattr(dataset_info, 'itemCount', 0)
+                    elif hasattr(dataset_info, "itemCount"):
+                        item_count = getattr(dataset_info, "itemCount", 0)
                 except Exception as e:
                     logger.debug(f"Could not get dataset info: {e}")
-            
+
             # Build response message based on status
             if status == "SUCCEEDED":
                 message = f"✅ Run completed successfully! Retrieved {item_count} items. ⚠️ MANDATORY: You MUST immediately use get_actor_run_results with run_id '{run_id}' to fetch and display the actual data to the user."
@@ -2202,30 +2438,38 @@ class ApifyTool(SandboxToolsBase):
                 message = "⏰ Run timed out before completion."
             else:
                 message = f"Run status: {status}"
-            
+
             # Format cost for display
             cost_deducted_str = self._format_cost_display(actual_cost)
-            
+
             response_data = {
                 "run_id": run_id,
                 "actor_id": actor_id,
                 "status": status,
                 "status_message": status_message,
                 "message": message,
-                "started_at": started_at.isoformat() if started_at and hasattr(started_at, 'isoformat') else str(started_at) if started_at else None,
-                "finished_at": finished_at.isoformat() if finished_at and hasattr(finished_at, 'isoformat') else str(finished_at) if finished_at else None,
+                "started_at": started_at.isoformat()
+                if started_at and hasattr(started_at, "isoformat")
+                else str(started_at)
+                if started_at
+                else None,
+                "finished_at": finished_at.isoformat()
+                if finished_at and hasattr(finished_at, "isoformat")
+                else str(finished_at)
+                if finished_at
+                else None,
                 "cost_usd": float(actual_cost),
                 "cost_deducted": cost_deducted_str,
                 "dataset_id": dataset_id,
                 "item_count": item_count,
-                "logs": log_text  # Full log output as plain text
+                "logs": log_text,  # Full log output as plain text
             }
-            
+
             # Serialize datetime objects
             response_data = serialize_datetime(response_data)
-            
+
             return self.success_response(response_data)
-            
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error getting actor run status: {error_message}")
@@ -2233,51 +2477,59 @@ class ApifyTool(SandboxToolsBase):
             if len(error_message) > 200:
                 simplified_message += "..."
             return self.fail_response(simplified_message)
-    
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "stop_actor_run",
-            "description": "Stop/cancel a running actor. Use this to cancel long-running actors that are taking too long or if you want to abort the run.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "run_id": {
-                        "type": "string",
-                        "description": "The run ID from run_apify_actor that you want to stop"
-                    }
+
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "stop_actor_run",
+                "description": "Stop/cancel a running actor. Use this to cancel long-running actors that are taking too long or if you want to abort the run.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "run_id": {
+                            "type": "string",
+                            "description": "The run ID from run_apify_actor that you want to stop",
+                        }
+                    },
+                    "required": ["run_id"],
                 },
-                "required": ["run_id"]
-            }
+            },
         }
-    })
+    )
     async def stop_actor_run(self, run_id: str) -> ToolResult:
         """Stop/cancel a running actor."""
         try:
             if not self.client:
                 return self.fail_response("Apify API token not configured")
-            
+
             # Get current run status first
             try:
                 run_info_response = self.client.run(run_id).get()
                 if isinstance(run_info_response, dict):
                     current_status = run_info_response.get("status")
                 else:
-                    current_status = getattr(run_info_response, 'status', None)
-                
-                if current_status in ["SUCCEEDED", "SUCCEEDED_AND_TERMINATED", "FAILED", "ABORTED", "TIMED-OUT"]:
+                    current_status = getattr(run_info_response, "status", None)
+
+                if current_status in [
+                    "SUCCEEDED",
+                    "SUCCEEDED_AND_TERMINATED",
+                    "FAILED",
+                    "ABORTED",
+                    "TIMED-OUT",
+                ]:
                     return self.fail_response(
                         f"Run {run_id} is already completed with status '{current_status}'. Cannot stop a completed run."
                     )
             except Exception as e:
                 logger.debug(f"Could not check run status before stopping: {e}")
-            
+
             # Stop the run
             try:
                 abort_response = self.client.run(run_id).abort()
                 if isinstance(abort_response, dict):
                     abort_data = abort_response
-                elif hasattr(abort_response, '__dict__'):
+                elif hasattr(abort_response, "__dict__"):
                     abort_data = abort_response.__dict__
                 else:
                     abort_data = {}
@@ -2285,26 +2537,26 @@ class ApifyTool(SandboxToolsBase):
                 error_message = str(e)
                 logger.error(f"Error stopping actor run: {error_message}")
                 return self.fail_response(f"Failed to stop run: {error_message}")
-            
+
             # Verify stop was successful
             try:
                 run_info_response = self.client.run(run_id).get()
                 if isinstance(run_info_response, dict):
                     new_status = run_info_response.get("status")
                 else:
-                    new_status = getattr(run_info_response, 'status', None)
+                    new_status = getattr(run_info_response, "status", None)
             except Exception:
                 new_status = None
-            
+
             response_data = {
                 "run_id": run_id,
                 "status": "stop_requested",
                 "message": f"Stop request sent for run {run_id}",
-                "current_status": new_status
+                "current_status": new_status,
             }
-            
+
             return self.success_response(response_data)
-            
+
         except Exception as e:
             error_message = str(e)
             logger.error(f"Error stopping actor run: {error_message}")

@@ -19,13 +19,16 @@ class TestSentryInitialization:
     """Test Sentry SDK initialization."""
 
     @patch("core.monitoring.sentry.sentry_sdk")
-    @patch.dict(os.environ, {
-        "SENTRY_DSN": "https://example@sentry.io/123",
-        "SENTRY_ENVIRONMENT": "test",
-        "SENTRY_TRACES_SAMPLE_RATE": "0.5",
-        "SENTRY_PROFILES_SAMPLE_RATE": "0.3",
-        "SENTRY_SEND_DEFAULT_PII": "true",
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "SENTRY_DSN": "https://example@sentry.io/123",
+            "SENTRY_ENVIRONMENT": "test",
+            "SENTRY_TRACES_SAMPLE_RATE": "0.5",
+            "SENTRY_PROFILES_SAMPLE_RATE": "0.3",
+            "SENTRY_SEND_DEFAULT_PII": "true",
+        },
+    )
     def test_init_sentry_with_dsn(self, mock_sentry_sdk):
         """Test Sentry initializes correctly when DSN is configured."""
         from core.monitoring import init_sentry
@@ -84,7 +87,7 @@ class TestCustomErrorTracking:
             tool_name="ifc_parser",
             file_path="/path/to/model.ifc",
             user_id="user123",
-            extra_field="extra_value"
+            extra_field="extra_value",
         )
 
         # Verify exception was captured
@@ -104,7 +107,7 @@ class TestCustomErrorTracking:
             provider="anthropic",
             model="claude-3-opus",
             user_id="user456",
-            request_id="req789"
+            request_id="req789",
         )
 
         mock_sentry_sdk.capture_exception.assert_called_once_with(error)
@@ -116,10 +119,7 @@ class TestCustomErrorTracking:
 
         error = PermissionError("Invalid token")
         capture_auth_error(
-            error=error,
-            auth_type="token_refresh",
-            user_id="user789",
-            ip_address="192.168.1.1"
+            error=error, auth_type="token_refresh", user_id="user789", ip_address="192.168.1.1"
         )
 
         mock_sentry_sdk.capture_exception.assert_called_once_with(error)
@@ -129,17 +129,11 @@ class TestCustomErrorTracking:
         """Test user context setting."""
         from core.monitoring import set_user_context
 
-        set_user_context(
-            user_id="user123",
-            email="user@example.com",
-            role="admin"
-        )
+        set_user_context(user_id="user123", email="user@example.com", role="admin")
 
-        mock_sentry_sdk.set_user.assert_called_once_with({
-            "id": "user123",
-            "email": "user@example.com",
-            "role": "admin"
-        })
+        mock_sentry_sdk.set_user.assert_called_once_with(
+            {"id": "user123", "email": "user@example.com", "role": "admin"}
+        )
 
     @patch("core.monitoring.sentry.sentry_sdk")
     def test_clear_user_context(self, mock_sentry_sdk):
@@ -156,17 +150,14 @@ class TestCustomErrorTracking:
         from core.monitoring import add_breadcrumb
 
         add_breadcrumb(
-            message="User uploaded IFC file",
-            category="bim",
-            level="info",
-            file_size=1024000
+            message="User uploaded IFC file", category="bim", level="info", file_size=1024000
         )
 
         mock_sentry_sdk.add_breadcrumb.assert_called_once_with(
             message="User uploaded IFC file",
             category="bim",
             level="info",
-            data={"file_size": 1024000}
+            data={"file_size": 1024000},
         )
 
 
@@ -307,16 +298,15 @@ class TestHealthChecks:
         mock_db = MagicMock()
 
         # Mock successful health checks
-        with patch("core.monitoring.health.check_database_health") as mock_db_check, \
-             patch("core.monitoring.health.check_redis_health") as mock_redis_check:
-
+        with (
+            patch("core.monitoring.health.check_database_health") as mock_db_check,
+            patch("core.monitoring.health.check_redis_health") as mock_redis_check,
+        ):
             mock_db_check.return_value = {"status": HealthStatus.HEALTHY, "latency_ms": 50}
             mock_redis_check.return_value = {"status": HealthStatus.HEALTHY, "latency_ms": 10}
 
             result = await get_comprehensive_health(
-                db=mock_db,
-                instance_id="test-instance",
-                include_storage=False
+                db=mock_db, instance_id="test-instance", include_storage=False
             )
 
             assert result["overall_status"] == HealthStatus.HEALTHY
@@ -333,19 +323,18 @@ class TestHealthChecks:
 
         mock_db = MagicMock()
 
-        with patch("core.monitoring.health.check_database_health") as mock_db_check, \
-             patch("core.monitoring.health.check_redis_health") as mock_redis_check:
-
+        with (
+            patch("core.monitoring.health.check_database_health") as mock_db_check,
+            patch("core.monitoring.health.check_redis_health") as mock_redis_check,
+        ):
             mock_db_check.return_value = {
                 "status": HealthStatus.UNHEALTHY,
-                "error": "Connection timeout"
+                "error": "Connection timeout",
             }
             mock_redis_check.return_value = {"status": HealthStatus.HEALTHY, "latency_ms": 10}
 
             result = await get_comprehensive_health(
-                db=mock_db,
-                instance_id="test-instance",
-                include_storage=False
+                db=mock_db, instance_id="test-instance", include_storage=False
             )
 
             # Overall should be unhealthy if database is unhealthy
@@ -358,19 +347,18 @@ class TestHealthChecks:
 
         mock_db = MagicMock()
 
-        with patch("core.monitoring.health.check_database_health") as mock_db_check, \
-             patch("core.monitoring.health.check_redis_health") as mock_redis_check:
-
+        with (
+            patch("core.monitoring.health.check_database_health") as mock_db_check,
+            patch("core.monitoring.health.check_redis_health") as mock_redis_check,
+        ):
             mock_db_check.return_value = {"status": HealthStatus.HEALTHY, "latency_ms": 50}
             mock_redis_check.return_value = {
                 "status": HealthStatus.UNHEALTHY,
-                "error": "Redis down"
+                "error": "Redis down",
             }
 
             result = await get_comprehensive_health(
-                db=mock_db,
-                instance_id="test-instance",
-                include_storage=False
+                db=mock_db, instance_id="test-instance", include_storage=False
             )
 
             # Overall should be unhealthy if Redis is unhealthy
@@ -383,16 +371,15 @@ class TestHealthChecks:
 
         mock_db = MagicMock()
 
-        with patch("core.monitoring.health.check_database_health") as mock_db_check, \
-             patch("core.monitoring.health.check_redis_health") as mock_redis_check:
-
+        with (
+            patch("core.monitoring.health.check_database_health") as mock_db_check,
+            patch("core.monitoring.health.check_redis_health") as mock_redis_check,
+        ):
             mock_db_check.return_value = {"status": HealthStatus.DEGRADED, "latency_ms": 450}
             mock_redis_check.return_value = {"status": HealthStatus.HEALTHY, "latency_ms": 10}
 
             result = await get_comprehensive_health(
-                db=mock_db,
-                instance_id="test-instance",
-                include_storage=False
+                db=mock_db, instance_id="test-instance", include_storage=False
             )
 
             assert result["overall_status"] == HealthStatus.DEGRADED
@@ -407,6 +394,7 @@ class TestMonitoringIntegration:
     async def test_sentry_capture_exception_live(self):
         """Test Sentry captures exceptions in live environment (if configured)."""
         import os
+
         if not os.getenv("SENTRY_DSN"):
             pytest.skip("SENTRY_DSN not configured")
 
@@ -419,11 +407,7 @@ class TestMonitoringIntegration:
         try:
             raise ValueError("Test error for Sentry integration")
         except ValueError as e:
-            capture_bim_error(
-                error=e,
-                tool_name="test_tool",
-                user_id="test_user"
-            )
+            capture_bim_error(error=e, tool_name="test_tool", user_id="test_user")
 
         # If we got here without exception, Sentry is working
         # (actual capture verification would require checking Sentry dashboard)
@@ -441,9 +425,7 @@ class TestMonitoringIntegration:
             await db.initialize()
 
             result = await get_comprehensive_health(
-                db=db,
-                instance_id="test-instance",
-                include_storage=False
+                db=db, instance_id="test-instance", include_storage=False
             )
 
             # Should have results for database and redis

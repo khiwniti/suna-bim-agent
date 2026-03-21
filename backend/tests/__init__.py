@@ -8,4 +8,3 @@ Functional tests covering the full API surface:
 - Agent runs & streaming
 - Complete user journeys
 """
-

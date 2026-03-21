@@ -28,10 +28,7 @@ class RecursiveCharacterTextSplitter:
     """
 
     def __init__(
-        self,
-        chunk_size: int = 1200,
-        chunk_overlap: int = 100,
-        separators: List[str] = None
+        self, chunk_size: int = 1200, chunk_overlap: int = 100, separators: List[str] = None
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -46,7 +43,7 @@ class RecursiveCharacterTextSplitter:
             "; ",
             ", ",
             " ",
-            ""
+            "",
         ]
 
     def split_text(self, text: str) -> List[str]:
@@ -70,13 +67,12 @@ class RecursiveCharacterTextSplitter:
                 break
             if sep in text:
                 separator = sep
-                new_separators = separators[i + 1:]
+                new_separators = separators[i + 1 :]
                 break
 
         if separator:
             splits = text.split(separator)
-            splits = [s + separator if i < len(splits) - 1 else s
-                     for i, s in enumerate(splits)]
+            splits = [s + separator if i < len(splits) - 1 else s for i, s in enumerate(splits)]
         else:
             splits = list(text)
 
@@ -98,13 +94,13 @@ class RecursiveCharacterTextSplitter:
                         current_chunk = ""
                     else:
                         for i in range(0, len(split), self.chunk_size - self.chunk_overlap):
-                            chunk = split[i:i + self.chunk_size].strip()
+                            chunk = split[i : i + self.chunk_size].strip()
                             if chunk:
                                 final_chunks.append(chunk)
                         current_chunk = ""
                 else:
                     if final_chunks and self.chunk_overlap > 0:
-                        overlap_text = final_chunks[-1][-self.chunk_overlap:]
+                        overlap_text = final_chunks[-1][-self.chunk_overlap :]
                         current_chunk = overlap_text + " " + split
                     else:
                         current_chunk = split
@@ -118,10 +114,7 @@ class RecursiveCharacterTextSplitter:
 
 
 # Global splitter instance
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=CHUNK_SIZE,
-    chunk_overlap=CHUNK_OVERLAP
-)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
 
 
 class SearchResult:
@@ -180,6 +173,7 @@ class ThreadSearchService:
         if self._openai_client is None and self._is_configured:
             try:
                 from openai import AsyncOpenAI
+
                 self._openai_client = AsyncOpenAI(api_key=self._openai_api_key)
                 logger.debug("[ThreadSearch] AsyncOpenAI client initialized")
             except Exception as e:
@@ -199,16 +193,15 @@ class ThreadSearchService:
             if len(text) > max_chars:
                 text = text[:max_chars]
 
-            response = await openai.embeddings.create(
-                input=text,
-                model=self.EMBEDDING_MODEL
-            )
+            response = await openai.embeddings.create(input=text, model=self.EMBEDDING_MODEL)
             return response.data[0].embedding
         except Exception as e:
             logger.error(f"[ThreadSearch] Failed to create embedding: {type(e).__name__}: {e}")
             return None
 
-    def _extract_snippet(self, text: str, query: str, snippet_length: int = 120) -> Tuple[str, List[str]]:
+    def _extract_snippet(
+        self, text: str, query: str, snippet_length: int = 120
+    ) -> Tuple[str, List[str]]:
         """
         Extract a snippet from text centered around matching keywords.
         Prioritizes areas with the most keyword matches.
@@ -268,12 +261,12 @@ class ThreadSearchService:
 
         # Adjust to not cut words
         if start > 0:
-            space_pos = text.find(' ', start)
+            space_pos = text.find(" ", start)
             if space_pos != -1 and space_pos < start + 20:
                 start = space_pos + 1
 
         if end < len(text):
-            space_pos = text.rfind(' ', start, end)
+            space_pos = text.rfind(" ", start, end)
             if space_pos != -1 and space_pos > end - 20:
                 end = space_pos
 
@@ -291,7 +284,7 @@ class ThreadSearchService:
         account_id: str,
         content: str,
         project_name: str = "",
-        thread_name: str = ""
+        thread_name: str = "",
     ) -> bool:
         """
         Create or update embeddings for a thread in Supabase.
@@ -338,7 +331,7 @@ class ThreadSearchService:
             # Delete existing chunks for this thread first
             await execute_mutate(
                 "DELETE FROM public.documents WHERE account_id = :account_id AND thread_id = :thread_id",
-                {"account_id": account_id, "thread_id": thread_id}
+                {"account_id": account_id, "thread_id": thread_id},
             )
 
             # Insert each chunk
@@ -354,13 +347,16 @@ class ThreadSearchService:
                 VALUES (:chunk_id, :account_id, :thread_id, :chunk_content, CAST(:embedding AS vector), NOW())
                 """
 
-                await execute_mutate(sql, {
-                    "chunk_id": str(uuid.uuid4()),
-                    "account_id": account_id,
-                    "thread_id": thread_id,
-                    "chunk_content": chunk_content[:1200],
-                    "embedding": embedding_str,
-                })
+                await execute_mutate(
+                    sql,
+                    {
+                        "chunk_id": str(uuid.uuid4()),
+                        "account_id": account_id,
+                        "thread_id": thread_id,
+                        "chunk_content": chunk_content[:1200],
+                        "embedding": embedding_str,
+                    },
+                )
                 success_count += 1
 
             return success_count > 0
@@ -369,12 +365,7 @@ class ThreadSearchService:
             logger.error(f"[ThreadSearch] Embedding FAILED for thread {thread_id}: {e}")
             return False
 
-    async def search(
-        self,
-        query: str,
-        account_id: str,
-        limit: int = 10
-    ) -> List[SearchResult]:
+    async def search(self, query: str, account_id: str, limit: int = 10) -> List[SearchResult]:
         """
         Search for threads semantically matching the query using pgvector.
 
@@ -393,12 +384,12 @@ class ThreadSearchService:
         if not query or not query.strip():
             return []
 
-        logger.info(f"[ThreadSearch] Searching: \"{query}\"")
+        logger.info(f'[ThreadSearch] Searching: "{query}"')
 
         # Create embedding for the query
         query_embedding = await self._create_embedding(query)
         if not query_embedding:
-            logger.error(f"[ThreadSearch] OpenAI embedding failed for query: \"{query}\"")
+            logger.error(f'[ThreadSearch] OpenAI embedding failed for query: "{query}"')
             return []
 
         try:
@@ -419,7 +410,7 @@ class ThreadSearchService:
             # ORDER BY embedding <=> CAST(:query_embedding AS vector)
             # LIMIT :limit
             # """
-            
+
             sql = """
             SELECT
                 thread_id,
@@ -434,12 +425,14 @@ class ThreadSearchService:
             LIMIT :limit;
             """
 
-
-            rows = await execute(sql, {
-                "query_embedding": json.dumps(query_embedding),
-                "account_id": account_id,
-                "limit": limit,
-            })
+            rows = await execute(
+                sql,
+                {
+                    "query_embedding": json.dumps(query_embedding),
+                    "account_id": account_id,
+                    "limit": limit,
+                },
+            )
 
             # Convert to SearchResult objects with extracted snippets
             results = []
@@ -452,11 +445,13 @@ class ThreadSearchService:
                     similarity = row.get("similarity", 0)
                     snippet, matched = self._extract_snippet(full_text, query)
 
-                    results.append(SearchResult(
-                        thread_id=thread_id,
-                        score=float(similarity) if similarity else 0.0,
-                        text_preview=snippet
-                    ))
+                    results.append(
+                        SearchResult(
+                            thread_id=thread_id,
+                            score=float(similarity) if similarity else 0.0,
+                            text_preview=snippet,
+                        )
+                    )
 
                     if matched:
                         logger.debug(f"[ThreadSearch] Thread {thread_id[:8]}... matched: {matched}")
@@ -464,7 +459,9 @@ class ThreadSearchService:
             # Log results
             if results:
                 top = results[0]
-                logger.info(f"[ThreadSearch] Supabase OK: {len(results)} results, top={top.score:.3f}, preview=\"{top.text_preview[:80]}\"")
+                logger.info(
+                    f'[ThreadSearch] Supabase OK: {len(results)} results, top={top.score:.3f}, preview="{top.text_preview[:80]}"'
+                )
             else:
                 logger.info(f"[ThreadSearch] Supabase OK: 0 results")
 
@@ -515,23 +512,16 @@ def get_thread_search_service() -> ThreadSearchService:
 
 # Convenience functions for simpler usage
 
+
 async def embed_thread(
-    thread_id: str,
-    account_id: str,
-    content: str,
-    project_name: str = "",
-    thread_name: str = ""
+    thread_id: str, account_id: str, content: str, project_name: str = "", thread_name: str = ""
 ) -> bool:
     """Embed a thread for semantic search."""
     service = get_thread_search_service()
     return await service.embed_thread(thread_id, account_id, content, project_name, thread_name)
 
 
-async def search_threads(
-    query: str,
-    account_id: str,
-    limit: int = 10
-) -> List[SearchResult]:
+async def search_threads(query: str, account_id: str, limit: int = 10) -> List[SearchResult]:
     """Search threads semantically."""
     service = get_thread_search_service()
     return await service.search(query, account_id, limit)
@@ -590,12 +580,17 @@ async def get_threads_needing_embedding(account_id: str, thread_ids: List[str]) 
         WHERE last_embedded_at IS NULL  -- Never embedded
            OR last_message_at > last_embedded_at  -- Has newer messages
         """
-        rows = await execute(sql, {
-            "account_id": account_id,
-            "thread_ids": thread_ids,
-        })
-        result = {str(row['thread_id']) for row in rows} if rows else set()
-        logger.info(f"[ThreadSearch] Account {account_id[:8]}...: {len(result)}/{len(thread_ids)} threads need embedding")
+        rows = await execute(
+            sql,
+            {
+                "account_id": account_id,
+                "thread_ids": thread_ids,
+            },
+        )
+        result = {str(row["thread_id"]) for row in rows} if rows else set()
+        logger.info(
+            f"[ThreadSearch] Account {account_id[:8]}...: {len(result)}/{len(thread_ids)} threads need embedding"
+        )
         return result
     except Exception as e:
         logger.error(f"[ThreadSearch] Failed to check threads needing embedding: {e}")
@@ -679,7 +674,7 @@ async def embed_thread_with_messages(thread_id: str, account_id: str) -> bool:
             account_id=account_id,
             content=full_content,
             project_name=project_name,
-            thread_name=thread_name
+            thread_name=thread_name,
         )
 
         return success
@@ -711,7 +706,7 @@ async def embed_unembedded_threads(account_id: str, threads: List[dict]):
 
     try:
         # Get thread_ids from the list (str() to handle UUID objects from DB)
-        thread_ids = [str(t.get('thread_id')) for t in threads if t.get('thread_id')]
+        thread_ids = [str(t.get("thread_id")) for t in threads if t.get("thread_id")]
         if not thread_ids:
             return
 
@@ -722,7 +717,7 @@ async def embed_unembedded_threads(account_id: str, threads: List[dict]):
             return
 
         # Filter to threads needing embedding (str() to handle UUID objects)
-        to_embed = [t for t in threads if str(t.get('thread_id')) in needs_embedding_ids]
+        to_embed = [t for t in threads if str(t.get("thread_id")) in needs_embedding_ids]
 
         # Embed in parallel with semaphore to limit concurrency
         semaphore = asyncio.Semaphore(5)
@@ -730,15 +725,11 @@ async def embed_unembedded_threads(account_id: str, threads: List[dict]):
         async def embed_one(thread: dict):
             async with semaphore:
                 await embed_thread_with_messages(
-                    thread_id=str(thread['thread_id']),
-                    account_id=account_id
+                    thread_id=str(thread["thread_id"]), account_id=account_id
                 )
 
         # Use gather with return_exceptions to not fail on individual errors
-        await asyncio.gather(
-            *[embed_one(t) for t in to_embed],
-            return_exceptions=True
-        )
+        await asyncio.gather(*[embed_one(t) for t in to_embed], return_exceptions=True)
 
         logger.info(f"[ThreadSearch] Background embedding complete for {len(to_embed)} threads")
 

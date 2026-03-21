@@ -142,15 +142,10 @@ EDGE_CASE_TESTS = [
 # DATASET LOADING UTILITIES
 # ============================================================================
 
+
 def get_all_static_tests() -> List[Dict[str, Any]]:
     """Get all static test cases combined."""
-    return (
-        BASIC_TESTS +
-        CODING_TESTS +
-        TOOL_TESTS +
-        REASONING_TESTS +
-        EDGE_CASE_TESTS
-    )
+    return BASIC_TESTS + CODING_TESTS + TOOL_TESTS + REASONING_TESTS + EDGE_CASE_TESTS
 
 
 def get_tests_by_tag(tag: str) -> List[Dict[str, Any]]:
@@ -162,7 +157,7 @@ def get_tests_by_tag(tag: str) -> List[Dict[str, Any]]:
 def load_dataset_from_file(filepath: str) -> List[Dict[str, Any]]:
     """
     Load evaluation dataset from a JSON file.
-    
+
     Expected format:
     [
         {"input": "...", "expected": "...", "tags": [...]},
@@ -173,14 +168,14 @@ def load_dataset_from_file(filepath: str) -> List[Dict[str, Any]]:
     if not path.exists():
         logger.warning(f"Dataset file not found: {filepath}")
         return []
-    
-    with open(path, 'r') as f:
+
+    with open(path, "r") as f:
         data = json.load(f)
-    
+
     if not isinstance(data, list):
         logger.error(f"Dataset must be a list, got {type(data)}")
         return []
-    
+
     return data
 
 
@@ -190,25 +185,25 @@ def load_from_braintrust_dataset(
 ) -> List[Dict[str, Any]]:
     """
     Load a dataset from Braintrust.
-    
+
     This allows using curated datasets stored in Braintrust
     for consistent evaluation across experiments.
     """
     try:
         import braintrust
-        
+
         # Initialize Braintrust client
         client = braintrust.init(project=project)
-        
+
         # Get dataset
         dataset = client.dataset(dataset_name)
-        
+
         # Fetch all records
         records = list(dataset.fetch())
-        
+
         logger.info(f"Loaded {len(records)} cases from Braintrust dataset '{dataset_name}'")
         return records
-        
+
     except Exception as e:
         logger.error(f"Failed to load Braintrust dataset: {e}")
         return []
@@ -221,30 +216,30 @@ def create_golden_dataset_from_logs(
 ) -> List[Dict[str, Any]]:
     """
     Create a 'golden' dataset from high-scoring production logs.
-    
+
     This is useful for:
     1. Building regression tests from real usage
     2. Finding good examples for fine-tuning
     3. Curating test cases that represent actual user needs
-    
+
     Args:
         project: Braintrust project name
         min_score: Minimum average score to include
         limit: Maximum number of cases to include
-        
+
     Returns:
         List of high-quality input/output pairs
     """
     try:
         import braintrust
-        
+
         # This would query the Braintrust API for high-scoring logs
         # Implementation depends on Braintrust API capabilities
         logger.info(f"Creating golden dataset from {project} logs (min_score={min_score})")
-        
+
         # Placeholder - would use Braintrust API to fetch logs
         return []
-        
+
     except Exception as e:
         logger.error(f"Failed to create golden dataset: {e}")
         return []
@@ -254,10 +249,12 @@ def create_golden_dataset_from_logs(
 # EXTERNAL DATASET LOADERS
 # ============================================================================
 
+
 def _load_gaia(level: int, count: Optional[int] = None) -> List[Dict[str, Any]]:
     """Load GAIA benchmark dataset."""
     try:
         from evals.external_datasets.gaia import load_gaia_dataset, gaia_to_eval_cases
+
         questions = load_gaia_dataset(level=level, count=count)
         return gaia_to_eval_cases(questions)
     except ImportError as e:
@@ -272,15 +269,15 @@ def load_test_cases(category: str = "complex") -> List[Dict[str, Any]]:
     if not json_path.exists():
         logger.warning(f"test_cases.json not found at {json_path}")
         return []
-    
-    with open(json_path, 'r') as f:
+
+    with open(json_path, "r") as f:
         data = json.load(f)
-    
+
     if category not in data:
         available = ", ".join(data.keys())
         logger.warning(f"Category '{category}' not found. Available: {available}")
         return []
-    
+
     return data[category]
 
 
@@ -297,12 +294,10 @@ DATASET_PRESETS = {
     "edge_cases": EDGE_CASE_TESTS,
     "all": get_all_static_tests,  # Function to call
     "quick": BASIC_TESTS[:2] + CODING_TESTS[:1],  # Quick smoke test
-    
     # JSON test cases
     "math": lambda: load_test_cases("math_basic"),
     "complex": lambda: load_test_cases("complex"),
     "real_world": lambda: load_test_cases("real_world"),
-    
     # GAIA benchmark levels
     "gaia-level1": lambda count=None: _load_gaia(1, count),
     "gaia-level2": lambda count=None: _load_gaia(2, count),
@@ -318,7 +313,7 @@ def list_available_datasets() -> List[str]:
 def get_dataset(name: str = "all", count: Optional[int] = None) -> List[Dict[str, Any]]:
     """
     Get a dataset by preset name.
-    
+
     Available presets:
     - basic: Simple greeting/capability tests
     - coding: Code generation tests
@@ -333,35 +328,34 @@ def get_dataset(name: str = "all", count: Optional[int] = None) -> List[Dict[str
     - gaia-level1: GAIA benchmark level 1 (easiest)
     - gaia-level2: GAIA benchmark level 2 (medium)
     - gaia-level3: GAIA benchmark level 3 (hardest)
-    
+
     Args:
         name: Dataset preset name
         count: Optional limit on number of test cases (for large datasets)
-    
+
     Returns:
         List of test case dictionaries
     """
     if name not in DATASET_PRESETS:
         available = ", ".join(DATASET_PRESETS.keys())
         raise ValueError(f"Unknown dataset '{name}'. Available: {available}")
-    
+
     preset = DATASET_PRESETS[name]
-    
+
     if callable(preset):
         # Check if the function accepts 'count' parameter
         import inspect
+
         sig = inspect.signature(preset)
-        if 'count' in sig.parameters:
+        if "count" in sig.parameters:
             result = preset(count=count)
         else:
             result = preset()
             if count:
                 result = result[:count]
         return result
-    
+
     # Static list
     if count:
         return preset[:count]
     return preset
-
-

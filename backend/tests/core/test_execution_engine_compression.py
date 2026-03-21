@@ -24,7 +24,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 os.environ.setdefault("DAYTONA_API_KEY", "test-key")
 os.environ.setdefault("DAYTONA_SERVER_URL", "http://localhost")
 os.environ.setdefault("DAYTONA_TARGET", "local")
-os.environ.setdefault("MCP_CREDENTIAL_ENCRYPTION_KEY", "KEp9Zg9R1XO8EOcHoUH58dEkIQVJHIFKzKWKlpuQ6tY=")
+os.environ.setdefault(
+    "MCP_CREDENTIAL_ENCRYPTION_KEY", "KEp9Zg9R1XO8EOcHoUH58dEkIQVJHIFKzKWKlpuQ6tY="
+)
 os.environ.setdefault("SUPABASE_URL", "http://localhost:54321")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
 os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test-service-key")
@@ -34,6 +36,7 @@ from core.agents.pipeline.stateless.coordinator.execution import ExecutionEngine
 
 try:
     from core.agents.pipeline.stateless.context.archiver import ContextArchiver
+
     HAS_ARCHIVER = True
 except ImportError:
     HAS_ARCHIVER = False
@@ -41,10 +44,12 @@ except ImportError:
 
 # --- Helpers ---
 
+
 def make_user(content, **kw):
     msg = {"role": "user", "content": content}
     msg.update(kw)
     return msg
+
 
 def make_assistant(content, tool_calls=None, **kw):
     msg = {"role": "assistant", "content": content}
@@ -53,13 +58,24 @@ def make_assistant(content, tool_calls=None, **kw):
     msg.update(kw)
     return msg
 
+
 def make_tool(content, tool_call_id=None, **kw):
-    msg = {"role": "tool", "content": content, "tool_call_id": tool_call_id or f"call_{uuid.uuid4().hex[:12]}"}
+    msg = {
+        "role": "tool",
+        "content": content,
+        "tool_call_id": tool_call_id or f"call_{uuid.uuid4().hex[:12]}",
+    }
     msg.update(kw)
     return msg
 
+
 def make_tool_call(name="some_tool"):
-    return {"id": f"call_{uuid.uuid4().hex[:12]}", "type": "function", "function": {"name": name, "arguments": "{}"}}
+    return {
+        "id": f"call_{uuid.uuid4().hex[:12]}",
+        "type": "function",
+        "function": {"name": name, "arguments": "{}"},
+    }
+
 
 def big_content(n):
     base = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
@@ -97,16 +113,20 @@ def _mock_llm_summary_response():
     """Return a fake ModelResponse with a valid summary JSON."""
     import litellm
 
-    summary_json = json.dumps({
-        "summary": "User requested building a website. Agent searched for best practices and processed large pasted content including documentation and design specs.",
-        "topics": ["web development", "website building"],
-        "key_decisions": [{"decision": "Use React for frontend", "rationale": "User preference"}],
-        "facts": {
-            "project_name": "user-website",
-            "tech_stack": ["React", "Node.js"],
-            "current_goal": "Build a complete website"
+    summary_json = json.dumps(
+        {
+            "summary": "User requested building a website. Agent searched for best practices and processed large pasted content including documentation and design specs.",
+            "topics": ["web development", "website building"],
+            "key_decisions": [
+                {"decision": "Use React for frontend", "rationale": "User preference"}
+            ],
+            "facts": {
+                "project_name": "user-website",
+                "tech_stack": ["React", "Node.js"],
+                "current_goal": "Build a complete website",
+            },
         }
-    })
+    )
 
     return litellm.completion(
         model="gpt-3.5-turbo",
@@ -118,6 +138,7 @@ def _mock_llm_summary_response():
 # ============================================================================
 # 1. Context > 200k → actual summary generated → tokens come down
 # ============================================================================
+
 
 @pytest.mark.skipif(not HAS_ARCHIVER, reason="ContextArchiver not available (main branch)")
 class TestContextExceeds200k:
@@ -149,9 +170,9 @@ class TestContextExceeds200k:
             make_assistant("Sure, let me search for best practices.", [tc]),
             make_tool(big_content(50_000), tc["id"]),
             make_assistant("Here's what I found."),
-            make_user(big_content(403_000)),   # Giant paste — 403K chars
+            make_user(big_content(403_000)),  # Giant paste — 403K chars
             make_assistant("Processing that..."),
-            make_user(big_content(315_000)),   # Another giant paste — 315K chars
+            make_user(big_content(315_000)),  # Another giant paste — 315K chars
             make_assistant("Got it."),
             make_user("Now finish it up"),
             make_assistant("Done!"),
@@ -171,16 +192,22 @@ class TestContextExceeds200k:
 
         async def mock_get_db_client():
             return MagicMock()
+
         mock_db_conn = MagicMock()
         mock_db_conn.client = mock_get_db_client()
 
-        with patch("core.ai_models.model_manager.get_context_window", return_value=200_000), \
-             patch("core.services.supabase.DBConnection", return_value=mock_db_conn), \
-             patch("core.sandbox.resolver.resolve_sandbox", new_callable=AsyncMock, return_value=mock_sandbox_info), \
-             patch("core.services.llm.make_llm_api_call", side_effect=mock_make_llm_call), \
-             patch("core.cache.runtime_cache.set_cached_message_history", new_callable=AsyncMock), \
-             patch("core.agents.pipeline.ux_streaming.stream_summarizing", new_callable=AsyncMock):
-
+        with (
+            patch("core.ai_models.model_manager.get_context_window", return_value=200_000),
+            patch("core.services.supabase.DBConnection", return_value=mock_db_conn),
+            patch(
+                "core.sandbox.resolver.resolve_sandbox",
+                new_callable=AsyncMock,
+                return_value=mock_sandbox_info,
+            ),
+            patch("core.services.llm.make_llm_api_call", side_effect=mock_make_llm_call),
+            patch("core.cache.runtime_cache.set_cached_message_history", new_callable=AsyncMock),
+            patch("core.agents.pipeline.ux_streaming.stream_summarizing", new_callable=AsyncMock),
+        ):
             result_msgs, _, did_compress = await engine._check_and_compress_if_needed(
                 msgs, tokens=200_000, system_prompt=system
             )
@@ -192,37 +219,46 @@ class TestContextExceeds200k:
         # --- Summary is first message and contains actual LLM-generated content ---
         summary_msg = result_msgs[0]
         assert summary_msg.get("_is_summary_inline") is True
-        assert "website" in summary_msg["content"].lower(), \
+        assert "website" in summary_msg["content"].lower(), (
             "Summary should contain LLM-generated content about the website task"
+        )
 
         # --- Giant user messages in working memory are truncated ---
         for m in result_msgs:
             if m["role"] == "user" and not m.get("_is_summary_inline"):
-                assert len(m["content"]) <= 5000, \
+                assert len(m["content"]) <= 5000, (
                     f"User message still {len(m['content'])} chars — should be truncated to ~4K"
+                )
 
         # --- Giant tool outputs are truncated ---
         for m in result_msgs:
             if m["role"] == "tool":
-                assert len(m["content"]) <= 4000, \
+                assert len(m["content"]) <= 4000, (
                     f"Tool output still {len(m['content'])} chars — should be truncated"
+                )
 
         # --- Archive files were written to sandbox ---
-        assert any("batch_001.md" in path for path in files), \
+        assert any("batch_001.md" in path for path in files), (
             f"Summary batch file not written. Files: {list(files.keys())}"
-        assert any("manifest.json" in path for path in files), \
+        )
+        assert any("manifest.json" in path for path in files), (
             f"Manifest not written. Files: {list(files.keys())}"
+        )
 
         # --- Summary file contains the LLM-generated summary ---
         summary_file = [v for k, v in files.items() if "batch_001.md" in k][0]
-        summary_content = summary_file.decode("utf-8") if isinstance(summary_file, bytes) else summary_file
-        assert "website" in summary_content.lower(), \
+        summary_content = (
+            summary_file.decode("utf-8") if isinstance(summary_file, bytes) else summary_file
+        )
+        assert "website" in summary_content.lower(), (
             "Archive summary file should contain LLM-generated summary about the website"
+        )
 
 
 # ============================================================================
 # 2. Orphan tool outputs → don't crash the agent run
 # ============================================================================
+
 
 class TestOrphanToolDontCrashAgent:
     """When messages have orphan tool results (no matching assistant tool_call),
@@ -271,13 +307,25 @@ class TestOrphanToolDontCrashAgent:
         mock_executor = MagicMock()
         mock_executor.execute = AsyncMock(return_value=mock_llm_stream())
 
-        with patch.object(ContextManager, "extract_layers", return_value=mock_layers), \
-             patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=500), \
-             patch("core.agents.pipeline.ux_streaming.stream_context_usage", new_callable=AsyncMock), \
-             patch.object(engine, "_check_and_compress_if_needed", new_callable=AsyncMock, return_value=(orphan_messages, 500, False)), \
-             patch("core.agents.pipeline.stateless.coordinator.execution.add_cache_control", side_effect=lambda x: x), \
-             patch("core.agents.pipeline.stateless.coordinator.execution.LLMExecutor", return_value=mock_executor):
-
+        with (
+            patch.object(ContextManager, "extract_layers", return_value=mock_layers),
+            patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=500),
+            patch("core.agents.pipeline.ux_streaming.stream_context_usage", new_callable=AsyncMock),
+            patch.object(
+                engine,
+                "_check_and_compress_if_needed",
+                new_callable=AsyncMock,
+                return_value=(orphan_messages, 500, False),
+            ),
+            patch(
+                "core.agents.pipeline.stateless.coordinator.execution.add_cache_control",
+                side_effect=lambda x: x,
+            ),
+            patch(
+                "core.agents.pipeline.stateless.coordinator.execution.LLMExecutor",
+                return_value=mock_executor,
+            ),
+        ):
             chunks = []
             async for chunk in engine.execute_step():
                 chunks.append(chunk)
@@ -296,7 +344,8 @@ class TestOrphanToolDontCrashAgent:
                 tid = msg["tool_call_id"]
                 has_parent = any(
                     tid in [t["id"] for t in m.get("tool_calls", [])]
-                    for m in sent_messages if m.get("role") == "assistant"
+                    for m in sent_messages
+                    if m.get("role") == "assistant"
                 )
                 assert has_parent, f"Orphan tool {tid} sent to LLM — would cause API error"
 
@@ -310,7 +359,9 @@ class TestContextWindowRetry:
         state.model_name = "test-model"
         state.thread_id = "test-thread"
         state.stream_key = "test-stream"
-        state.tool_schemas = [{"type": "function", "function": {"name": "web_search", "parameters": {}}}]
+        state.tool_schemas = [
+            {"type": "function", "function": {"name": "web_search", "parameters": {}}}
+        ]
         state.system_prompt = {"role": "system", "content": "You are helpful."}
 
         messages = [
@@ -359,17 +410,29 @@ class TestContextWindowRetry:
             make_tool("orphan tool result", "orphan_call", name="web_search"),
         ]
 
-        with patch.object(ContextManager, "extract_layers", return_value=mock_layers), \
-             patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=120_000), \
-             patch("core.agents.pipeline.ux_streaming.stream_context_usage", new_callable=AsyncMock), \
-             patch.object(engine, "_check_and_compress_if_needed", new_callable=AsyncMock, side_effect=[
-                 (messages, 120_000, False),
-                 (compressed_messages, 95_000, True),
-             ]), \
-             patch("core.agents.pipeline.stateless.coordinator.execution.add_cache_control", side_effect=lambda x: x), \
-             patch("core.agents.pipeline.stateless.coordinator.execution.LLMExecutor", return_value=mock_executor), \
-             patch("core.ai_models.model_manager.get_context_window", return_value=200_000):
-
+        with (
+            patch.object(ContextManager, "extract_layers", return_value=mock_layers),
+            patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=120_000),
+            patch("core.agents.pipeline.ux_streaming.stream_context_usage", new_callable=AsyncMock),
+            patch.object(
+                engine,
+                "_check_and_compress_if_needed",
+                new_callable=AsyncMock,
+                side_effect=[
+                    (messages, 120_000, False),
+                    (compressed_messages, 95_000, True),
+                ],
+            ),
+            patch(
+                "core.agents.pipeline.stateless.coordinator.execution.add_cache_control",
+                side_effect=lambda x: x,
+            ),
+            patch(
+                "core.agents.pipeline.stateless.coordinator.execution.LLMExecutor",
+                return_value=mock_executor,
+            ),
+            patch("core.ai_models.model_manager.get_context_window", return_value=200_000),
+        ):
             chunks = []
             async for chunk in engine.execute_step():
                 chunks.append(chunk)
@@ -417,12 +480,15 @@ class TestLowMessageFallbackCompression:
         ]
         system = {"role": "system", "content": "You are helpful."}
 
-        with patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=80), \
-             patch.object(engine, "_archive_raw_messages_for_retrieval", new_callable=AsyncMock) as mock_archive_raw, \
-             patch("core.ai_models.model_manager.get_context_window", return_value=200_000), \
-             patch("core.cache.runtime_cache.set_cached_message_history", new_callable=AsyncMock), \
-             patch("core.agents.pipeline.ux_streaming.stream_summarizing", new_callable=AsyncMock):
-
+        with (
+            patch.object(engine, "fast_token_count", new_callable=AsyncMock, return_value=80),
+            patch.object(
+                engine, "_archive_raw_messages_for_retrieval", new_callable=AsyncMock
+            ) as mock_archive_raw,
+            patch("core.ai_models.model_manager.get_context_window", return_value=200_000),
+            patch("core.cache.runtime_cache.set_cached_message_history", new_callable=AsyncMock),
+            patch("core.agents.pipeline.ux_streaming.stream_summarizing", new_callable=AsyncMock),
+        ):
             result_msgs, result_tokens, did_compress = await engine._check_and_compress_if_needed(
                 msgs, tokens=200_000, system_prompt=system
             )
@@ -445,9 +511,18 @@ class TestTokenCountingIncludesTools:
     @pytest.mark.asyncio
     async def test_fast_token_count_passes_tools_and_choice(self):
         messages = [{"role": "user", "content": "hello"}]
-        tools = [{"type": "function", "function": {"name": "web_search", "parameters": {"type": "object"}}}]
+        tools = [
+            {
+                "type": "function",
+                "function": {"name": "web_search", "parameters": {"type": "object"}},
+            }
+        ]
 
-        with patch("core.services.llm.estimate_llm_request_tokens", new_callable=AsyncMock, return_value=123) as mock_estimate:
+        with patch(
+            "core.services.llm.estimate_llm_request_tokens",
+            new_callable=AsyncMock,
+            return_value=123,
+        ) as mock_estimate:
             tokens = await ExecutionEngine.fast_token_count(
                 messages,
                 "test-model",
@@ -468,7 +543,9 @@ class TestTokenCountingIncludesTools:
 class TestSnapshotArchiverDelta:
     @pytest.mark.asyncio
     async def test_snapshot_archiver_skips_already_archived_message_ids(self):
-        from core.agents.pipeline.stateless.context.archiver import ContextArchiver as _ContextArchiver
+        from core.agents.pipeline.stateless.context.archiver import (
+            ContextArchiver as _ContextArchiver,
+        )
 
         sandbox, files = _mock_sandbox()
         mock_sandbox_info = MagicMock()
@@ -492,11 +569,15 @@ class TestSnapshotArchiverDelta:
                 "message_id": "m2",
                 "tool_call_id": "call_1",
                 "name": "web_search",
-                "content": "{\"results\": [\"https://example.com/a\"]}",
+                "content": '{"results": ["https://example.com/a"]}',
             },
         ]
 
-        with patch("core.sandbox.resolver.resolve_sandbox", new_callable=AsyncMock, return_value=mock_sandbox_info):
+        with patch(
+            "core.sandbox.resolver.resolve_sandbox",
+            new_callable=AsyncMock,
+            return_value=mock_sandbox_info,
+        ):
             first = await archiver.archive_messages_snapshot(msgs, reason="first")
             second = await archiver.archive_messages_snapshot(msgs, reason="second")
 
@@ -506,5 +587,7 @@ class TestSnapshotArchiverDelta:
         manifest_path = "/workspace/.carbon-bim/context/manifest.json"
         assert manifest_path in files
         manifest = json.loads(files[manifest_path].decode("utf-8"))
-        assert len(manifest["batches"]) == 1, "No new batch should be created for duplicate snapshot"
+        assert len(manifest["batches"]) == 1, (
+            "No new batch should be created for duplicate snapshot"
+        )
         assert manifest["total_archived"] == 2

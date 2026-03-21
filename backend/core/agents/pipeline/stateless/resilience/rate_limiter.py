@@ -173,7 +173,9 @@ class AdaptiveRateLimiter(RateLimiter):
             new_rate = self._bucket.rate
 
         if new_rate != self._bucket.rate:
-            logger.info(f"[AdaptiveRateLimiter] Adjusting rate: {self._bucket.rate:.2f} -> {new_rate:.2f}")
+            logger.info(
+                f"[AdaptiveRateLimiter] Adjusting rate: {self._bucket.rate:.2f} -> {new_rate:.2f}"
+            )
             self._bucket.rate = new_rate
 
         self._success_count = 0
@@ -182,12 +184,14 @@ class AdaptiveRateLimiter(RateLimiter):
 
     def get_stats(self) -> Dict[str, Any]:
         base_stats = self._bucket.get_stats()
-        base_stats.update({
-            "type": "adaptive",
-            "min_rate": self.min_rate,
-            "max_rate": self.max_rate,
-            "current_rate": self._bucket.rate,
-        })
+        base_stats.update(
+            {
+                "type": "adaptive",
+                "min_rate": self.min_rate,
+                "max_rate": self.max_rate,
+                "current_rate": self._bucket.rate,
+            }
+        )
         return base_stats
 
 
@@ -218,10 +222,7 @@ class RateLimiterRegistry:
         return self._limiters.get(name)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            name: limiter.get_stats()
-            for name, limiter in self._limiters.items()
-        }
+        return {name: limiter.get_stats() for name, limiter in self._limiters.items()}
 
 
 rate_limiter_registry = RateLimiterRegistry()

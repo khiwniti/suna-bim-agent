@@ -13,7 +13,7 @@ bottlenecks:
 
 Usage:
     from core.services.http_client import get_http_client
-    
+
     async with get_http_client() as client:
         response = await client.get("https://api.example.com/data")
 """
@@ -25,18 +25,18 @@ from contextlib import asynccontextmanager
 from core.utils.logger import logger
 
 # Connection pool settings
-HTTP_MAX_CONNECTIONS = int(os.getenv('HTTP_MAX_CONNECTIONS', '100'))
-HTTP_MAX_KEEPALIVE = int(os.getenv('HTTP_MAX_KEEPALIVE', '50'))
+HTTP_MAX_CONNECTIONS = int(os.getenv("HTTP_MAX_CONNECTIONS", "100"))
+HTTP_MAX_KEEPALIVE = int(os.getenv("HTTP_MAX_KEEPALIVE", "50"))
 HTTP_KEEPALIVE_EXPIRY = 30.0
 
 # Timeout settings (seconds)
-HTTP_CONNECT_TIMEOUT = float(os.getenv('HTTP_CONNECT_TIMEOUT', '10.0'))
-HTTP_READ_TIMEOUT = float(os.getenv('HTTP_READ_TIMEOUT', '60.0'))
-HTTP_WRITE_TIMEOUT = float(os.getenv('HTTP_WRITE_TIMEOUT', '30.0'))
-HTTP_POOL_TIMEOUT = float(os.getenv('HTTP_POOL_TIMEOUT', '30.0'))
+HTTP_CONNECT_TIMEOUT = float(os.getenv("HTTP_CONNECT_TIMEOUT", "10.0"))
+HTTP_READ_TIMEOUT = float(os.getenv("HTTP_READ_TIMEOUT", "60.0"))
+HTTP_WRITE_TIMEOUT = float(os.getenv("HTTP_WRITE_TIMEOUT", "30.0"))
+HTTP_POOL_TIMEOUT = float(os.getenv("HTTP_POOL_TIMEOUT", "30.0"))
 
 # Retry settings
-HTTP_RETRIES = int(os.getenv('HTTP_RETRIES', '3'))
+HTTP_RETRIES = int(os.getenv("HTTP_RETRIES", "3"))
 
 # Global shared client instance (per worker process)
 _shared_client: Optional[httpx.AsyncClient] = None
@@ -69,27 +69,28 @@ def _create_timeout() -> httpx.Timeout:
 async def _get_shared_client() -> httpx.AsyncClient:
     """Get or create the shared HTTP client instance."""
     global _shared_client, _client_lock
-    
+
     if _shared_client is not None:
         return _shared_client
-    
+
     # Lazy import to avoid circular dependencies
     import asyncio
+
     if _client_lock is None:
         _client_lock = asyncio.Lock()
-    
+
     async with _client_lock:
         # Double-check after acquiring lock
         if _shared_client is not None:
             return _shared_client
-        
+
         logger.info(
             f"Initializing shared HTTP client: "
             f"max_connections={HTTP_MAX_CONNECTIONS}, "
             f"connect_timeout={HTTP_CONNECT_TIMEOUT}s, "
             f"read_timeout={HTTP_READ_TIMEOUT}s"
         )
-        
+
         _shared_client = httpx.AsyncClient(
             transport=_create_transport(),
             timeout=_create_timeout(),
@@ -97,7 +98,7 @@ async def _get_shared_client() -> httpx.AsyncClient:
             # This helps reduce DNS lookup latency in containers
             follow_redirects=True,
         )
-        
+
         return _shared_client
 
 
@@ -115,35 +116,30 @@ async def close_shared_client():
 
 
 @asynccontextmanager
-async def get_http_client(
-    timeout: Optional[httpx.Timeout] = None,
-    **kwargs
-) -> httpx.AsyncClient:
+async def get_http_client(timeout: Optional[httpx.Timeout] = None, **kwargs) -> httpx.AsyncClient:
     """
     Get a shared HTTP client with optimized connection pooling.
-    
+
     Args:
         timeout: Optional custom timeout (overrides default)
         **kwargs: Additional httpx.AsyncClient parameters
-    
+
     Yields:
         httpx.AsyncClient: Configured HTTP client
-        
+
     Example:
         async with get_http_client() as client:
             response = await client.get("https://api.example.com/data")
     """
     client = await _get_shared_client()
-    
+
     # If custom timeout or other params provided, create a new client
     # Otherwise, reuse the shared client
     if timeout is not None or kwargs:
         # Create a temporary client with custom settings
         # Still uses connection pooling via transport
         custom_client = httpx.AsyncClient(
-            transport=_create_transport(),
-            timeout=timeout or _create_timeout(),
-            **kwargs
+            transport=_create_transport(), timeout=timeout or _create_timeout(), **kwargs
         )
         try:
             yield custom_client
@@ -155,20 +151,17 @@ async def get_http_client(
 
 
 @asynccontextmanager
-async def get_ephemeral_client(
-    timeout: Optional[float] = None,
-    **kwargs
-) -> httpx.AsyncClient:
+async def get_ephemeral_client(timeout: Optional[float] = None, **kwargs) -> httpx.AsyncClient:
     """
     Get an ephemeral HTTP client for one-off requests.
-    
+
     Use this when you need a client that will be closed after use,
     or when you need different settings than the shared client.
-    
+
     Args:
         timeout: Optional timeout in seconds (creates httpx.Timeout)
         **kwargs: Additional httpx.AsyncClient parameters
-    
+
     Yields:
         httpx.AsyncClient: Ephemeral HTTP client
     """
@@ -176,15 +169,10 @@ async def get_ephemeral_client(
         timeout = httpx.Timeout(timeout)
     elif timeout is None:
         timeout = _create_timeout()
-    
-    client = httpx.AsyncClient(
-        transport=_create_transport(),
-        timeout=timeout,
-        **kwargs
-    )
-    
+
+    client = httpx.AsyncClient(transport=_create_transport(), timeout=timeout, **kwargs)
+
     try:
         yield client
     finally:
         await client.aclose()
-

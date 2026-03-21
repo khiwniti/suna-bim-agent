@@ -11,7 +11,7 @@ class ComposioTriggerService:
     def __init__(self):
         self.api_base = os.getenv("COMPOSIO_API_BASE", "https://backend.composio.dev").rstrip("/")
         self.api_key = os.getenv("COMPOSIO_API_KEY")
-        
+
         # Cache settings
         self._apps_cache: Dict[str, Any] = {"ts": 0, "data": None}
         self._apps_ttl = 60
@@ -32,6 +32,7 @@ class ComposioTriggerService:
         # Try Redis cache first
         try:
             from core.services import redis as redis_service
+
             cache_key = "composio:apps-with-triggers:v1"
             cached_json = await redis_service.get(cache_key)
             if cached_json:
@@ -91,7 +92,11 @@ class ComposioTriggerService:
                 if isinstance(val, str) and val.strip():
                     key = val.strip().lower()
                     if key not in toolkits_map:
-                        toolkits_map[key] = {"slug": val.strip(), "name": val.strip().capitalize(), "logo": None}
+                        toolkits_map[key] = {
+                            "slug": val.strip(),
+                            "name": val.strip().capitalize(),
+                            "logo": None,
+                        }
                     break
 
         # Fallback enrichment with ToolkitService only for missing logos
@@ -100,7 +105,7 @@ class ComposioTriggerService:
             toolkit_service = ToolkitService()
             tk_resp = await toolkit_service.list_toolkits(limit=500)
             tk_items = tk_resp.get("items", [])
-            tk_by_slug = {t.slug.lower(): t for t in tk_items if hasattr(t, 'slug')}
+            tk_by_slug = {t.slug.lower(): t for t in tk_items if hasattr(t, "slug")}
             for slug in missing:
                 t = tk_by_slug.get(slug)
                 if t and t.logo:
@@ -117,6 +122,7 @@ class ComposioTriggerService:
         # Store in Redis cache as well
         try:
             from core.services import redis as redis_service
+
             cache_key = "composio:apps-with-triggers:v1"
             await redis_service.set(cache_key, json.dumps(response), ex=self._apps_ttl)
         except Exception:
@@ -150,11 +156,16 @@ class ComposioTriggerService:
                 items = data if isinstance(data, list) else []
             # Fallback to fetch all pages then filter client-side
             if not items:
-                logger.debug("[Composio HTTP] toolkit filter returned 0, fetching all and filtering", toolkit=toolkit_slug)
+                logger.debug(
+                    "[Composio HTTP] toolkit filter returned 0, fetching all and filtering",
+                    toolkit=toolkit_slug,
+                )
                 params_all = {"limit": 1000}
                 items = []
                 while True:
-                    resp_all = await client_http.get(url, headers=headers, params=params_all, timeout=20.0)
+                    resp_all = await client_http.get(
+                        url, headers=headers, params=params_all, timeout=20.0
+                    )
                     resp_all.raise_for_status()
                     data_all = resp_all.json()
                     page_items = data_all.get("items") if isinstance(data_all, dict) else data_all
@@ -172,9 +183,13 @@ class ComposioTriggerService:
         toolkit_service = ToolkitService()
         tk_resp = await toolkit_service.list_toolkits(limit=500)
         tk_items = tk_resp.get("items", [])
-        tk_by_slug = {t.slug.lower(): t for t in tk_items if hasattr(t, 'slug')}
+        tk_by_slug = {t.slug.lower(): t for t in tk_items if hasattr(t, "slug")}
         tk = tk_by_slug.get(toolkit_slug.lower())
-        tk_info = {"slug": toolkit_slug, "name": (tk.name if tk else toolkit_slug), "logo": (tk.logo if tk else None)}
+        tk_info = {
+            "slug": toolkit_slug,
+            "name": (tk.name if tk else toolkit_slug),
+            "logo": (tk.logo if tk else None),
+        }
 
         def match_toolkit(x: Dict[str, Any]) -> bool:
             tkv = x.get("toolkit")
@@ -197,19 +212,26 @@ class ComposioTriggerService:
             if not match_toolkit(x):
                 continue
             matched_count += 1
-            result_items.append({
-                "slug": x.get("slug"),
-                "name": x.get("name"),
-                "description": x.get("description"),
-                "type": x.get("type") or x.get("delivery_type") or "webhook",
-                "instructions": x.get("instructions") or "",
-                "toolkit": tk_info,
-                "config": x.get("config") or {},
-                "payload": x.get("payload") or {},
-            })
+            result_items.append(
+                {
+                    "slug": x.get("slug"),
+                    "name": x.get("name"),
+                    "description": x.get("description"),
+                    "type": x.get("type") or x.get("delivery_type") or "webhook",
+                    "instructions": x.get("instructions") or "",
+                    "toolkit": tk_info,
+                    "config": x.get("config") or {},
+                    "payload": x.get("payload") or {},
+                }
+            )
 
         # Cache response
-        response = {"success": True, "items": result_items, "toolkit": tk_info, "total": len(result_items)}
+        response = {
+            "success": True,
+            "items": result_items,
+            "toolkit": tk_info,
+            "total": len(result_items),
+        }
         self._triggers_cache[toolkit_slug.lower()] = {"data": response, "ts": now_ts}
 
         return response

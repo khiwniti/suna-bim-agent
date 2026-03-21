@@ -1,41 +1,40 @@
-
 import os
 import unicodedata
 from urllib.parse import unquote
 
 # Unicode space characters that should be normalized to ASCII space
 UNICODE_SPACES = [
-    '\u00A0',  # Non-breaking space
-    '\u2000',  # En quad
-    '\u2001',  # Em quad
-    '\u2002',  # En space
-    '\u2003',  # Em space
-    '\u2004',  # Three-per-em space
-    '\u2005',  # Four-per-em space
-    '\u2006',  # Six-per-em space
-    '\u2007',  # Figure space
-    '\u2008',  # Punctuation space
-    '\u2009',  # Thin space
-    '\u200A',  # Hair space
-    '\u202F',  # Narrow no-break space (common in macOS screenshots)
-    '\u205F',  # Medium mathematical space
-    '\u3000',  # Ideographic space
+    "\u00a0",  # Non-breaking space
+    "\u2000",  # En quad
+    "\u2001",  # Em quad
+    "\u2002",  # En space
+    "\u2003",  # Em space
+    "\u2004",  # Three-per-em space
+    "\u2005",  # Four-per-em space
+    "\u2006",  # Six-per-em space
+    "\u2007",  # Figure space
+    "\u2008",  # Punctuation space
+    "\u2009",  # Thin space
+    "\u200a",  # Hair space
+    "\u202f",  # Narrow no-break space (common in macOS screenshots)
+    "\u205f",  # Medium mathematical space
+    "\u3000",  # Ideographic space
 ]
 
 # Characters that cause issues in Unix filesystems and shell commands
 # These are replaced with safe alternatives
 UNSAFE_CHAR_REPLACEMENTS = {
-    ':': '-',   # Colons not allowed in many filesystems
-    '*': '-',   # Wildcard character
-    '?': '-',   # Wildcard character
-    '"': "'",   # Double quotes can break shell commands
-    '<': '-',   # Redirect operator
-    '>': '-',   # Redirect operator
-    '|': '-',   # Pipe operator
-    '\0': '',   # Null character
-    '\n': '_',  # Newline
-    '\r': '_',  # Carriage return
-    '\t': '_',  # Tab
+    ":": "-",  # Colons not allowed in many filesystems
+    "*": "-",  # Wildcard character
+    "?": "-",  # Wildcard character
+    '"': "'",  # Double quotes can break shell commands
+    "<": "-",  # Redirect operator
+    ">": "-",  # Redirect operator
+    "|": "-",  # Pipe operator
+    "\0": "",  # Null character
+    "\n": "_",  # Newline
+    "\r": "_",  # Carriage return
+    "\t": "_",  # Tab
 }
 
 # Files to exclude from operations
@@ -52,13 +51,7 @@ EXCLUDED_FILES = {
 }
 
 # Directories to exclude from operations
-EXCLUDED_DIRS = {
-    "node_modules",
-    ".next",
-    "dist",
-    "build",
-    ".git"
-}
+EXCLUDED_DIRS = {"node_modules", ".next", "dist", "build", ".git"}
 
 # File extensions to exclude from operations
 EXCLUDED_EXT = {
@@ -72,15 +65,16 @@ EXCLUDED_EXT = {
     ".tiff",
     ".webp",
     ".db",
-    ".sql"
+    ".sql",
 }
+
 
 def should_exclude_file(rel_path: str) -> bool:
     """Check if a file should be excluded based on path, name, or extension
-    
+
     Args:
         rel_path: Relative path of the file to check
-        
+
     Returns:
         True if the file should be excluded, False otherwise
     """
@@ -99,7 +93,8 @@ def should_exclude_file(rel_path: str) -> bool:
     if ext.lower() in EXCLUDED_EXT:
         return True
 
-    return False 
+    return False
+
 
 def normalize_filename(filename: str) -> str:
     """Normalize a single filename (not a path) for Unix compatibility.
@@ -132,11 +127,11 @@ def normalize_filename(filename: str) -> str:
             pass
 
         # Normalize to NFC (Normalized Form Composed)
-        filename = unicodedata.normalize('NFC', filename)
+        filename = unicodedata.normalize("NFC", filename)
 
         # Replace Unicode spaces with ASCII space
         for unicode_space in UNICODE_SPACES:
-            filename = filename.replace(unicode_space, ' ')
+            filename = filename.replace(unicode_space, " ")
 
         # Replace unsafe characters with safe alternatives
         for unsafe_char, safe_char in UNSAFE_CHAR_REPLACEMENTS.items():
@@ -145,11 +140,11 @@ def normalize_filename(filename: str) -> str:
         # Trim leading/trailing spaces and dots (can cause issues)
         # But preserve the extension's dot
         name, ext = os.path.splitext(filename)
-        name = name.strip().strip('.')
+        name = name.strip().strip(".")
 
         # If name is empty after stripping, use a default
         if not name:
-            name = 'file'
+            name = "file"
 
         filename = name + ext
 
@@ -157,7 +152,8 @@ def normalize_filename(filename: str) -> str:
     except Exception:
         # Fallback: keep only safe ASCII characters
         import re
-        return re.sub(r'[^a-zA-Z0-9._\- ]', '_', filename)
+
+        return re.sub(r"[^a-zA-Z0-9._\- ]", "_", filename)
 
 
 def normalize_path(path: str) -> str:
@@ -184,16 +180,16 @@ def normalize_path(path: str) -> str:
             pass
 
         # Normalize Unicode to NFC form
-        path = unicodedata.normalize('NFC', path)
+        path = unicodedata.normalize("NFC", path)
 
         # Replace Unicode spaces with ASCII space throughout the path
         for unicode_space in UNICODE_SPACES:
-            path = path.replace(unicode_space, ' ')
+            path = path.replace(unicode_space, " ")
 
         # Split path into components and normalize each part
         # Preserve leading slash if present
-        leading_slash = path.startswith('/')
-        parts = path.split('/')
+        leading_slash = path.startswith("/")
+        parts = path.split("/")
 
         normalized_parts = []
         for i, part in enumerate(parts):
@@ -213,9 +209,9 @@ def normalize_path(path: str) -> str:
                 normalized_parts.append(part)
 
         # Reconstruct the path
-        result = '/'.join(normalized_parts)
+        result = "/".join(normalized_parts)
         if leading_slash:
-            result = '/' + result
+            result = "/" + result
 
         return result
     except Exception:
@@ -248,23 +244,23 @@ def clean_path(path: str, workspace_path: str = "/workspace") -> str:
     path = normalize_path(path)
 
     # Strip the absolute /workspace prefix if present
-    if path.startswith('/workspace/'):
-        path = path[len('/workspace/'):]
-    elif path.startswith('/workspace'):
-        path = path[len('/workspace'):]
+    if path.startswith("/workspace/"):
+        path = path[len("/workspace/") :]
+    elif path.startswith("/workspace"):
+        path = path[len("/workspace") :]
 
     # Remove any leading slash
-    path = path.lstrip('/')
+    path = path.lstrip("/")
 
     # Remove workspace prefix if present (for paths like "workspace/foo")
-    if path.startswith(workspace_path.lstrip('/')):
-        path = path[len(workspace_path.lstrip('/')):]
+    if path.startswith(workspace_path.lstrip("/")):
+        path = path[len(workspace_path.lstrip("/")) :]
 
     # Remove workspace/ prefix if present (handles "workspace/uploads/...")
-    if path.startswith('workspace/'):
-        path = path[len('workspace/'):]
+    if path.startswith("workspace/"):
+        path = path[len("workspace/") :]
 
     # Remove any remaining leading slash
-    path = path.lstrip('/')
+    path = path.lstrip("/")
 
-    return path 
+    return path

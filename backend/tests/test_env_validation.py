@@ -32,9 +32,7 @@ class TestEnvironmentConfiguration:
         ]
 
         for var in required_vars:
-            assert var in content, (
-                f"Required variable {var} not documented in .env.example"
-            )
+            assert var in content, f"Required variable {var} not documented in .env.example"
 
     def test_env_example_has_llm_providers(self):
         """Verify .env.example documents LLM provider keys."""
@@ -85,9 +83,7 @@ class TestEnvironmentConfiguration:
         content = env_example.read_text()
 
         # Check for comment lines (should have many)
-        comment_lines = [
-            line for line in content.split("\n") if line.strip().startswith("#")
-        ]
+        comment_lines = [line for line in content.split("\n") if line.strip().startswith("#")]
         assert len(comment_lines) > 50, (
             f"Expected >50 comment lines in .env.example, found {len(comment_lines)}"
         )
@@ -141,9 +137,7 @@ class TestGitIgnoreConfiguration:
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        assert "backend/.env.example" in result.stdout, (
-            ".env.example should be tracked in git"
-        )
+        assert "backend/.env.example" in result.stdout, ".env.example should be tracked in git"
 
 
 class TestEnvValidationScript:
@@ -151,24 +145,12 @@ class TestEnvValidationScript:
 
     def test_validation_script_exists(self):
         """Verify validation script exists."""
-        script = (
-            Path(__file__).parent.parent
-            / "core"
-            / "utils"
-            / "scripts"
-            / "validate_env.py"
-        )
+        script = Path(__file__).parent.parent / "core" / "utils" / "scripts" / "validate_env.py"
         assert script.exists(), "validate_env.py script not found"
 
     def test_validation_script_is_executable(self):
         """Verify validation script can be run."""
-        script = (
-            Path(__file__).parent.parent
-            / "core"
-            / "utils"
-            / "scripts"
-            / "validate_env.py"
-        )
+        script = Path(__file__).parent.parent / "core" / "utils" / "scripts" / "validate_env.py"
 
         # Try to run the script (it may fail validation, but should execute)
         result = subprocess.run(

@@ -9,6 +9,7 @@ from .common import PaginationInfo
 
 class AgentCreateRequest(BaseModel):
     """Request model for creating a new agent."""
+
     name: str
     system_prompt: Optional[str] = None
     configured_mcps: Optional[List[Dict[str, Any]]] = []
@@ -22,6 +23,7 @@ class AgentCreateRequest(BaseModel):
 
 class AgentUpdateRequest(BaseModel):
     """Request model for updating an existing agent."""
+
     name: Optional[str] = None
     description: Optional[str] = None
     system_prompt: Optional[str] = None
@@ -38,6 +40,7 @@ class AgentUpdateRequest(BaseModel):
 
 class AgentVersionResponse(BaseModel):
     """Response model for agent version information."""
+
     version_id: str
     agent_id: str
     version_number: int
@@ -55,6 +58,7 @@ class AgentVersionResponse(BaseModel):
 
 class AgentVersionCreateRequest(BaseModel):
     """Request model for creating a new agent version."""
+
     system_prompt: str
     configured_mcps: Optional[List[Dict[str, Any]]] = []
     custom_mcps: Optional[List[Dict[str, Any]]] = []
@@ -64,6 +68,7 @@ class AgentVersionCreateRequest(BaseModel):
 
 class AgentResponse(BaseModel):
     """Response model for agent information."""
+
     agent_id: str
     name: str
     description: Optional[str] = None
@@ -89,12 +94,14 @@ class AgentResponse(BaseModel):
 
 class AgentsResponse(BaseModel):
     """Response model for list of agents with pagination."""
+
     agents: List[AgentResponse]
     pagination: PaginationInfo
 
 
 class AgentExportData(BaseModel):
     """Model for agent export data."""
+
     name: str
     description: Optional[str] = None
     system_prompt: str
@@ -109,20 +116,21 @@ class AgentExportData(BaseModel):
 
 class AgentImportRequest(BaseModel):
     """Request to import an agent from JSON."""
+
     import_data: AgentExportData
     import_as_new: bool = True  # Always true, only creating new agents is supported
 
 
 class AgentIconGenerationRequest(BaseModel):
     """Request model for generating agent icon and colors."""
+
     name: str
     description: Optional[str] = None
 
 
 class AgentIconGenerationResponse(BaseModel):
     """Response model for generated agent icon and colors."""
+
     icon_name: str
     icon_color: str
     icon_background: str
-
-

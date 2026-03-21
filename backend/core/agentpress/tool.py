@@ -16,35 +16,43 @@ import inspect
 from enum import Enum
 from core.utils.logger import logger
 
+
 class SchemaType(Enum):
     """Enumeration of supported schema types for tool definitions."""
+
     OPENAPI = "openapi"
+
 
 @dataclass
 class ToolSchema:
     """Container for tool schemas with type information.
-    
+
     Attributes:
         schema_type (SchemaType): Type of schema (OpenAPI)
         schema (Dict[str, Any]): The actual schema definition
     """
+
     schema_type: SchemaType
     schema: dict[str, Any]
+
 
 @dataclass
 class ToolResult:
     """Container for tool execution results.
-    
+
     Attributes:
         success (bool): Whether the tool execution succeeded
         output (Any): Output data (can be dict, list, or string)
     """
+
     success: bool
     output: Any
+
+
 @dataclass
 class ToolMetadata:
     """Container for tool-level metadata.
-    
+
     Attributes:
         display_name (str): Human-readable tool name
         description (str): Tool description (short, for minimal index)
@@ -55,6 +63,7 @@ class ToolMetadata:
         visible (bool): Whether tool is visible in frontend UI (default False)
         usage_guide (Optional[str]): Detailed usage instructions loaded on-demand
     """
+
     display_name: str
     description: str
     icon: Optional[str] = None
@@ -64,32 +73,35 @@ class ToolMetadata:
     visible: bool = False
     usage_guide: Optional[str] = None
 
+
 @dataclass
 class MethodMetadata:
     """Container for method-level metadata.
-    
+
     Attributes:
         display_name (str): Human-readable method name
         description (str): Method description
         is_core (bool): Whether this is a core method (always enabled)
         visible (bool): Whether method is visible in frontend UI (default True)
     """
+
     display_name: str
     description: str
     is_core: bool = False
     visible: bool = True
 
+
 class Tool(ABC):
     """Abstract base class for all tools.
-    
+
     Provides the foundation for implementing tools with schema registration
     and result handling capabilities.
-    
+
     Attributes:
         _schemas (Dict[str, List[ToolSchema]]): Registered schemas for tool methods
         _metadata (Optional[ToolMetadata]): Tool-level metadata
         _method_metadata (Dict[str, MethodMetadata]): Method-level metadata
-        
+
     Methods:
         get_schemas: Get all registered tool schemas
         get_metadata: Get tool metadata
@@ -97,7 +109,7 @@ class Tool(ABC):
         success_response: Create a successful result
         fail_response: Create a failed result
     """
-    
+
     def __init__(self):
         """Initialize tool with empty schema registry."""
         self._schemas: dict[str, list[ToolSchema]] = {}
@@ -110,24 +122,24 @@ class Tool(ABC):
     def _register_metadata(self):
         """Register metadata from class and method decorators."""
         # Register tool-level metadata
-        if hasattr(self.__class__, '__tool_metadata__'):
+        if hasattr(self.__class__, "__tool_metadata__"):
             self._metadata = self.__class__.__tool_metadata__
-        
+
         # Register method-level metadata
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if hasattr(method, '__method_metadata__'):
+            if hasattr(method, "__method_metadata__"):
                 self._method_metadata[name] = method.__method_metadata__
 
     def _register_schemas(self):
         """Register schemas from all decorated methods."""
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if hasattr(method, 'tool_schemas'):
+            if hasattr(method, "tool_schemas"):
                 self._schemas[name] = method.tool_schemas
                 # logger.debug(f"Registered schemas for method '{name}' in {self.__class__.__name__}")
 
     def get_schemas(self) -> dict[str, list[ToolSchema]]:
         """Get all registered tool schemas.
-        
+
         Returns:
             Dict mapping method names to their schema definitions
         """
@@ -135,7 +147,7 @@ class Tool(ABC):
 
     def get_metadata(self) -> Optional[ToolMetadata]:
         """Get tool-level metadata.
-        
+
         Returns:
             ToolMetadata object or None if not set
         """
@@ -143,7 +155,7 @@ class Tool(ABC):
 
     def get_method_metadata(self) -> dict[str, MethodMetadata]:
         """Get metadata for all methods.
-        
+
         Returns:
             Dict mapping method names to their metadata
         """
@@ -151,10 +163,10 @@ class Tool(ABC):
 
     def success_response(self, data: dict[str, Any] | str | list) -> ToolResult:
         """Create a successful tool result.
-        
+
         Args:
             data: Result data (dictionary, list, or string)
-            
+
         Returns:
             ToolResult with success=True and data as JSON string (if dict/list) or plain string
         """
@@ -162,38 +174,40 @@ class Tool(ABC):
             output = json.dumps(data)
         else:
             output = str(data)
-        
+
         return ToolResult(success=True, output=output)
 
     def fail_response(self, msg: str) -> ToolResult:
         """Create a failed tool result.
-        
+
         Args:
             msg: Error message describing the failure
-            
+
         Returns:
             ToolResult with success=False and error message
         """
         # logger.debug(f"Tool {self.__class__.__name__} returned failed result: {msg}")
         return ToolResult(success=False, output=msg)
 
+
 def _add_schema(func, schema: ToolSchema):
     """Helper to add schema to a function."""
-    if not hasattr(func, 'tool_schemas'):
+    if not hasattr(func, "tool_schemas"):
         func.tool_schemas = []
     func.tool_schemas.append(schema)
     # logger.debug(f"Added {schema.schema_type.value} schema to function {func.__name__}")
     return func
 
+
 def openapi_schema(schema: dict[str, Any]):
     """Decorator for OpenAPI schema tools."""
+
     def decorator(func):
         # logger.debug(f"Applying OpenAPI schema to function {func.__name__}")
-        return _add_schema(func, ToolSchema(
-            schema_type=SchemaType.OPENAPI,
-            schema=schema
-        ))
+        return _add_schema(func, ToolSchema(schema_type=SchemaType.OPENAPI, schema=schema))
+
     return decorator
+
 
 def tool_metadata(
     display_name: str,
@@ -203,10 +217,10 @@ def tool_metadata(
     is_core: bool = False,
     weight: int = 100,
     visible: bool = False,
-    usage_guide: Optional[str] = None
+    usage_guide: Optional[str] = None,
 ):
     """Decorator to add metadata to a Tool class.
-    
+
     Args:
         display_name: Human-readable tool name
         description: Tool description (short, shown in minimal index)
@@ -219,7 +233,7 @@ def tool_metadata(
                  Set to False to hide from UI (internal/experimental tools)
         usage_guide: Detailed usage instructions loaded on-demand by the agent.
                      Contains comprehensive documentation, examples, and best practices.
-    
+
     Usage:
         @tool_metadata(
             display_name="File Operations",
@@ -238,6 +252,7 @@ def tool_metadata(
         class SandboxFilesTool(Tool):
             ...
     """
+
     def decorator(cls):
         cls.__tool_metadata__ = ToolMetadata(
             display_name=display_name,
@@ -247,26 +262,25 @@ def tool_metadata(
             is_core=is_core,
             weight=weight,
             visible=visible,
-            usage_guide=usage_guide
+            usage_guide=usage_guide,
         )
         return cls
+
     return decorator
 
+
 def method_metadata(
-    display_name: str,
-    description: str,
-    is_core: bool = False,
-    visible: bool = True
+    display_name: str, description: str, is_core: bool = False, visible: bool = True
 ):
     """Decorator to add metadata to a tool method.
-    
+
     Args:
         display_name: Human-readable method name
         description: Method description
         is_core: Whether this is a core method that's always enabled
         visible: Whether method is visible in frontend UI (default True)
                  Set to False to hide from UI (internal/experimental methods)
-    
+
     Usage:
         @method_metadata(
             display_name="Create File",
@@ -276,7 +290,7 @@ def method_metadata(
         @openapi_schema({...})
         def create_file(self, ...):
             ...
-        
+
         # Example: Hidden from UI (internal method)
         @method_metadata(
             display_name="Internal Helper",
@@ -287,13 +301,11 @@ def method_metadata(
         def internal_method(self, ...):
             ...
     """
+
     def decorator(func):
         func.__method_metadata__ = MethodMetadata(
-            display_name=display_name,
-            description=description,
-            is_core=is_core,
-            visible=visible
+            display_name=display_name, description=description, is_core=is_core, visible=visible
         )
         return func
-    return decorator
 
+    return decorator

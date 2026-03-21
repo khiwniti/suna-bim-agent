@@ -1,58 +1,59 @@
 """Carbon calculation tool — embodied carbon footprint from IFC models."""
+
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.utils.logger import logger
 from .base import BIMToolBase, HAS_IFC
 
 # kgCO2e per m³ (volumetric coefficients for structural materials)
 CARBON_COEFFICIENTS = {
-    'concrete': 350,    # reinforced concrete
-    'steel': 11461,     # density 7850 kg/m³ × 1.46 kgCO2e/kg
-    'timber': -500,     # sequestered carbon
-    'glass': 62.5,      # ~25 kgCO2e/m² × 2.5 cm avg
-    'aluminum': 22248,  # density 2700 × 8.24 kgCO2e/kg
-    'default': 300,
+    "concrete": 350,  # reinforced concrete
+    "steel": 11461,  # density 7850 kg/m³ × 1.46 kgCO2e/kg
+    "timber": -500,  # sequestered carbon
+    "glass": 62.5,  # ~25 kgCO2e/m² × 2.5 cm avg
+    "aluminum": 22248,  # density 2700 × 8.24 kgCO2e/kg
+    "default": 300,
 }
 
 # Material name keyword → CARBON_COEFFICIENTS key (case-insensitive substring match)
 MATERIAL_KEYWORD_MAP = [
-    ('concrete', 'concrete'),
-    ('reinforced', 'concrete'),
-    ('rc ', 'concrete'),
-    ('steel', 'steel'),
-    ('metal', 'steel'),
-    ('iron', 'steel'),
-    ('timber', 'timber'),
-    ('wood', 'timber'),
-    ('lumber', 'timber'),
-    ('glulam', 'timber'),
-    ('glass', 'glass'),
-    ('glazing', 'glass'),
-    ('alumin', 'aluminum'),
-    ('alum', 'aluminum'),
+    ("concrete", "concrete"),
+    ("reinforced", "concrete"),
+    ("rc ", "concrete"),
+    ("steel", "steel"),
+    ("metal", "steel"),
+    ("iron", "steel"),
+    ("timber", "timber"),
+    ("wood", "timber"),
+    ("lumber", "timber"),
+    ("glulam", "timber"),
+    ("glass", "glass"),
+    ("glazing", "glass"),
+    ("alumin", "aluminum"),
+    ("alum", "aluminum"),
 ]
 
 # Fallback: IFC element type → (material key, default volume m³) when no IfcMaterial is assigned
 ELEMENT_MATERIAL_MAP = {
-    'IfcWall': ('concrete', 0.8),
-    'IfcSlab': ('concrete', 1.5),
-    'IfcBeam': ('steel', 0.3),
-    'IfcColumn': ('concrete', 0.5),
-    'IfcRoof': ('concrete', 1.2),
+    "IfcWall": ("concrete", 0.8),
+    "IfcSlab": ("concrete", 1.5),
+    "IfcBeam": ("steel", 0.3),
+    "IfcColumn": ("concrete", 0.5),
+    "IfcRoof": ("concrete", 1.2),
 }
 
 ELEMENT_COLORS = {
-    'low':    '#22c55e',   # green  < 100 kgCO2e
-    'medium': '#f59e0b',   # amber  100–500
-    'high':   '#ef4444',   # red    > 500
+    "low": "#22c55e",  # green  < 100 kgCO2e
+    "medium": "#f59e0b",  # amber  100–500
+    "high": "#ef4444",  # red    > 500
 }
 
 
 def _co2_color(co2: float) -> str:
     if co2 < 100:
-        return ELEMENT_COLORS['low']
+        return ELEMENT_COLORS["low"]
     if co2 < 500:
-        return ELEMENT_COLORS['medium']
-    return ELEMENT_COLORS['high']
+        return ELEMENT_COLORS["medium"]
+    return ELEMENT_COLORS["high"]
 
 
 def _material_to_coefficient(material_name: str) -> float:
@@ -61,7 +62,7 @@ def _material_to_coefficient(material_name: str) -> float:
     for keyword, key in MATERIAL_KEYWORD_MAP:
         if keyword in lower:
             return CARBON_COEFFICIENTS[key]
-    return CARBON_COEFFICIENTS['default']
+    return CARBON_COEFFICIENTS["default"]
 
 
 @tool_metadata(
@@ -91,30 +92,31 @@ calculate_carbon(file_path="/workspace/model.ifc", include_breakdown=true)
 """,
 )
 class CarbonCalculationTool(BIMToolBase):
-
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "calculate_carbon",
-            "description": "Calculate the embodied carbon footprint (kgCO2e) of a BIM/IFC model.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "**REQUIRED** Path to the IFC file in the sandbox",
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "calculate_carbon",
+                "description": "Calculate the embodied carbon footprint (kgCO2e) of a BIM/IFC model.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "**REQUIRED** Path to the IFC file in the sandbox",
+                        },
+                        "include_breakdown": {
+                            "type": "boolean",
+                            "description": "**OPTIONAL** Include per-category breakdown and element highlights (default true)",
+                            "default": True,
+                        },
                     },
-                    "include_breakdown": {
-                        "type": "boolean",
-                        "description": "**OPTIONAL** Include per-category breakdown and element highlights (default true)",
-                        "default": True,
-                    },
+                    "required": ["file_path"],
+                    "additionalProperties": False,
                 },
-                "required": ["file_path"],
-                "additionalProperties": False,
             },
-        },
-    })
+        }
+    )
     async def calculate_carbon(self, file_path: str, include_breakdown: bool = True) -> ToolResult:
         try:
             if not HAS_IFC:
@@ -138,21 +140,25 @@ class CarbonCalculationTool(BIMToolBase):
                     if material_name:
                         coefficient = _material_to_coefficient(material_name)
                     else:
-                        coefficient = CARBON_COEFFICIENTS.get(default_material, CARBON_COEFFICIENTS['default'])
+                        coefficient = CARBON_COEFFICIENTS.get(
+                            default_material, CARBON_COEFFICIENTS["default"]
+                        )
 
                     co2 = volume * coefficient
                     category_co2 += co2
 
                     if include_breakdown:
-                        element_highlights.append({
-                            'express_id': element.id(),
-                            'carbon': round(co2, 2),
-                            'material': material_name or default_material,
-                            'color': _co2_color(co2),
-                        })
+                        element_highlights.append(
+                            {
+                                "express_id": element.id(),
+                                "carbon": round(co2, 2),
+                                "material": material_name or default_material,
+                                "color": _co2_color(co2),
+                            }
+                        )
 
                 if category_co2 > 0:
-                    label = ifc_type.replace('Ifc', '') + 's'
+                    label = ifc_type.replace("Ifc", "") + "s"
                     category_totals[label] = round(category_co2, 2)
                     total_co2 += category_co2
 
@@ -160,21 +166,21 @@ class CarbonCalculationTool(BIMToolBase):
 
             breakdown = [
                 {
-                    'category': cat,
-                    'value': val,
-                    'percentage': round(val / total_co2 * 100, 1) if total_co2 else 0,
+                    "category": cat,
+                    "value": val,
+                    "percentage": round(val / total_co2 * 100, 1) if total_co2 else 0,
                 }
                 for cat, val in sorted(category_totals.items(), key=lambda x: -x[1])
             ]
 
             result = {
-                'total_co2': total_co2,
-                'unit': 'kgCO2e',
-                'summary': f"Total embodied carbon: {total_co2:,.0f} kgCO2e",
+                "total_co2": total_co2,
+                "unit": "kgCO2e",
+                "summary": f"Total embodied carbon: {total_co2:,.0f} kgCO2e",
             }
             if include_breakdown:
-                result['breakdown'] = breakdown
-                result['element_highlights'] = element_highlights
+                result["breakdown"] = breakdown
+                result["element_highlights"] = element_highlights
 
             return self.success_response(result)
         except Exception as e:
@@ -183,18 +189,18 @@ class CarbonCalculationTool(BIMToolBase):
 
     def _mock_carbon_result(self) -> dict:
         return {
-            'note': 'ifcopenshell not installed — returning mock data',
-            'total_co2': 12500.5,
-            'unit': 'kgCO2e',
-            'summary': 'Total embodied carbon: 12,501 kgCO2e',
-            'breakdown': [
-                {'category': 'Walls',   'value': 5000.0, 'percentage': 40.0},
-                {'category': 'Slabs',   'value': 4000.0, 'percentage': 32.0},
-                {'category': 'Columns', 'value': 2000.0, 'percentage': 16.0},
-                {'category': 'Beams',   'value': 1500.5, 'percentage': 12.0},
+            "note": "ifcopenshell not installed — returning mock data",
+            "total_co2": 12500.5,
+            "unit": "kgCO2e",
+            "summary": "Total embodied carbon: 12,501 kgCO2e",
+            "breakdown": [
+                {"category": "Walls", "value": 5000.0, "percentage": 40.0},
+                {"category": "Slabs", "value": 4000.0, "percentage": 32.0},
+                {"category": "Columns", "value": 2000.0, "percentage": 16.0},
+                {"category": "Beams", "value": 1500.5, "percentage": 12.0},
             ],
-            'element_highlights': [
-                {'express_id': 101, 'carbon': 500.0, 'material': 'concrete', 'color': '#ef4444'},
-                {'express_id': 102, 'carbon': 80.0,  'material': 'timber',   'color': '#22c55e'},
+            "element_highlights": [
+                {"express_id": 101, "carbon": 500.0, "material": "concrete", "color": "#ef4444"},
+                {"express_id": 102, "carbon": 80.0, "material": "timber", "color": "#22c55e"},
             ],
         }

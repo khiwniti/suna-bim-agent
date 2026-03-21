@@ -13,8 +13,8 @@ router = APIRouter(tags=["notifications"], prefix="/notifications")
 def check_notifications_enabled():
     if config.ENV_MODE != EnvMode.STAGING:
         raise HTTPException(
-            status_code=403, 
-            detail=f"Notifications are only available in staging mode (current mode: {config.ENV_MODE.value})"
+            status_code=403,
+            detail=f"Notifications are only available in staging mode (current mode: {config.ENV_MODE.value})",
         )
 
 
@@ -49,14 +49,14 @@ class SendNotificationRequest(BaseModel):
 async def get_notification_settings(current_user: dict = Depends(get_current_user)):
     check_notifications_enabled()
     try:
-        account_id = current_user.get('user_id')
+        account_id = current_user.get("user_id")
         settings = await notification_service.get_account_notification_settings(account_id)
-        
+
         if not settings:
             settings = await notification_service.create_default_settings(account_id)
-        
+
         return {"success": True, "settings": settings.dict()}
-        
+
     except Exception as e:
         logger.error(f"Error getting notification settings: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -64,31 +64,29 @@ async def get_notification_settings(current_user: dict = Depends(get_current_use
 
 @router.put("/settings")
 async def update_notification_settings(
-    settings_update: NotificationSettingsUpdate,
-    current_user: dict = Depends(get_current_user)
+    settings_update: NotificationSettingsUpdate, current_user: dict = Depends(get_current_user)
 ):
     check_notifications_enabled()
     try:
-        account_id = current_user.get('user_id')
-        
+        account_id = current_user.get("user_id")
+
         update_data = {k: v for k, v in settings_update.dict().items() if v is not None}
-        
+
         success = await notification_service.update_account_notification_settings(
-            account_id=account_id,
-            settings=update_data
+            account_id=account_id, settings=update_data
         )
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update settings")
-        
+
         updated_settings = await notification_service.get_account_notification_settings(account_id)
-        
+
         return {
             "success": True,
             "message": "Notification settings updated successfully",
-            "settings": updated_settings.dict() if updated_settings else None
+            "settings": updated_settings.dict() if updated_settings else None,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -98,28 +96,24 @@ async def update_notification_settings(
 
 @router.post("/device-token")
 async def register_device_token(
-    token_request: DeviceTokenRequest,
-    current_user: dict = Depends(get_current_user)
+    token_request: DeviceTokenRequest, current_user: dict = Depends(get_current_user)
 ):
     check_notifications_enabled()
     try:
-        account_id = current_user.get('user_id')
-        
+        account_id = current_user.get("user_id")
+
         success = await notification_service.register_device_token(
             account_id=account_id,
             device_token=token_request.device_token,
             device_type=token_request.device_type,
-            provider=token_request.provider
+            provider=token_request.provider,
         )
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Failed to register device token")
-        
-        return {
-            "success": True,
-            "message": "Device token registered successfully"
-        }
-        
+
+        return {"success": True, "message": "Device token registered successfully"}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -129,28 +123,21 @@ async def register_device_token(
 
 @router.delete("/device-token/{device_token}")
 async def unregister_device_token(
-    device_token: str,
-    provider: str = "expo",
-    current_user: dict = Depends(get_current_user)
+    device_token: str, provider: str = "expo", current_user: dict = Depends(get_current_user)
 ):
     check_notifications_enabled()
     try:
-        account_id = current_user.get('user_id')
-        
+        account_id = current_user.get("user_id")
+
         success = await notification_service.unregister_device_token(
-            account_id=account_id,
-            device_token=device_token,
-            provider=provider
+            account_id=account_id, device_token=device_token, provider=provider
         )
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Failed to unregister device token")
-        
-        return {
-            "success": True,
-            "message": "Device token unregistered successfully"
-        }
-        
+
+        return {"success": True, "message": "Device token unregistered successfully"}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -162,21 +149,20 @@ async def unregister_device_token(
 async def handle_novu_webhook(request: Request):
     try:
         payload = await request.json()
-        
+
         logger.info(f"Received Novu webhook: {payload.get('type', 'unknown')}")
-        
-        event_type = payload.get('type')
-        
-        if event_type == 'notification.sent':
+
+        event_type = payload.get("type")
+
+        if event_type == "notification.sent":
             logger.info(f"Notification sent: {payload.get('transactionId')}")
-        elif event_type == 'notification.failed':
+        elif event_type == "notification.failed":
             logger.warning(f"Notification failed: {payload.get('transactionId')}")
-        elif event_type == 'subscriber.created':
+        elif event_type == "subscriber.created":
             logger.info(f"Subscriber created: {payload.get('subscriberId')}")
-        
+
         return {"status": "ok"}
-        
+
     except Exception as e:
         logger.error(f"Error handling Novu webhook: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-

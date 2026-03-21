@@ -98,17 +98,13 @@ class DeadLetterQueue:
                 except Exception as e:
                     logger.warning(f"[DLQ] Handler error: {e}")
 
-            logger.warning(
-                f"[DLQ] Entry added: run={run_id} type={write_type} error={error[:100]}"
-            )
+            logger.warning(f"[DLQ] Entry added: run={run_id} type={write_type} error={error[:100]}")
             return True
         except Exception as e:
             logger.error(f"[DLQ] Failed to add entry: {e}")
             return False
 
-    async def get_entries(
-        self, count: int = 100, run_id: Optional[str] = None
-    ) -> List[DLQEntry]:
+    async def get_entries(self, count: int = 100, run_id: Optional[str] = None) -> List[DLQEntry]:
         from core.services import redis
 
         entries = []
@@ -148,13 +144,18 @@ class DeadLetterQueue:
                         await client.xdel(self.QUEUE_KEY, msg_id)
 
                         try:
-                            from core.agents.pipeline.stateless.persistence.batch import batch_writer
+                            from core.agents.pipeline.stateless.persistence.batch import (
+                                batch_writer,
+                            )
+
                             account_id = entry_data["data"].get("account_id")
                             if account_id:
                                 await batch_writer.flush_run(entry_data["run_id"], account_id)
                                 logger.info(f"[DLQ] Flushed retry for entry {entry_id}")
                         except Exception as flush_err:
-                            logger.warning(f"[DLQ] Flush after retry failed (entry still in WAL): {flush_err}")
+                            logger.warning(
+                                f"[DLQ] Flush after retry failed (entry still in WAL): {flush_err}"
+                            )
 
                         return True
         except Exception as e:
@@ -197,7 +198,9 @@ class DeadLetterQueue:
                 "total_entries": length,
                 "unique_runs": len(runs),
                 "by_type": types,
-                "oldest_entry_age": time.time() - min(e.created_at for e in entries) if entries else 0,
+                "oldest_entry_age": time.time() - min(e.created_at for e in entries)
+                if entries
+                else 0,
             }
         except Exception as e:
             logger.warning(f"[DLQ] Get stats failed: {e}")

@@ -2,6 +2,7 @@ from core.agentpress.tool import tool_metadata
 from core.sandbox.tool_base import SandboxToolsBase
 from core.agentpress.thread_manager import ThreadManager
 
+
 @tool_metadata(
     display_name="Spreadsheet Guide",
     description="Reference guide for creating and manipulating Excel spreadsheets via CLI Python",
@@ -565,7 +566,7 @@ ask(
 - "Here's your budget spreadsheet! All the totals calculate automatically, and I've color-coded the sections for easy reading."
 - "I've created your sales report with quarterly breakdowns. The formulas will update automatically when you add new data."
 - "Your inventory spreadsheet is ready! I've organized it by category with automatic stock calculations."
-"""
+""",
 )
 class SandboxSpreadsheetTool(SandboxToolsBase):
     """

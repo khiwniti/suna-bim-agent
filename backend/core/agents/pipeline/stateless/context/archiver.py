@@ -126,15 +126,12 @@ class ContextArchiver:
         messages: List[Dict[str, Any]],
         model: str = "openrouter/openai/gpt-5-mini",
         previous_summary: Optional[str] = None,
-        working_memory: Optional[List[Dict[str, Any]]] = None
+        working_memory: Optional[List[Dict[str, Any]]] = None,
     ) -> ArchiveResult:
         """Archive messages to sandbox filesystem with per-file structure."""
         from core.sandbox.resolver import resolve_sandbox
-        sandbox_info = await resolve_sandbox(
-            self.project_id,
-            self.account_id,
-            self.db_client
-        )
+
+        sandbox_info = await resolve_sandbox(self.project_id, self.account_id, self.db_client)
 
         if not sandbox_info:
             raise RuntimeError(f"Could not resolve sandbox for project {self.project_id}")
@@ -171,25 +168,37 @@ class ContextArchiver:
             if isinstance(m.get("message_id"), str) and m.get("message_id")
         }
         archived_from_to_compress = sum(
-            1 for m in all_messages
+            1
+            for m in all_messages
             if isinstance(m.get("message_id"), str) and m.get("message_id") in to_compress_ids
         )
 
         # Run file writes and LLM summary in parallel
         # Include working memory in the summary so it covers the full conversation state
-        file_write_task = self._write_message_files(sandbox, all_messages, batch_number, total_before)
+        file_write_task = self._write_message_files(
+            sandbox, all_messages, batch_number, total_before
+        )
         summary_task = self._generate_summary(all_messages, batch_number, model, previous_summary)
         tool_results_written, summary_data = await asyncio.gather(file_write_task, summary_task)
 
         # Write summary file + update manifest in parallel
-        summary_path = f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/summaries/batch_{batch_number:03d}.md"
-        summary_content = self._format_summary_file(batch_number, all_messages, summary_data, tool_results_written, total_before, archived_count=len(messages))
+        summary_path = (
+            f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/summaries/batch_{batch_number:03d}.md"
+        )
+        summary_content = self._format_summary_file(
+            batch_number,
+            all_messages,
+            summary_data,
+            tool_results_written,
+            total_before,
+            archived_count=len(messages),
+        )
 
         retrieval_hints = self._build_retrieval_hints(summary_data, batch_number, len(messages))
-        tokens_archived = sum(len(str(m.get('content', ''))) // 4 for m in all_messages)
+        tokens_archived = sum(len(str(m.get("content", ""))) // 4 for m in all_messages)
 
         await asyncio.gather(
-            sandbox.fs.upload_file(summary_content.encode('utf-8'), summary_path),
+            sandbox.fs.upload_file(summary_content.encode("utf-8"), summary_path),
             self._update_manifest(
                 sandbox=sandbox,
                 manifest=manifest,
@@ -198,11 +207,13 @@ class ContextArchiver:
                 message_ids=message_ids,
                 tool_results=list(tool_results_written.keys()),
                 topics=summary_data.get("topics", []),
-                key_facts=summary_data.get("facts", {})
-            )
+                key_facts=summary_data.get("facts", {}),
+            ),
         )
 
-        logger.info(f"[ContextArchiver] Wrote batch {batch_number}: {len(messages)} messages, {len(tool_results_written)} tool results")
+        logger.info(
+            f"[ContextArchiver] Wrote batch {batch_number}: {len(messages)} messages, {len(tool_results_written)} tool results"
+        )
 
         return ArchiveResult(
             batch_number=batch_number,
@@ -217,9 +228,7 @@ class ContextArchiver:
         )
 
     async def archive_messages_snapshot(
-        self,
-        messages: List[Dict[str, Any]],
-        reason: str = "snapshot"
+        self, messages: List[Dict[str, Any]], reason: str = "snapshot"
     ) -> ArchiveResult:
         """Archive full raw messages without an extra summary LLM call.
 
@@ -228,11 +237,7 @@ class ContextArchiver:
         """
         from core.sandbox.resolver import resolve_sandbox
 
-        sandbox_info = await resolve_sandbox(
-            self.project_id,
-            self.account_id,
-            self.db_client
-        )
+        sandbox_info = await resolve_sandbox(self.project_id, self.account_id, self.db_client)
 
         if not sandbox_info:
             raise RuntimeError(f"Could not resolve sandbox for project {self.project_id}")
@@ -253,10 +258,7 @@ class ContextArchiver:
             return self._build_noop_result(manifest, reason=reason)
 
         tool_results_written = await self._write_message_files(
-            sandbox,
-            delta_messages,
-            batch_number,
-            total_before
+            sandbox, delta_messages, batch_number, total_before
         )
 
         summary_data = {
@@ -269,7 +271,9 @@ class ContextArchiver:
             "facts": {},
         }
 
-        summary_path = f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/summaries/batch_{batch_number:03d}.md"
+        summary_path = (
+            f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/summaries/batch_{batch_number:03d}.md"
+        )
         summary_content = self._format_summary_file(
             batch_number=batch_number,
             messages=delta_messages,
@@ -280,7 +284,7 @@ class ContextArchiver:
         )
 
         await asyncio.gather(
-            sandbox.fs.upload_file(summary_content.encode('utf-8'), summary_path),
+            sandbox.fs.upload_file(summary_content.encode("utf-8"), summary_path),
             self._update_manifest(
                 sandbox=sandbox,
                 manifest=manifest,
@@ -290,10 +294,10 @@ class ContextArchiver:
                 tool_results=list(tool_results_written.keys()),
                 topics=summary_data["topics"],
                 key_facts=summary_data["facts"],
-            )
+            ),
         )
 
-        tokens_archived = sum(len(str(m.get('content', ''))) // 4 for m in delta_messages)
+        tokens_archived = sum(len(str(m.get("content", ""))) // 4 for m in delta_messages)
 
         logger.info(
             f"[ContextArchiver] Wrote snapshot batch {batch_number}: "
@@ -330,13 +334,13 @@ class ContextArchiver:
         manifest_path = f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/manifest.json"
         try:
             content = await sandbox.fs.download_file(manifest_path)
-            return json.loads(content.decode('utf-8'))
+            return json.loads(content.decode("utf-8"))
         except Exception:
             return {
                 "thread_id": self.thread_id,
                 "total_archived": 0,
                 "batches": [],
-                "key_facts": {}
+                "key_facts": {},
             }
 
     async def _update_manifest(
@@ -348,20 +352,22 @@ class ContextArchiver:
         message_ids: List[str],
         tool_results: List[str],
         topics: List[str],
-        key_facts: Dict[str, Any]
+        key_facts: Dict[str, Any],
     ) -> None:
         """Update manifest with new batch info."""
         total_before = manifest.get("total_archived", 0)
 
-        manifest["batches"].append({
-            "batch": batch_number,
-            "messages": f"{total_before + 1}-{total_before + message_count}",
-            "message_count": message_count,
-            "message_ids": message_ids,
-            "tool_results": tool_results,
-            "topics": topics,
-            "archived_at": datetime.now(timezone.utc).isoformat()
-        })
+        manifest["batches"].append(
+            {
+                "batch": batch_number,
+                "messages": f"{total_before + 1}-{total_before + message_count}",
+                "message_count": message_count,
+                "message_ids": message_ids,
+                "tool_results": tool_results,
+                "topics": topics,
+                "archived_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         manifest["total_archived"] = total_before + message_count
 
@@ -373,10 +379,7 @@ class ContextArchiver:
         manifest["key_facts"] = existing_facts
 
         manifest_path = f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/manifest.json"
-        await sandbox.fs.upload_file(
-            json.dumps(manifest, indent=2).encode('utf-8'),
-            manifest_path
-        )
+        await sandbox.fs.upload_file(json.dumps(manifest, indent=2).encode("utf-8"), manifest_path)
 
     @staticmethod
     def _extract_urls_from_content(content) -> List[str]:
@@ -387,18 +390,14 @@ class ContextArchiver:
         seen = set()
         clean = []
         for url in urls:
-            url = url.rstrip('.,;:)]}')
+            url = url.rstrip(".,;:)]}")
             if url not in seen:
                 seen.add(url)
                 clean.append(url)
         return clean
 
     async def _write_message_files(
-        self,
-        sandbox,
-        messages: List[Dict[str, Any]],
-        batch_number: int,
-        total_before: int = 0
+        self, sandbox, messages: List[Dict[str, Any]], batch_number: int, total_before: int = 0
     ) -> Dict[str, str]:
         """Write individual message files, links.md, and index. Returns tool_call_id -> filename mapping."""
         batch_dir = f"{self.WORKSPACE_PATH}/{self.BASE_DIR}/messages/batch_{batch_number:03d}"
@@ -414,14 +413,14 @@ class ContextArchiver:
 
         for i, msg in enumerate(messages, 1):
             global_num = total_before + i
-            role = msg.get('role', 'unknown')
+            role = msg.get("role", "unknown")
             filename = f"MSG-{global_num:03d}_{role}.md"
             filepath = f"{batch_dir}/{filename}"
 
             msg_content = self._format_message_file(global_num, msg)
 
             # Truncate large tool outputs so MSG files stay readable
-            if role == 'tool' and len(msg_content) > _TOOL_OUTPUT_MAX_CHARS:
+            if role == "tool" and len(msg_content) > _TOOL_OUTPUT_MAX_CHARS:
                 truncated_at = _TOOL_OUTPUT_MAX_CHARS
                 msg_content = (
                     msg_content[:truncated_at]
@@ -429,28 +428,30 @@ class ContextArchiver:
                     + "Full URLs extracted to links.md in this batch directory.]\n"
                 )
 
-            upload_tasks.append(sandbox.fs.upload_file(msg_content.encode('utf-8'), filepath))
+            upload_tasks.append(sandbox.fs.upload_file(msg_content.encode("utf-8"), filepath))
 
             # Extract URLs from tool outputs
-            if role == 'tool':
-                tool_call_id = msg.get('tool_call_id', '')
+            if role == "tool":
+                tool_call_id = msg.get("tool_call_id", "")
                 if tool_call_id:
                     tool_results_written[tool_call_id] = filename
-                content = msg.get('content', '')
+                content = msg.get("content", "")
                 urls = self._extract_urls_from_content(content)
                 if urls:
-                    tool_name = msg.get('name', 'unknown')
-                    all_links.append({
-                        "tool_name": tool_name,
-                        "msg_num": global_num,
-                        "filename": filename,
-                        "urls": urls
-                    })
+                    tool_name = msg.get("name", "unknown")
+                    all_links.append(
+                        {
+                            "tool_name": tool_name,
+                            "msg_num": global_num,
+                            "filename": filename,
+                            "urls": urls,
+                        }
+                    )
 
-            if role == 'assistant':
-                tool_calls = msg.get('tool_calls', [])
+            if role == "assistant":
+                tool_calls = msg.get("tool_calls", [])
                 for tc in tool_calls:
-                    tc_id = tc.get('id', '')
+                    tc_id = tc.get("id", "")
                     if tc_id:
                         tool_results_written[tc_id] = f"MSG-{global_num:03d}_assistant.md"
 
@@ -458,8 +459,8 @@ class ContextArchiver:
         if all_links:
             links_lines = [
                 "# Extracted Links & Sources",
-                f"Batch {batch_number:03d} | Messages {total_before+1}-{total_before+len(messages)}",
-                ""
+                f"Batch {batch_number:03d} | Messages {total_before + 1}-{total_before + len(messages)}",
+                "",
             ]
             for entry in all_links:
                 links_lines.append(f"## MSG-{entry['msg_num']:03d} ({entry['tool_name']})")
@@ -467,10 +468,11 @@ class ContextArchiver:
                     links_lines.append(f"- {url}")
                 links_lines.append("")
 
-            upload_tasks.append(sandbox.fs.upload_file(
-                "\n".join(links_lines).encode('utf-8'),
-                f"{batch_dir}/links.md"
-            ))
+            upload_tasks.append(
+                sandbox.fs.upload_file(
+                    "\n".join(links_lines).encode("utf-8"), f"{batch_dir}/links.md"
+                )
+            )
 
         # Write index.md listing all files by role
         index_lines = ["# File Index", f"Batch {batch_number:03d}", ""]
@@ -478,13 +480,13 @@ class ContextArchiver:
         user_files = []
         for i, msg in enumerate(messages, 1):
             global_num = total_before + i
-            role = msg.get('role', 'unknown')
+            role = msg.get("role", "unknown")
             fname = f"MSG-{global_num:03d}_{role}.md"
-            if role == 'tool':
-                tool_name = msg.get('name', '')
+            if role == "tool":
+                tool_name = msg.get("name", "")
                 tool_files.append(f"- {fname}  ({tool_name})" if tool_name else f"- {fname}")
-            elif role == 'user':
-                preview = str(msg.get('content', ''))[:80].replace('\n', ' ')
+            elif role == "user":
+                preview = str(msg.get("content", ""))[:80].replace("\n", " ")
                 user_files.append(f"- {fname}  ({preview})")
 
         if tool_files:
@@ -499,10 +501,9 @@ class ContextArchiver:
         index_lines.append("- links.md  (all URLs extracted from tool outputs)")
         index_lines.append("")
 
-        upload_tasks.append(sandbox.fs.upload_file(
-            "\n".join(index_lines).encode('utf-8'),
-            f"{batch_dir}/index.md"
-        ))
+        upload_tasks.append(
+            sandbox.fs.upload_file("\n".join(index_lines).encode("utf-8"), f"{batch_dir}/index.md")
+        )
 
         # Upload all files in parallel
         if upload_tasks:
@@ -512,30 +513,30 @@ class ContextArchiver:
 
     def _format_message_file(self, msg_num: int, msg: Dict[str, Any]) -> str:
         """Format a single message as markdown."""
-        role = msg.get('role', 'unknown').upper()
-        content = msg.get('content', '')
+        role = msg.get("role", "unknown").upper()
+        content = msg.get("content", "")
 
         lines = [
             f"# MSG-{msg_num:03d} [{role}]",
             f"Archived: {datetime.now(timezone.utc).isoformat()}",
             "",
             "---",
-            ""
+            "",
         ]
 
         # Handle content
         if isinstance(content, list):
             for block in content:
                 if isinstance(block, dict):
-                    if block.get('type') == 'text':
-                        lines.append(block.get('text', ''))
-                    elif block.get('type') == 'tool_use':
+                    if block.get("type") == "text":
+                        lines.append(block.get("text", ""))
+                    elif block.get("type") == "tool_use":
                         lines.append(f"**Tool Call:** {block.get('name')}")
                         lines.append(f"**Tool ID:** {block.get('id', 'unknown')}")
-                        if block.get('input'):
+                        if block.get("input"):
                             lines.append("**Input:**")
                             lines.append(f"```json\n{json.dumps(block['input'], indent=2)}\n```")
-                    elif block.get('type') == 'tool_result':
+                    elif block.get("type") == "tool_result":
                         lines.append(f"**Tool Result:**")
                         lines.append(f"```\n{block.get('content', '')}\n```")
                 lines.append("")
@@ -545,15 +546,15 @@ class ContextArchiver:
             lines.append(str(content))
 
         # Add tool calls if present
-        tool_calls = msg.get('tool_calls', [])
+        tool_calls = msg.get("tool_calls", [])
         if tool_calls:
             lines.append("")
             lines.append("## Tool Calls")
             for tc in tool_calls:
-                tc_id = tc.get('id', 'unknown')
-                func = tc.get('function', {})
-                name = func.get('name', 'unknown')
-                args = func.get('arguments', '{}')
+                tc_id = tc.get("id", "unknown")
+                func = tc.get("function", {})
+                name = func.get("name", "unknown")
+                args = func.get("arguments", "{}")
                 lines.append(f"- **{name}** (id: `{tc_id}`)")
                 try:
                     args_parsed = json.loads(args) if isinstance(args, str) else args
@@ -569,9 +570,9 @@ class ContextArchiver:
 
     def _format_tool_result_file(self, msg: Dict[str, Any]) -> str:
         """Format a tool result as markdown."""
-        tool_call_id = msg.get('tool_call_id', 'unknown')
-        tool_name = msg.get('name', 'unknown')
-        content = msg.get('content', '')
+        tool_call_id = msg.get("tool_call_id", "unknown")
+        tool_name = msg.get("name", "unknown")
+        content = msg.get("content", "")
 
         lines = [
             f"# Tool Result: {tool_name}",
@@ -581,7 +582,7 @@ class ContextArchiver:
             "---",
             "",
             "## Output",
-            ""
+            "",
         ]
 
         if isinstance(content, str):
@@ -603,7 +604,7 @@ class ContextArchiver:
         summary_data: Dict[str, Any],
         tool_results: Dict[str, str],
         total_before: int = 0,
-        archived_count: Optional[int] = None
+        archived_count: Optional[int] = None,
     ) -> str:
         """Format the summary file with conversation flow and references."""
         if archived_count is None:
@@ -622,20 +623,25 @@ class ContextArchiver:
             "",
             "## Summary",
             summary_data.get("summary", "No summary available."),
-            ""
+            "",
         ]
 
         batch_dir = f"/workspace/{self.BASE_DIR}/messages/batch_{batch_number:03d}"
 
         lines.append("## MANDATORY: How to retrieve specific data")
-        lines.append("The full data (URLs, sources, tool outputs, exact content) is saved "
-                      f"at {batch_dir}/.")
-        lines.append("When the user asks for details, numbers, links, or sources from earlier work: "
-                      "DO NOT respond to the user first. DO NOT say \"I don't have access\". "
-                      "DO NOT ask if they want you to retrieve the data. "
-                      "Your FIRST tool call must be read_file or grep — THEN respond with the results.")
-        lines.append(f"**For links/URLs:** read_file {batch_dir}/links.md (compact file with all URLs)")
-        lines.append(f"**For specific data:** grep -ri \"keyword\" {batch_dir}/")
+        lines.append(
+            f"The full data (URLs, sources, tool outputs, exact content) is saved at {batch_dir}/."
+        )
+        lines.append(
+            "When the user asks for details, numbers, links, or sources from earlier work: "
+            'DO NOT respond to the user first. DO NOT say "I don\'t have access". '
+            "DO NOT ask if they want you to retrieve the data. "
+            "Your FIRST tool call must be read_file or grep — THEN respond with the results."
+        )
+        lines.append(
+            f"**For links/URLs:** read_file {batch_dir}/links.md (compact file with all URLs)"
+        )
+        lines.append(f'**For specific data:** grep -ri "keyword" {batch_dir}/')
         lines.append(f"**To see all files:** read_file {batch_dir}/index.md")
         lines.append("Do NOT use cat. Do NOT guess filenames. Read index.md or links.md first.")
         lines.append("")
@@ -658,19 +664,19 @@ class ContextArchiver:
 
         # Preserve user requests so original intent is never lost from archives
         user_messages = [
-            m for m in messages
-            if m.get('role') == 'user' and not m.get('_is_summary_inline')
+            m for m in messages if m.get("role") == "user" and not m.get("_is_summary_inline")
         ]
         if user_messages:
             lines.append("## User Requests")
             for req_i, msg in enumerate(user_messages, 1):
-                req_content = msg.get('content', '')
+                req_content = msg.get("content", "")
                 if isinstance(req_content, list):
                     text_parts = [
-                        b.get('text', '') for b in req_content
-                        if isinstance(b, dict) and b.get('type') == 'text'
+                        b.get("text", "")
+                        for b in req_content
+                        if isinstance(b, dict) and b.get("type") == "text"
                     ]
-                    req_content = '\n'.join(text_parts)
+                    req_content = "\n".join(text_parts)
                 req_content = str(req_content)[:2000]
                 lines.append(f"### Request {req_i}")
                 lines.append(req_content)
@@ -681,7 +687,7 @@ class ContextArchiver:
             lines.append("## Key Decisions")
             for decision in summary_data["key_decisions"]:
                 lines.append(f"- **{decision.get('decision', '')}**")
-                if decision.get('rationale'):
+                if decision.get("rationale"):
                     lines.append(f"  - {decision['rationale']}")
             lines.append("")
 
@@ -689,20 +695,24 @@ class ContextArchiver:
         lines.append("## Conversation Flow")
         for i, msg in enumerate(messages, 1):
             global_num = total_before + i
-            role = msg.get('role', 'unknown')
-            content = msg.get('content', '')
+            role = msg.get("role", "unknown")
+            content = msg.get("content", "")
             is_working_memory = i > archived_count
 
             # Get short preview of content (longer for user messages to preserve intent)
-            preview_limit = 500 if role == 'user' else 80
+            preview_limit = 500 if role == "user" else 80
             if isinstance(content, str):
-                preview = content[:preview_limit].replace('\n', ' ')
+                preview = content[:preview_limit].replace("\n", " ")
                 if len(content) > preview_limit:
                     preview += "..."
             elif isinstance(content, list):
                 # Extract text from content blocks
-                texts = [b.get('text', '')[:40] for b in content if isinstance(b, dict) and b.get('type') == 'text']
-                preview = ' '.join(texts)[:80] or "[complex content]"
+                texts = [
+                    b.get("text", "")[:40]
+                    for b in content
+                    if isinstance(b, dict) and b.get("type") == "text"
+                ]
+                preview = " ".join(texts)[:80] or "[complex content]"
             else:
                 preview = "[complex content]"
 
@@ -710,17 +720,21 @@ class ContextArchiver:
 
             # Add tool call references
             tool_ref = ""
-            tool_calls = msg.get('tool_calls', [])
+            tool_calls = msg.get("tool_calls", [])
             if tool_calls:
-                tc_names = [tc.get('function', {}).get('name', '?') for tc in tool_calls]
+                tc_names = [tc.get("function", {}).get("name", "?") for tc in tool_calls]
                 tool_ref = f" → [tool:{','.join(tc_names)}]"
 
-            if role == 'tool':
-                tool_call_id = msg.get('tool_call_id', '')
-                tool_name = msg.get('name', 'unknown')
-                lines.append(f"{global_num}. MSG-{global_num:03d} [tool:{tool_name}:{tool_call_id}]{wm_tag}")
+            if role == "tool":
+                tool_call_id = msg.get("tool_call_id", "")
+                tool_name = msg.get("name", "unknown")
+                lines.append(
+                    f"{global_num}. MSG-{global_num:03d} [tool:{tool_name}:{tool_call_id}]{wm_tag}"
+                )
             else:
-                lines.append(f"{global_num}. MSG-{global_num:03d} [{role}]: {preview}{tool_ref}{wm_tag}")
+                lines.append(
+                    f"{global_num}. MSG-{global_num:03d} [{role}]: {preview}{tool_ref}{wm_tag}"
+                )
 
         lines.append("")
 
@@ -731,7 +745,7 @@ class ContextArchiver:
         messages: List[Dict[str, Any]],
         batch_number: int,
         model: str,
-        previous_summary: Optional[str] = None
+        previous_summary: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate summary via LLM."""
         from core.agentpress.thread_manager.services.execution.llm_executor import make_llm_api_call
@@ -775,17 +789,17 @@ Return ONLY valid JSON."""
                     model_name=model,
                     temperature=0.1,
                     max_tokens=1500,
-                    stream=False
+                    stream=False,
                 ),
-                timeout=30
+                timeout=30,
             )
 
             # Non-streaming: extract content from ModelResponse
-            choices = getattr(response, 'choices', None)
+            choices = getattr(response, "choices", None)
             if choices:
                 first_choice = choices[0]
-                message = getattr(first_choice, 'message', None)
-                full_response = getattr(message, 'content', "") if message is not None else ""
+                message = getattr(first_choice, "message", None)
+                full_response = getattr(message, "content", "") if message is not None else ""
                 full_response = full_response or ""
             elif isinstance(response, dict):
                 full_response = response.get("content", str(response))
@@ -797,7 +811,9 @@ Return ONLY valid JSON."""
             return json.loads(full_response)
 
         except asyncio.TimeoutError:
-            logger.warning(f"[ContextArchiver] Summary LLM call timed out after 30s, using fallback")
+            logger.warning(
+                f"[ContextArchiver] Summary LLM call timed out after 30s, using fallback"
+            )
             return self._fallback_summary(messages)
         except json.JSONDecodeError as e:
             logger.error(f"[ContextArchiver] Failed to parse LLM response: {e}")
@@ -812,27 +828,27 @@ Return ONLY valid JSON."""
             "summary": f"Archived {len(messages)} messages.",
             "topics": [],
             "key_decisions": [],
-            "facts": {}
+            "facts": {},
         }
 
     def _format_messages_for_prompt(self, messages: List[Dict[str, Any]]) -> str:
         """Format messages for the summarization prompt."""
         lines = []
         for i, msg in enumerate(messages, 1):
-            role = msg.get('role', 'unknown').upper()
-            content = msg.get('content', '')
+            role = msg.get("role", "unknown").upper()
+            content = msg.get("content", "")
 
             if isinstance(content, list):
                 text_parts = []
                 for block in content:
                     if isinstance(block, dict):
-                        if block.get('type') == 'text':
-                            text_parts.append(block.get('text', ''))
-                        elif block.get('type') == 'tool_use':
+                        if block.get("type") == "text":
+                            text_parts.append(block.get("text", ""))
+                        elif block.get("type") == "tool_use":
                             text_parts.append(f"[tool:{block.get('name')}]")
-                        elif block.get('type') == 'tool_result':
+                        elif block.get("type") == "tool_result":
                             text_parts.append(f"[result:{str(block.get('content', ''))[:100]}]")
-                content = ' '.join(text_parts)
+                content = " ".join(text_parts)
             elif isinstance(content, dict):
                 content = json.dumps(content)
 
@@ -845,19 +861,16 @@ Return ONLY valid JSON."""
         return "\n".join(lines)
 
     def _build_retrieval_hints(
-        self,
-        summary: Dict[str, Any],
-        batch_number: int,
-        message_count: int
+        self, summary: Dict[str, Any], batch_number: int, message_count: int
     ) -> List[RetrievalHint]:
         """Build retrieval hints from summary data."""
         hints = []
         for topic in summary.get("topics", []):
-            hints.append(RetrievalHint(
-                topic=topic,
-                keywords=[topic],
-                message_range=f"batch_{batch_number:03d}"
-            ))
+            hints.append(
+                RetrievalHint(
+                    topic=topic, keywords=[topic], message_range=f"batch_{batch_number:03d}"
+                )
+            )
         return hints
 
 

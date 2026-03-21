@@ -13,7 +13,7 @@ async def _stream_event(stream_key: str, event: Dict[str, Any], timeout: float =
     try:
         await asyncio.wait_for(
             redis.stream_add(stream_key, {"data": json.dumps(event)}, maxlen=200, approximate=True),
-            timeout=timeout
+            timeout=timeout,
         )
         return True
     except (asyncio.TimeoutError, Exception) as e:
@@ -22,15 +22,13 @@ async def _stream_event(stream_key: str, event: Dict[str, Any], timeout: float =
 
 
 async def stream_ack(
-    stream_key: str,
-    agent_run_id: str,
-    message: str = "Working on your request..."
+    stream_key: str, agent_run_id: str, message: str = "Working on your request..."
 ) -> bool:
     event = {
         "type": "ack",
         "message": message,
         "agent_run_id": agent_run_id,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return await _stream_event(stream_key, event)
 
@@ -39,14 +37,14 @@ async def stream_estimate(
     stream_key: str,
     estimated_seconds: float,
     confidence: str = "medium",
-    breakdown: Optional[Dict[str, float]] = None
+    breakdown: Optional[Dict[str, float]] = None,
 ) -> bool:
     event = {
         "type": "estimate",
         "estimated_seconds": round(estimated_seconds, 1),
         "confidence": confidence,
         "message": f"This should take about {int(estimated_seconds)} seconds",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if breakdown:
         event["breakdown"] = breakdown
@@ -54,15 +52,12 @@ async def stream_estimate(
 
 
 async def stream_prep_stage(
-    stream_key: str,
-    stage: str,
-    detail: Optional[str] = None,
-    progress: Optional[int] = None
+    stream_key: str, stage: str, detail: Optional[str] = None, progress: Optional[int] = None
 ) -> bool:
     event = {
         "type": "prep_stage",
         "stage": stage,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if detail:
         event["detail"] = detail
@@ -76,14 +71,14 @@ async def stream_degradation(
     component: str,
     message: str,
     severity: str = "warning",
-    user_impact: Optional[str] = None
+    user_impact: Optional[str] = None,
 ) -> bool:
     event = {
         "type": "degradation",
         "component": component,
         "message": message,
         "severity": severity,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if user_impact:
         event["user_impact"] = user_impact
@@ -91,13 +86,12 @@ async def stream_degradation(
 
 
 async def stream_thinking(
-    stream_key: str,
-    message: str = "AI is processing your request..."
+    stream_key: str, message: str = "AI is processing your request..."
 ) -> bool:
     event = {
         "type": "thinking",
         "message": message,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return await _stream_event(stream_key, event)
 
@@ -107,7 +101,7 @@ async def stream_user_error(
     error: str,
     error_code: str,
     recoverable: bool = False,
-    actions: Optional[List[Dict[str, Any]]] = None
+    actions: Optional[List[Dict[str, Any]]] = None,
 ) -> bool:
     event = {
         "type": "error",
@@ -115,23 +109,20 @@ async def stream_user_error(
         "error_code": error_code,
         "recoverable": recoverable,
         "actions": actions or [],
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return await _stream_event(stream_key, event)
 
 
 async def stream_context_usage(
-    stream_key: str,
-    current_tokens: int,
-    message_count: int = 0,
-    compressed: bool = False
+    stream_key: str, current_tokens: int, message_count: int = 0, compressed: bool = False
 ) -> bool:
     event = {
         "type": "context_usage",
         "current_tokens": current_tokens,
         "message_count": message_count,
         "compressed": compressed,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return await _stream_event(stream_key, event)
 
@@ -147,7 +138,7 @@ async def stream_summarizing(
     event = {
         "type": "summarizing context",
         "status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if tokens_before is not None:
         event["tokens_before"] = tokens_before

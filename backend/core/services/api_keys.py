@@ -41,9 +41,7 @@ class APIKeyCreateRequest(BaseModel):
         max_length=255,
         description="Human-readable title for the API key",
     )
-    description: Optional[str] = Field(
-        None, description="Optional description for the API key"
-    )
+    description: Optional[str] = Field(None, description="Optional description for the API key")
     expires_in_days: Optional[int] = Field(
         None, gt=0, le=365, description="Number of days until expiration (max 365)"
     )
@@ -120,12 +118,8 @@ class APIKeyService:
             tuple: (public_key, secret_key) where public_key starts with 'pk_' and secret_key starts with 'sk_'
         """
         # Generate random strings for both keys
-        pk_suffix = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
-        )
-        sk_suffix = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
-        )
+        pk_suffix = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
+        sk_suffix = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
 
         public_key = f"pk_{pk_suffix}"
         secret_key = f"sk_{sk_suffix}"
@@ -183,9 +177,7 @@ class APIKeyService:
             # Calculate expiration date if specified
             expires_at = None
             if request.expires_in_days:
-                expires_at = datetime.now(timezone.utc) + timedelta(
-                    days=request.expires_in_days
-                )
+                expires_at = datetime.now(timezone.utc) + timedelta(days=request.expires_in_days)
 
             # Generate public and secret key pair
             public_key, secret_key = self._generate_key_pair()
@@ -332,9 +324,7 @@ class APIKeyService:
             logger.error(f"Error revoking API key: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Failed to revoke API key")
 
-    async def validate_api_key(
-        self, public_key: str, secret_key: str
-    ) -> APIKeyValidationResult:
+    async def validate_api_key(self, public_key: str, secret_key: str) -> APIKeyValidationResult:
         """
         Validate an API key pair with Redis caching for performance
 
@@ -365,15 +355,9 @@ class APIKeyService:
                     return APIKeyValidationResult(
                         is_valid=cached_data["is_valid"],
                         account_id=(
-                            UUID(cached_data["account_id"])
-                            if cached_data["account_id"]
-                            else None
+                            UUID(cached_data["account_id"]) if cached_data["account_id"] else None
                         ),
-                        key_id=(
-                            UUID(cached_data["key_id"])
-                            if cached_data["key_id"]
-                            else None
-                        ),
+                        key_id=(UUID(cached_data["key_id"]) if cached_data["key_id"] else None),
                         error_message=cached_data.get("error_message"),
                     )
             except Exception as e:
@@ -451,9 +435,7 @@ class APIKeyService:
 
         except Exception as e:
             logger.error(f"Error validating API key: {e}", exc_info=True)
-            return APIKeyValidationResult(
-                is_valid=False, error_message="Internal server error"
-            )
+            return APIKeyValidationResult(is_valid=False, error_message="Internal server error")
 
     async def _cache_validation_result(
         self, cache_key: str, result: APIKeyValidationResult, ttl: int = 120
@@ -497,15 +479,12 @@ class APIKeyService:
 
             # Clean up expired entries and enforce LRU limit
             cutoff_time = current_time - (throttle_interval * 2)  # Keep extra buffer
-            
+
             # Remove expired entries
-            expired_keys = [
-                k for k, v in self._throttle_cache.items() 
-                if v < cutoff_time
-            ]
+            expired_keys = [k for k, v in self._throttle_cache.items() if v < cutoff_time]
             for k in expired_keys:
                 self._throttle_cache.pop(k, None)
-            
+
             # Enforce LRU limit (remove oldest if over limit)
             while len(self._throttle_cache) > self._max_throttle_cache_size:
                 self._throttle_cache.popitem(last=False)  # Remove oldest
@@ -524,9 +503,12 @@ class APIKeyService:
         # Update database
         try:
             client = await self.db.client
-            await client.table("api_keys").update(
-                {"last_used_at": datetime.now(timezone.utc).isoformat()}
-            ).eq("key_id", key_id).execute()
+            await (
+                client.table("api_keys")
+                .update({"last_used_at": datetime.now(timezone.utc).isoformat()})
+                .eq("key_id", key_id)
+                .execute()
+            )
 
             logger.debug(f"Updated last_used_at for key {key_id}")
 

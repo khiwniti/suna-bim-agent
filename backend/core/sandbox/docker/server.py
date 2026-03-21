@@ -16,6 +16,7 @@ from html_to_docx_router import router as docx_router
 # Ensure we're serving from the /workspace directory
 workspace_dir = "/workspace"
 
+
 class WorkspaceDirMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Check if workspace directory exists and recreate if deleted
@@ -23,6 +24,7 @@ class WorkspaceDirMiddleware(BaseHTTPMiddleware):
             print(f"Workspace directory {workspace_dir} not found, recreating...")
             os.makedirs(workspace_dir, exist_ok=True)
         return await call_next(request)
+
 
 app = FastAPI()
 
@@ -48,14 +50,16 @@ output_dir.mkdir(exist_ok=True)
 # Initial directory creation
 os.makedirs(workspace_dir, exist_ok=True)
 
+
 # Add visual HTML editor root endpoint
 @app.get("/editor")
 async def list_html_files():
     """List all HTML files in the workspace for easy access"""
     from fastapi.responses import HTMLResponse
+
     try:
-        html_files = [f for f in os.listdir(workspace_dir) if f.endswith('.html')]
-        
+        html_files = [f for f in os.listdir(workspace_dir) if f.endswith(".html")]
+
         html_content = """
         <!DOCTYPE html>
         <html lang="en">
@@ -212,7 +216,7 @@ async def list_html_files():
             
             <div class="file-list">
         """
-        
+
         if html_files:
             for file in sorted(html_files):
                 html_content += f"""
@@ -231,7 +235,7 @@ async def list_html_files():
                 <p>Add .html files to this directory to start editing</p>
             </div>
             """
-        
+
         html_content += """
             </div>
             
@@ -255,13 +259,15 @@ async def list_html_files():
         </body>
         </html>
         """
-        
+
         return HTMLResponse(content=html_content)
-        
+
     except Exception as e:
         print(f"❌ Error listing HTML files: {e}")
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Health check endpoint - must be defined before catch-all route
 @app.get("/health")
@@ -278,20 +284,17 @@ async def health_check():
     services_status: Dict[str, str] = {}
 
     # Critical services that must be running for sandbox to be usable
-    critical_services: List[str] = ['xvfb', 'x11vnc', 'novnc', 'http_server', 'browserApi']
+    critical_services: List[str] = ["xvfb", "x11vnc", "novnc", "http_server", "browserApi"]
 
     try:
         # Run supervisorctl status to get all service states
         result = subprocess.run(
-            ["supervisorctl", "status"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            ["supervisorctl", "status"], capture_output=True, text=True, timeout=5
         )
 
         # Parse output format: "program_name    STATE     extra info"
         # Example: "xvfb             RUNNING   pid 123, uptime 0:01:00"
-        for line in result.stdout.strip().split('\n'):
+        for line in result.stdout.strip().split("\n"):
             if not line.strip():
                 continue
             parts = line.split()
@@ -300,49 +303,44 @@ async def health_check():
                 state = parts[1].lower()
 
                 # Map supervisord states to our simplified states
-                if state == 'running':
-                    services_status[service_name] = 'running'
-                elif state in ('stopped', 'exited', 'fatal'):
-                    services_status[service_name] = 'stopped'
-                elif state in ('starting', 'backoff'):
-                    services_status[service_name] = 'starting'
+                if state == "running":
+                    services_status[service_name] = "running"
+                elif state in ("stopped", "exited", "fatal"):
+                    services_status[service_name] = "stopped"
+                elif state in ("starting", "backoff"):
+                    services_status[service_name] = "starting"
                 else:
-                    services_status[service_name] = 'error'
+                    services_status[service_name] = "error"
 
     except subprocess.TimeoutExpired:
         return {
             "status": "unhealthy",
             "error": "supervisorctl timeout",
             "services": {},
-            "critical_services": critical_services
+            "critical_services": critical_services,
         }
     except FileNotFoundError:
         return {
             "status": "unhealthy",
             "error": "supervisorctl not found",
             "services": {},
-            "critical_services": critical_services
+            "critical_services": critical_services,
         }
     except Exception as e:
         return {
             "status": "unhealthy",
             "error": str(e),
             "services": {},
-            "critical_services": critical_services
+            "critical_services": critical_services,
         }
 
     # Determine overall status based on critical services
-    critical_running = sum(
-        1 for svc in critical_services
-        if services_status.get(svc) == 'running'
-    )
+    critical_running = sum(1 for svc in critical_services if services_status.get(svc) == "running")
     critical_starting = sum(
-        1 for svc in critical_services
-        if services_status.get(svc) == 'starting'
+        1 for svc in critical_services if services_status.get(svc) == "starting"
     )
     critical_failed = sum(
-        1 for svc in critical_services
-        if services_status.get(svc) in ('stopped', 'error')
+        1 for svc in critical_services if services_status.get(svc) in ("stopped", "error")
     )
 
     # All critical services running = healthy
@@ -358,11 +356,7 @@ async def health_check():
     else:
         overall = "unhealthy"
 
-    return {
-        "status": overall,
-        "services": services_status,
-        "critical_services": critical_services
-    }
+    return {"status": overall, "services": services_status, "critical_services": critical_services}
 
 
 # Serve files at root level
@@ -373,36 +367,37 @@ async def serve_file(file_path: str):
     """Serve files from workspace - HTML files as HTML, others as static files"""
     from fastapi import HTTPException
     from fastapi.responses import HTMLResponse, FileResponse
-    
+
     # Security: prevent directory traversal attacks
-    if '..' in file_path or file_path.startswith('/'):
+    if ".." in file_path or file_path.startswith("/"):
         raise HTTPException(status_code=400, detail="Invalid file path")
-    
+
     full_file_path = os.path.join(workspace_dir, file_path)
-    
+
     # Normalize the path to prevent directory traversal
     full_file_path = os.path.normpath(full_file_path)
     workspace_dir_normalized = os.path.normpath(workspace_dir)
-    
+
     # Ensure the file is within the workspace directory
     if not full_file_path.startswith(workspace_dir_normalized):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if not os.path.exists(full_file_path) or not os.path.isfile(full_file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     # Serve HTML files with HTMLResponse
-    if file_path.endswith('.html'):
-        with open(full_file_path, 'r', encoding='utf-8') as f:
+    if file_path.endswith(".html"):
+        with open(full_file_path, "r", encoding="utf-8") as f:
             content = f.read()
         return HTMLResponse(content=content)
-    
+
     # Serve all other files (CSS, JS, images, etc.) as static files
     # FileResponse automatically sets the correct content-type based on file extension
     return FileResponse(full_file_path)
 
+
 # This is needed for the import string approach with uvicorn
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(f"Starting server with auto-reload, serving files from: {workspace_dir}")
     # Don't use reload directly in the run call
-    uvicorn.run("server:app", host="0.0.0.0", port=8080, reload=True) 
+    uvicorn.run("server:app", host="0.0.0.0", port=8080, reload=True)

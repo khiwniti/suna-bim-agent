@@ -9,10 +9,12 @@ from enum import Enum
 
 from core.utils.logger import logger
 
+
 class WriteType(str, Enum):
     MESSAGE = "message"
     CREDIT = "credit"
     STATUS = "status"
+
 
 @dataclass
 class WALEntry:
@@ -95,7 +97,7 @@ class WriteAheadLog:
                 self._local_buffer[run_id] = deque(maxlen=self.MAX_LOCAL_BUFFER_PER_RUN)
             else:
                 self._local_buffer.move_to_end(run_id)
-            
+
             self._local_buffer[run_id].append(entry)
 
         return entry.entry_id
@@ -163,16 +165,14 @@ class WriteAheadLog:
                 original_len = len(self._local_buffer[run_id])
                 filtered = deque(
                     (e for e in self._local_buffer[run_id] if e.entry_id not in entry_ids_set),
-                    maxlen=self.MAX_LOCAL_BUFFER_PER_RUN
+                    maxlen=self.MAX_LOCAL_BUFFER_PER_RUN,
                 )
                 self._local_buffer[run_id] = filtered
                 completed += original_len - len(filtered)
 
         return completed
 
-    async def mark_failed(
-        self, run_id: str, entry_id: str, error: str
-    ) -> bool:
+    async def mark_failed(self, run_id: str, entry_id: str, error: str) -> bool:
         from core.services import redis
 
         stream_key = f"{self.STREAM_PREFIX}{run_id}"
@@ -257,21 +257,18 @@ class WriteAheadLog:
         return deleted
 
     async def update_entry_by_message_id(
-        self, 
-        run_id: str, 
-        message_id: str, 
-        updated_data: Dict[str, Any]
+        self, run_id: str, message_id: str, updated_data: Dict[str, Any]
     ) -> bool:
         """Update a WAL entry by finding it via message_id in the entry data.
-        
+
         This is used when we need to update a message that's already in the WAL
         (e.g., filtering tool_calls when stop happens mid-execution).
-        
+
         Args:
             run_id: The run ID
             message_id: The message_id to find in entry data
             updated_data: The updated data to write
-            
+
         Returns:
             True if entry was found and updated, False otherwise
         """
@@ -284,18 +281,18 @@ class WriteAheadLog:
             # Search Redis stream
             raw_entries = await redis.xrange(stream_key, "-", "+")
             client = await redis.get_client()
-            
+
             for msg_id, fields in raw_entries:
                 payload = fields.get("payload")
                 if payload:
                     entry_data = json.loads(payload)
                     entry = WALEntry.from_dict(entry_data)
-                    
+
                     # Check if this entry's data contains the message_id we're looking for
                     if entry.data.get("message_id") == message_id:
                         # Delete old entry
                         await client.xdel(stream_key, msg_id)
-                        
+
                         # Create updated entry with same entry_id to preserve attempt tracking
                         updated_entry = WALEntry(
                             entry_id=entry.entry_id,
@@ -307,7 +304,7 @@ class WriteAheadLog:
                             last_attempt_at=entry.last_attempt_at,
                             last_error=entry.last_error,
                         )
-                        
+
                         # Append updated entry
                         await redis.xadd(
                             stream_key,
@@ -315,9 +312,11 @@ class WriteAheadLog:
                             maxlen=self.STREAM_MAXLEN,
                         )
                         await redis.expire(stream_key, self.ENTRY_TTL_SECONDS)
-                        
+
                         found = True
-                        logger.info(f"[WAL] Updated entry for message_id {message_id} in Redis stream")
+                        logger.info(
+                            f"[WAL] Updated entry for message_id {message_id} in Redis stream"
+                        )
                         break
         except Exception as e:
             logger.warning(f"[WAL] Redis update failed: {e}")
@@ -341,10 +340,14 @@ class WriteAheadLog:
                         # Replace in deque (deque doesn't support item assignment, so we rebuild)
                         entries_list = list(self._local_buffer[run_id])
                         entries_list[i] = updated_entry
-                        self._local_buffer[run_id] = deque(entries_list, maxlen=self.MAX_LOCAL_BUFFER_PER_RUN)
-                        
+                        self._local_buffer[run_id] = deque(
+                            entries_list, maxlen=self.MAX_LOCAL_BUFFER_PER_RUN
+                        )
+
                         found = True
-                        logger.info(f"[WAL] Updated entry for message_id {message_id} in local buffer")
+                        logger.info(
+                            f"[WAL] Updated entry for message_id {message_id} in local buffer"
+                        )
                         break
 
         return found

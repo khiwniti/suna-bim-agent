@@ -25,7 +25,9 @@ from .initialization import ManagerInitializer
 class StatelessCoordinator(BaseCoordinator):
     INIT_TIMEOUT = 10.0
 
-    async def execute(self, ctx: PipelineContext, max_steps: int = 25) -> AsyncGenerator[Dict[str, Any], None]:
+    async def execute(
+        self, ctx: PipelineContext, max_steps: int = 25
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         start = time.time()
         self._thread_run_id = str(uuid.uuid4())
 
@@ -37,8 +39,14 @@ class StatelessCoordinator(BaseCoordinator):
             await stream_prep_stage(ctx.stream_key, "initializing", "Setting up", 10)
 
             if not await ownership.claim(ctx.agent_run_id):
-                logger.error(f"[CLAIM_FAILED] Run {ctx.agent_run_id} already claimed by another worker! Worker ID: {ownership.worker_id}")
-                yield {"type": "error", "error": "Run already claimed", "error_code": "ALREADY_CLAIMED"}
+                logger.error(
+                    f"[CLAIM_FAILED] Run {ctx.agent_run_id} already claimed by another worker! Worker ID: {ownership.worker_id}"
+                )
+                yield {
+                    "type": "error",
+                    "error": "Run already claimed",
+                    "error_code": "ALREADY_CLAIMED",
+                }
                 return
 
             self._state = await RunState.create(ctx)
@@ -46,23 +54,25 @@ class StatelessCoordinator(BaseCoordinator):
             self._thread_manager, self._tool_registry, self._trace = await self._init_managers(ctx)
             await self._determine_effective_model(ctx)
             await self._load_prompt_and_tools(ctx)
-            
+
             if ctx.user_message:
-                logger.debug(f"[Coordinator] User message already in DB, not re-adding: {len(ctx.user_message)} chars")
+                logger.debug(
+                    f"[Coordinator] User message already in DB, not re-adding: {len(ctx.user_message)} chars"
+                )
 
             write_buffer.register(self._state)
-            
+
             message_builder = MessageBuilder(
                 increment_sequence=self._increment_sequence,
                 get_thread_id=lambda: self._state.thread_id,
                 get_thread_run_id=lambda: self._thread_run_id,
-                get_agent_id=lambda: getattr(self._state, 'agent_id', None)
+                get_agent_id=lambda: getattr(self._state, "agent_id", None),
             )
-            
+
             tool_executor = ToolExecutor(self._state, self._tool_registry, message_builder)
             response_processor = ResponseProcessor(self._state, message_builder, tool_executor)
             execution_engine = ExecutionEngine(self._state, response_processor)
-            
+
             self._background_tasks = BackgroundTaskManager(self._state, ownership)
             self._background_tasks.start()
 
@@ -81,9 +91,9 @@ class StatelessCoordinator(BaseCoordinator):
             final_status_msg = {
                 "type": "status",
                 "status": status,
-                "message": self._state.termination_reason or "completed"
+                "message": self._state.termination_reason or "completed",
             }
-            
+
             logger.debug(f"[Coordinator] Yielding final status: {status}")
             yield final_status_msg
 
@@ -110,10 +120,7 @@ class StatelessCoordinator(BaseCoordinator):
             await self._cleanup(ctx)
 
     async def _execution_loop(
-        self, 
-        ctx: PipelineContext, 
-        execution_engine: ExecutionEngine, 
-        max_steps: int
+        self, ctx: PipelineContext, execution_engine: ExecutionEngine, max_steps: int
     ) -> AsyncGenerator[Dict[str, Any], None]:
         should_continue_loop = True
         auto_continue_count = 0
@@ -121,7 +128,7 @@ class StatelessCoordinator(BaseCoordinator):
         while self._state.should_continue() and should_continue_loop:
             self._thread_run_id = str(uuid.uuid4())
             self._reset_sequence()
-            
+
             step_start = time.time()
             step = self._state.next_step()
 
@@ -181,16 +188,18 @@ class StatelessCoordinator(BaseCoordinator):
         from core.ai_models import model_manager
         from core.ai_models.registry import BedrockConfig
         from core.agentpress.thread_manager.services.state.thread_state import ThreadState
-        
+
         if model_manager.supports_vision(self._state.model_name):
             logger.debug(f"Model {self._state.model_name} supports vision, no switch needed")
             return
-        
+
         has_images = await ThreadState.check_has_images(ctx.thread_id)
-        
+
         if has_images:
             new_model = BedrockConfig.get_haiku_arn()
-            logger.info(f"🖼️ Thread has images - switching from {self._state.model_name} to image model: {new_model}")
+            logger.info(
+                f"🖼️ Thread has images - switching from {self._state.model_name} to image model: {new_model}"
+            )
             self._state.model_name = new_model
 
     async def _load_prompt_and_tools(self, ctx: PipelineContext) -> None:
@@ -203,8 +212,7 @@ class StatelessCoordinator(BaseCoordinator):
             self._state.complete()
 
         self._state.add_status_message(
-            {"status_type": "thread_run_end"},
-            {"thread_run_id": self._thread_run_id}
+            {"status_type": "thread_run_end"}, {"thread_run_id": self._thread_run_id}
         )
 
         try:
@@ -218,10 +226,11 @@ class StatelessCoordinator(BaseCoordinator):
         # Queue for conversation analytics (non-blocking)
         try:
             from core.analytics.conversation_analyzer import queue_for_analysis
+
             await queue_for_analysis(
                 thread_id=self._state.thread_id,
                 agent_run_id=self._state.run_id,
-                account_id=self._state.account_id
+                account_id=self._state.account_id,
             )
         except Exception as e:
             logger.warning(f"[Coordinator] Failed to queue analytics: {e}")
@@ -230,7 +239,7 @@ class StatelessCoordinator(BaseCoordinator):
         cleanup_errors = []
 
         try:
-            if hasattr(self, '_background_tasks'):
+            if hasattr(self, "_background_tasks"):
                 errors = await self._background_tasks.stop()
                 cleanup_errors.extend(errors)
 
@@ -243,12 +252,17 @@ class StatelessCoordinator(BaseCoordinator):
                     # Ensure WAL is cleaned even if state.cleanup() partially failed
                     try:
                         from core.agents.pipeline.stateless.persistence.wal import wal
+
                         await wal.cleanup_run(self._state.run_id)
                     except Exception as wal_err:
                         logger.warning(f"[Coordinator] WAL fallback cleanup error: {wal_err}")
                 write_buffer.unregister(self._state.run_id)
 
-            status = "completed" if self._state and self._state.termination_reason == "completed" else "failed"
+            status = (
+                "completed"
+                if self._state and self._state.termination_reason == "completed"
+                else "failed"
+            )
             try:
                 await ownership.release(ctx.agent_run_id, status)
             except Exception as e:

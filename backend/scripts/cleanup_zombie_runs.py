@@ -3,6 +3,7 @@
 Cleanup zombie runs from Redis runs:active set.
 These are runs that were never properly released due to crashes/restarts.
 """
+
 import asyncio
 import time
 import argparse
@@ -34,8 +35,18 @@ async def get_zombie_runs(min_age_seconds: int = 300) -> List[Dict[str, Any]]:
 
             owner = owner.decode() if owner and isinstance(owner, bytes) else owner
             status = status.decode() if status and isinstance(status, bytes) else status
-            heartbeat = float(heartbeat.decode() if heartbeat and isinstance(heartbeat, bytes) else heartbeat) if heartbeat else None
-            start = float(start.decode() if start and isinstance(start, bytes) else start) if start else None
+            heartbeat = (
+                float(
+                    heartbeat.decode() if heartbeat and isinstance(heartbeat, bytes) else heartbeat
+                )
+                if heartbeat
+                else None
+            )
+            start = (
+                float(start.decode() if start and isinstance(start, bytes) else start)
+                if start
+                else None
+            )
 
             heartbeat_age = (now - heartbeat) if heartbeat else None
             run_age = (now - start) if start else None
@@ -57,20 +68,24 @@ async def get_zombie_runs(min_age_seconds: int = 300) -> List[Dict[str, Any]]:
                 reason = f"very_old_{run_age:.0f}s"
 
             if is_zombie:
-                zombies.append({
-                    "run_id": run_id,
-                    "owner": owner,
-                    "status": status,
-                    "heartbeat_age": heartbeat_age,
-                    "run_age": run_age,
-                    "reason": reason,
-                })
+                zombies.append(
+                    {
+                        "run_id": run_id,
+                        "owner": owner,
+                        "status": status,
+                        "heartbeat_age": heartbeat_age,
+                        "run_age": run_age,
+                        "reason": reason,
+                    }
+                )
         except Exception as e:
             print(f"Error checking {run_id}: {e}")
-            zombies.append({
-                "run_id": run_id,
-                "reason": f"error: {e}",
-            })
+            zombies.append(
+                {
+                    "run_id": run_id,
+                    "reason": f"error: {e}",
+                }
+            )
 
     return zombies
 
@@ -105,10 +120,10 @@ async def main(dry_run: bool = True, min_age: int = 300):
     await init_db()
     await redis.init()
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Zombie Run Cleanup - {'DRY RUN' if dry_run else 'LIVE MODE'}")
     print(f"Min age threshold: {min_age}s")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     zombies = await get_zombie_runs(min_age_seconds=min_age)
 
@@ -122,7 +137,7 @@ async def main(dry_run: bool = True, min_age: int = 300):
     if len(zombies) > 20:
         print(f"  ... and {len(zombies) - 20} more")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
 
     if dry_run:
         print(f"\nDRY RUN - No changes made. Run with --execute to clean up.")
@@ -137,8 +152,15 @@ async def main(dry_run: bool = True, min_age: int = 300):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cleanup zombie runs from Redis")
-    parser.add_argument("--execute", action="store_true", help="Actually clean up (default is dry run)")
-    parser.add_argument("--min-age", type=int, default=300, help="Min heartbeat age in seconds to consider zombie (default: 300)")
+    parser.add_argument(
+        "--execute", action="store_true", help="Actually clean up (default is dry run)"
+    )
+    parser.add_argument(
+        "--min-age",
+        type=int,
+        default=300,
+        help="Min heartbeat age in seconds to consider zombie (default: 300)",
+    )
     args = parser.parse_args()
 
     asyncio.run(main(dry_run=not args.execute, min_age=args.min_age))

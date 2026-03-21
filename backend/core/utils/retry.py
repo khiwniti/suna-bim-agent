@@ -117,12 +117,12 @@ async def retry_db_operation(
 ) -> T:
     """
     Retry a database operation with exponential backoff, jitter, and connection reset.
-    
+
     Designed for high-concurrency production workloads with:
     - Configurable retry limits (default: 5 attempts via DB_DEFAULT_MAX_RETRIES)
     - Jitter to prevent thundering herd on retries
     - Automatic connection pool reset on timeouts
-    - Handles ConnectTimeout, ReadTimeout, PoolTimeout, network errors, 
+    - Handles ConnectTimeout, ReadTimeout, PoolTimeout, network errors,
       client-closed errors, and route-not-found errors
 
     Args:
@@ -147,12 +147,12 @@ async def retry_db_operation(
         initial_delay = DB_RETRY_INITIAL_DELAY
     if max_delay is None:
         max_delay = DB_RETRY_MAX_DELAY
-    
+
     last_exception: Optional[Exception] = None
     # Use singleton - already initialized at startup
     db = DBConnection()
     op_name = operation_name or "Database operation"
-    
+
     for attempt in range(max_retries):
         try:
             return await operation()
@@ -160,22 +160,24 @@ async def retry_db_operation(
             last_exception = e
             is_pool_timeout = isinstance(e, httpx.PoolTimeout)
             is_connect_timeout = isinstance(e, httpx.ConnectTimeout)
-            
+
             if attempt < max_retries - 1:
-                should_reset = reset_connection_on_error or (reset_on_pool_timeout and is_pool_timeout)
+                should_reset = reset_connection_on_error or (
+                    reset_on_pool_timeout and is_pool_timeout
+                )
                 if should_reset:
                     try:
                         await db.force_reconnect()
                         logger.debug(f"🔄 Reconnected DB after {type(e).__name__}")
                     except Exception as reset_error:
                         logger.warning(f"Failed to reconnect: {reset_error}")
-                
-                base_delay = min(initial_delay * (backoff_factor ** attempt), max_delay)
+
+                base_delay = min(initial_delay * (backoff_factor**attempt), max_delay)
                 delay = _add_jitter(base_delay)
-                
+
                 if is_pool_timeout or is_connect_timeout:
                     delay = min(delay * 1.5, max_delay)
-                
+
                 logger.warning(
                     f"{op_name} failed (attempt {attempt + 1}/{max_retries}): {type(e).__name__}. "
                     f"Retrying in {delay:.2f}s..."
@@ -191,23 +193,33 @@ async def retry_db_operation(
             if DBConnection.is_recoverable_connection_error(e):
                 last_exception = e
                 if attempt < max_retries - 1:
-                    error_type = "client-closed" if DBConnection.is_client_closed_error(e) else "route-not-found"
-                    logger.warning(f"🔄 Recoverable {error_type} error in {op_name} (attempt {attempt + 1}/{max_retries}), reconnecting...")
+                    error_type = (
+                        "client-closed"
+                        if DBConnection.is_client_closed_error(e)
+                        else "route-not-found"
+                    )
+                    logger.warning(
+                        f"🔄 Recoverable {error_type} error in {op_name} (attempt {attempt + 1}/{max_retries}), reconnecting..."
+                    )
                     try:
                         await db.force_reconnect()
                     except Exception as reconnect_err:
                         logger.warning(f"Failed to reconnect: {reconnect_err}")
-                    
-                    base_delay = min(initial_delay * (backoff_factor ** attempt), max_delay)
+
+                    base_delay = min(initial_delay * (backoff_factor**attempt), max_delay)
                     delay = _add_jitter(base_delay)
                     await asyncio.sleep(delay)
                 else:
-                    logger.error(f"{op_name} failed after {max_retries} attempts with {error_type} error")
+                    logger.error(
+                        f"{op_name} failed after {max_retries} attempts with {error_type} error"
+                    )
             else:
-                logger.error(f"{op_name} failed with non-retryable error: {type(e).__name__}: {str(e)}")
+                logger.error(
+                    f"{op_name} failed with non-retryable error: {type(e).__name__}: {str(e)}"
+                )
                 raise
-    
+
     if last_exception:
         raise last_exception
-    
+
     raise RuntimeError("Unexpected: retry loop completed without exception")

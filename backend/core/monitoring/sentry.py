@@ -73,7 +73,7 @@ def capture_bim_error(
     tool_name: str,
     file_path: str | None = None,
     user_id: str | None = None,
-    **extra_context
+    **extra_context,
 ) -> None:
     """
     Capture BIM tool-specific errors with rich context.
@@ -86,11 +86,9 @@ def capture_bim_error(
         **extra_context: Additional context key-value pairs
     """
     with sentry_sdk.push_scope() as scope:
-        scope.set_context("bim_tool", {
-            "tool_name": tool_name,
-            "file_path": file_path,
-            **extra_context
-        })
+        scope.set_context(
+            "bim_tool", {"tool_name": tool_name, "file_path": file_path, **extra_context}
+        )
 
         if user_id:
             scope.set_user({"id": user_id})
@@ -102,11 +100,7 @@ def capture_bim_error(
 
 
 def capture_llm_error(
-    error: Exception,
-    provider: str,
-    model: str,
-    user_id: str | None = None,
-    **extra_context
+    error: Exception, provider: str, model: str, user_id: str | None = None, **extra_context
 ) -> None:
     """
     Capture LLM API errors with provider and model context.
@@ -119,11 +113,7 @@ def capture_llm_error(
         **extra_context: Additional context key-value pairs
     """
     with sentry_sdk.push_scope() as scope:
-        scope.set_context("llm", {
-            "provider": provider,
-            "model": model,
-            **extra_context
-        })
+        scope.set_context("llm", {"provider": provider, "model": model, **extra_context})
 
         if user_id:
             scope.set_user({"id": user_id})
@@ -136,10 +126,7 @@ def capture_llm_error(
 
 
 def capture_auth_error(
-    error: Exception,
-    auth_type: str,
-    user_id: str | None = None,
-    **extra_context
+    error: Exception, auth_type: str, user_id: str | None = None, **extra_context
 ) -> None:
     """
     Capture authentication and authorization errors.
@@ -151,10 +138,7 @@ def capture_auth_error(
         **extra_context: Additional context key-value pairs
     """
     with sentry_sdk.push_scope() as scope:
-        scope.set_context("authentication", {
-            "auth_type": auth_type,
-            **extra_context
-        })
+        scope.set_context("authentication", {"auth_type": auth_type, **extra_context})
 
         if user_id:
             scope.set_user({"id": user_id})
@@ -174,11 +158,7 @@ def set_user_context(user_id: str, email: str | None = None, **user_data) -> Non
         email: User email (optional)
         **user_data: Additional user context key-value pairs
     """
-    sentry_sdk.set_user({
-        "id": user_id,
-        "email": email,
-        **user_data
-    })
+    sentry_sdk.set_user({"id": user_id, "email": email, **user_data})
 
 
 def clear_user_context() -> None:
@@ -196,9 +176,4 @@ def add_breadcrumb(message: str, category: str, level: str = "info", **data) -> 
         level: Severity level ("debug", "info", "warning", "error", "fatal")
         **data: Additional breadcrumb data
     """
-    sentry_sdk.add_breadcrumb(
-        message=message,
-        category=category,
-        level=level,
-        data=data
-    )
+    sentry_sdk.add_breadcrumb(message=message, category=category, level=level, data=data)

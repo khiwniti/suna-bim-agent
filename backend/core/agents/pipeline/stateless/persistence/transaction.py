@@ -52,7 +52,7 @@ class CreditReservation:
                 if len(self._reservations) >= self.MAX_RESERVATIONS:
                     logger.warning("[CreditReservation] Max reservations reached, cleaning expired")
                     await self._cleanup_expired()
-                
+
                 self._reservations[reservation_id] = {
                     "account_id": account_id,
                     "run_id": run_id,
@@ -75,17 +75,18 @@ class CreditReservation:
         now = time.time()
         self._last_cleanup = now
         expired_count = 0
-        
+
         async with self._lock:
             expired_keys = [
-                k for k, v in self._reservations.items()
+                k
+                for k, v in self._reservations.items()
                 if now - v["created_at"] > self.RESERVATION_TTL + 60
             ]
             for k in expired_keys:
                 logger.warning(f"[CreditReservation] Cleaning expired reservation: {k}")
                 del self._reservations[k]
                 expired_count += 1
-        
+
         return expired_count
 
     async def commit(self, reservation_id: str) -> bool:
@@ -270,7 +271,9 @@ class TransactionalWriter:
                 try:
                     await threads_repo.delete_message(msg_id)
                 except Exception as del_error:
-                    logger.error(f"[TransactionalWriter] Compensation failed for {msg_id}: {del_error}")
+                    logger.error(
+                        f"[TransactionalWriter] Compensation failed for {msg_id}: {del_error}"
+                    )
 
             duration_ms = (time.time() - start_time) * 1000
 

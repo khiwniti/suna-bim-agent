@@ -99,9 +99,7 @@ class SandboxFileReaderTool(SandboxToolsBase):
                 )
                 return False
 
-            logger.debug(
-                f"[FileReader] Waiting for {pending} file uploads to complete..."
-            )
+            logger.debug(f"[FileReader] Waiting for {pending} file uploads to complete...")
             await asyncio.sleep(POLL_INTERVAL)
 
     async def _ensure_kb(self) -> bool:
@@ -275,9 +273,7 @@ class SandboxFileReaderTool(SandboxToolsBase):
                     timeout=60,
                 )
                 if result.exit_code != 0 or not result.result.strip():
-                    result = await self.sandbox.process.exec(
-                        f"cat {escaped_path}", timeout=60
-                    )
+                    result = await self.sandbox.process.exec(f"cat {escaped_path}", timeout=60)
                     extraction_method = "raw"
                 else:
                     extraction_method = "unzip"
@@ -360,9 +356,7 @@ class SandboxFileReaderTool(SandboxToolsBase):
                 content = result.result
 
             else:
-                result = await self.sandbox.process.exec(
-                    f"cat {escaped_path}", timeout=60
-                )
+                result = await self.sandbox.process.exec(f"cat {escaped_path}", timeout=60)
                 if result.exit_code != 0:
                     return {
                         "file_path": cleaned_path,
@@ -458,9 +452,7 @@ Usage:
             elif file_path:
                 paths_to_read = [file_path]
             else:
-                return self.fail_response(
-                    "Either 'file_path' or 'file_paths' must be provided."
-                )
+                return self.fail_response("Either 'file_path' or 'file_paths' must be provided.")
 
             if len(paths_to_read) == 1:
                 result = await self._read_single_file(paths_to_read[0])
@@ -553,9 +545,7 @@ Examples:
 
             paths = []
             if file_paths:
-                paths = [
-                    f"{self.workspace_path}/{self.clean_path(p)}" for p in file_paths
-                ]
+                paths = [f"{self.workspace_path}/{self.clean_path(p)}" for p in file_paths]
             elif file_path:
                 paths = [f"{self.workspace_path}/{self.clean_path(file_path)}"]
             else:
@@ -587,15 +577,9 @@ Examples:
                         return self.fail_response(f"Path not found: {p}")
 
             if not await self._ensure_kb():
-                return self.fail_response(
-                    "Failed to initialize search. Try read_file instead."
-                )
+                return self.fail_response("Failed to initialize search. Try read_file instead.")
 
-            env = (
-                {"OPENAI_API_KEY": config.OPENAI_API_KEY}
-                if config.OPENAI_API_KEY
-                else {}
-            )
+            env = {"OPENAI_API_KEY": config.OPENAI_API_KEY} if config.OPENAI_API_KEY else {}
 
             path_args = " ".join([shlex.quote(p) for p in paths])
             escaped_query = shlex.quote(query)
@@ -609,9 +593,7 @@ Examples:
                 logger.error(f"[SearchFile] kb search failed: {result.result}")
                 return self.fail_response(f"Search failed: {result.result[:500]}")
 
-            logger.info(
-                f"[SearchFile] Raw kb output (first 1000 chars): {result.result[:1000]}"
-            )
+            logger.info(f"[SearchFile] Raw kb output (first 1000 chars): {result.result[:1000]}")
 
             try:
                 search_results = json.loads(result.result)
@@ -625,9 +607,7 @@ Examples:
                     total_hits += len(hits)
 
                     if hits:
-                        logger.info(
-                            f"[SearchFile] First hit structure: {list(hits[0].keys())}"
-                        )
+                        logger.info(f"[SearchFile] First hit structure: {list(hits[0].keys())}")
 
                     for hit in hits[:10]:
                         content = (
@@ -637,12 +617,7 @@ Examples:
                             or hit.get("snippet")
                             or ""
                         )
-                        file_path = (
-                            hit.get("file_path")
-                            or hit.get("path")
-                            or hit.get("file")
-                            or ""
-                        )
+                        file_path = hit.get("file_path") or hit.get("path") or hit.get("file") or ""
 
                         if not content and hit:
                             logger.info(
@@ -651,9 +626,7 @@ Examples:
 
                         formatted_results.append(
                             {
-                                "file": file_path.replace(
-                                    self.workspace_path + "/", ""
-                                ),
+                                "file": file_path.replace(self.workspace_path + "/", ""),
                                 "score": round(hit.get("score", 0), 3),
                                 "content": content[:8000]
                                 if content
@@ -673,9 +646,7 @@ Examples:
                 )
 
             except json.JSONDecodeError:
-                return self.success_response(
-                    {"query": query, "raw_results": result.result[:5000]}
-                )
+                return self.success_response({"query": query, "raw_results": result.result[:5000]})
 
         except Exception as e:
             logger.error(f"[SearchFile] Error: {e}", exc_info=True)

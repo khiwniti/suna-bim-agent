@@ -20,9 +20,7 @@ class EmailService:
         else:
             self.client = mt.MailtrapClient(token=self.api_token)
 
-    def send_welcome_email(
-        self, user_email: str, user_name: Optional[str] = None
-    ) -> bool:
+    def send_welcome_email(self, user_email: str, user_name: Optional[str] = None) -> bool:
         if not self.client:
             logger.error("Cannot send email: MAILTRAP_API_TOKEN not configured")
             return False
@@ -54,12 +52,8 @@ class EmailService:
             return False
 
         subject = f"🎉 You're invited!"
-        html_content = self._get_referral_email_template(
-            recipient_name, sender_name, referral_url
-        )
-        text_content = self._get_referral_email_text(
-            recipient_name, sender_name, referral_url
-        )
+        html_content = self._get_referral_email_template(recipient_name, sender_name, referral_url)
+        text_content = self._get_referral_email_text(recipient_name, sender_name, referral_url)
 
         try:
             sender_email_to_use = self.hello_email
@@ -87,9 +81,7 @@ class EmailService:
         except Exception as e:
             error_type = type(e).__name__
             error_details = str(e)
-            logger.error(
-                f"Error sending referral email to {recipient_email}: {error_details}"
-            )
+            logger.error(f"Error sending referral email to {recipient_email}: {error_details}")
             logger.error(f"Error type: {error_type}")
             logger.error(
                 f"Mailtrap API Token present: {bool(self.api_token)}, Token prefix: {self.api_token[:8] if self.api_token else 'None'}..."
@@ -340,9 +332,7 @@ Claim your invite: {referral_url}
         try:
             mail = mt.Mail(
                 sender=mt.Address(email=self.sender_email, name=self.sender_name),
-                to=[
-                    mt.Address(email=user_email, name=user_email.split("@")[0].title())
-                ],
+                to=[mt.Address(email=user_email, name=user_email.split("@")[0].title())],
                 subject=subject,
                 text=text_content,
                 html=html_content,

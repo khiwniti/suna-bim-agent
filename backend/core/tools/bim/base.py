@@ -1,4 +1,5 @@
 """Base class for BIM analysis tools."""
+
 import asyncio
 import hashlib
 import os
@@ -10,6 +11,7 @@ from core.utils.logger import logger
 
 try:
     import ifcopenshell
+
     HAS_IFC = True
 except ImportError:
     HAS_IFC = False
@@ -62,55 +64,55 @@ class BIMToolBase(SandboxToolsBase):
     def get_element_properties(self, element) -> dict:
         """Extract all properties from an IFC element."""
         props = {
-            'express_id': element.id(),
-            'global_id': element.GlobalId,
-            'type': element.is_a(),
-            'name': getattr(element, 'Name', None),
+            "express_id": element.id(),
+            "global_id": element.GlobalId,
+            "type": element.is_a(),
+            "name": getattr(element, "Name", None),
         }
-        if hasattr(element, 'IsDefinedBy'):
+        if hasattr(element, "IsDefinedBy"):
             for definition in element.IsDefinedBy:
-                if definition.is_a('IfcRelDefinesByProperties'):
+                if definition.is_a("IfcRelDefinesByProperties"):
                     prop_set = definition.RelatingPropertyDefinition
-                    if prop_set.is_a('IfcPropertySet'):
+                    if prop_set.is_a("IfcPropertySet"):
                         for prop in prop_set.HasProperties:
-                            if prop.is_a('IfcPropertySingleValue') and prop.NominalValue:
+                            if prop.is_a("IfcPropertySingleValue") and prop.NominalValue:
                                 props[prop.Name] = prop.NominalValue.wrappedValue
         return props
 
     def _get_element_volume(self, element) -> Optional[float]:
         """Extract volume from element quantities."""
-        if hasattr(element, 'IsDefinedBy'):
+        if hasattr(element, "IsDefinedBy"):
             for rel in element.IsDefinedBy:
-                if rel.is_a('IfcRelDefinesByProperties'):
+                if rel.is_a("IfcRelDefinesByProperties"):
                     prop_def = rel.RelatingPropertyDefinition
-                    if prop_def.is_a('IfcElementQuantity'):
+                    if prop_def.is_a("IfcElementQuantity"):
                         for quantity in prop_def.Quantities:
-                            if quantity.is_a('IfcQuantityVolume'):
+                            if quantity.is_a("IfcQuantityVolume"):
                                 return quantity.VolumeValue
         return None
 
     def get_element_material(self, element) -> Optional[str]:
         """Return the primary material name assigned to an IFC element, or None."""
-        if not hasattr(element, 'HasAssociations'):
+        if not hasattr(element, "HasAssociations"):
             return None
         for assoc in element.HasAssociations:
-            if assoc.is_a('IfcRelAssociatesMaterial'):
+            if assoc.is_a("IfcRelAssociatesMaterial"):
                 mat = assoc.RelatingMaterial
-                if mat.is_a('IfcMaterial'):
+                if mat.is_a("IfcMaterial"):
                     return mat.Name
-                if mat.is_a('IfcMaterialLayerSetUsage'):
+                if mat.is_a("IfcMaterialLayerSetUsage"):
                     mat = mat.ForLayerSet
-                if mat.is_a('IfcMaterialLayerSet') and mat.MaterialLayers:
+                if mat.is_a("IfcMaterialLayerSet") and mat.MaterialLayers:
                     thickest = max(mat.MaterialLayers, key=lambda l: l.LayerThickness or 0)
                     if thickest.Material:
                         return thickest.Material.Name
-                if mat.is_a('IfcMaterialConstituentSet') and mat.MaterialConstituents:
+                if mat.is_a("IfcMaterialConstituentSet") and mat.MaterialConstituents:
                     first = mat.MaterialConstituents[0]
                     if first.Material:
                         return first.Material.Name
-                if mat.is_a('IfcMaterialProfileSetUsage'):
+                if mat.is_a("IfcMaterialProfileSetUsage"):
                     mat = mat.ForProfileSet
-                if mat.is_a('IfcMaterialProfileSet') and mat.MaterialProfiles:
+                if mat.is_a("IfcMaterialProfileSet") and mat.MaterialProfiles:
                     profile = mat.MaterialProfiles[0]
                     if profile.Material:
                         return profile.Material.Name

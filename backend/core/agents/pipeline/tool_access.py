@@ -7,18 +7,18 @@ from core.utils.logger import logger
 # Only include actual callable methods, NOT tool class names
 FUNCTION_TO_TOOL_CLASS = {
     # Presentation tool methods
-    'create_slide': 'sb_presentation_tool',
-    'load_template_design': 'sb_presentation_tool',
+    "create_slide": "sb_presentation_tool",
+    "load_template_design": "sb_presentation_tool",
     # Canvas tool methods
-    'create_canvas': 'sb_canvas_tool',
-    'add_canvas_element': 'sb_canvas_tool',
-    'update_canvas_element': 'sb_canvas_tool',
-    'remove_canvas_element': 'sb_canvas_tool',
-    'export_canvas': 'sb_canvas_tool',
+    "create_canvas": "sb_canvas_tool",
+    "add_canvas_element": "sb_canvas_tool",
+    "update_canvas_element": "sb_canvas_tool",
+    "remove_canvas_element": "sb_canvas_tool",
+    "export_canvas": "sb_canvas_tool",
     # Spreadsheet tool methods
-    'create_spreadsheet': 'sb_spreadsheet_tool',
-    'update_spreadsheet': 'sb_spreadsheet_tool',
-    'read_spreadsheet': 'sb_spreadsheet_tool',
+    "create_spreadsheet": "sb_spreadsheet_tool",
+    "update_spreadsheet": "sb_spreadsheet_tool",
+    "read_spreadsheet": "sb_spreadsheet_tool",
 }
 
 
@@ -35,6 +35,7 @@ class ToolAccessResult:
     upgrade_required: bool = False
     current_tier: Optional[str] = None
     current_tier_display: Optional[str] = None
+
 
 def check_tool_access(tier_name: str, tool_name: str) -> ToolAccessResult:
     from core.billing.shared.config import is_tool_disabled, get_tier_by_name
@@ -66,17 +67,19 @@ def check_tool_access(tier_name: str, tool_name: str) -> ToolAccessResult:
 
 def is_tool_allowed(tier_name: str, tool_name: str) -> bool:
     from core.billing.shared.config import is_tool_disabled
+
     return not is_tool_disabled(tier_name, tool_name)
 
 
 async def check_tool_access_for_account(account_id: str, tool_name: str) -> ToolAccessResult:
     try:
         from core.cache.runtime_cache import get_cached_tier_info
+
         tier_info = await get_cached_tier_info(account_id)
         if not tier_info:
             return ToolAccessResult(allowed=True)
 
-        tier_name = tier_info.get('name', 'free')
+        tier_name = tier_info.get("name", "free")
         return check_tool_access(tier_name, tool_name)
     except Exception as e:
         logger.warning(f"Failed to check tool access for {account_id}: {e}")

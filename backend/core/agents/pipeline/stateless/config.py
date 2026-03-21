@@ -1,9 +1,9 @@
 from typing import ClassVar
 from dataclasses import dataclass
 
+
 @dataclass
 class StatelessConfig:
-
     MAX_TOOL_RESULTS: ClassVar[int] = 20
     MAX_PENDING_WRITES: ClassVar[int] = 100
     MAX_STEPS: ClassVar[int] = 100
@@ -33,5 +33,6 @@ class StatelessConfig:
     CLEANUP_INTERVAL_SECONDS: ClassVar[int] = 60
     MEMORY_PRESSURE_THRESHOLD_RUNS: ClassVar[int] = 300
     STALE_RUN_AGE_SECONDS: ClassVar[int] = 600
+
 
 config = StatelessConfig()

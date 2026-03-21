@@ -19,34 +19,28 @@ SUNA_CONFIG = {
         "sb_expose_tool": True,
         "sb_upload_file_tool": True,
         "sb_git_sync": True,
-        
         # Search and research tools
         "web_search_tool": True,
         "image_search_tool": True,
-        
         # AI vision and image tools
         "sb_vision_tool": True,
         "sb_image_edit_tool": True,
         "sb_design_tool": True,
-        
         # Document and content creation
         "sb_presentation_tool": True,
         "sb_kb_tool": True,
-
         # search tools (disabled - exa-py removed due to openai 2.x incompatibility)
         "people_search_tool": False,
         "company_search_tool": False,
-
         "browser_tool": True,
-        
         # Agent builder tools
         "agent_config_tool": True,
         "agent_creation_tool": True,
         "mcp_search_tool": True,
         "credential_profile_tool": True,
-        "trigger_tool": True
+        "trigger_tool": True,
     },
-    "is_default": True
+    "is_default": True,
 }
 
 # ---------------------------------------------------------------------------
@@ -80,7 +74,7 @@ EMBODIED_CARBON_ANALYST_CONFIG = {
     "is_default": False,
     "icon_name": "bar-chart-3",
     "icon_color": "#FFFFFF",
-    "icon_background": "#059669",   # Emerald-600
+    "icon_background": "#059669",  # Emerald-600
     "metadata": {
         "is_embodied_carbon_analyst": True,
         "preset_version": "1.0",
@@ -97,8 +91,7 @@ import os
 CACHE_CONFIG = {
     "enabled": os.getenv("CACHE_ENABLED", "true").lower() == "true",
     "default_ttl": int(os.getenv("CACHE_DEFAULT_TTL", "3600")),  # 1 hour
-    "carbon_ttl": int(os.getenv("CACHE_CARBON_TTL", "3600")),    # 1 hour
-    "ifc_ttl": int(os.getenv("CACHE_IFC_TTL", "86400")),         # 24 hours
+    "carbon_ttl": int(os.getenv("CACHE_CARBON_TTL", "3600")),  # 1 hour
+    "ifc_ttl": int(os.getenv("CACHE_IFC_TTL", "86400")),  # 24 hours
     "max_size_mb": int(os.getenv("CACHE_MAX_SIZE_MB", "1024")),  # 1GB
 }
-

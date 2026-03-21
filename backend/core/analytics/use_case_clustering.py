@@ -15,7 +15,7 @@ async def get_clustered_use_cases(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     distance_threshold: float = 0.3,  # Kept for API compatibility, not used
-    min_cluster_size: int = 1
+    min_cluster_size: int = 1,
 ) -> List[Dict[str, Any]]:
     """
     Get use cases grouped by category.
@@ -29,53 +29,59 @@ async def get_clustered_use_cases(
 
         # Simple query - group by category, count unique threads
         # Filter out both NULL and empty strings
-        query = client.from_('conversation_analytics')\
-            .select('use_case_category, thread_id, account_id')\
-            .not_.is_('use_case_category', None)\
-            .neq('use_case_category', '')
+        query = (
+            client.from_("conversation_analytics")
+            .select("use_case_category, thread_id, account_id")
+            .not_.is_("use_case_category", None)
+            .neq("use_case_category", "")
+        )
 
         if date_from:
-            query = query.gte('analyzed_at', f"{date_from}T00:00:00Z")
+            query = query.gte("analyzed_at", f"{date_from}T00:00:00Z")
         if date_to:
-            query = query.lte('analyzed_at', f"{date_to}T23:59:59Z")
+            query = query.lte("analyzed_at", f"{date_to}T23:59:59Z")
 
         result = await query.execute()
         records = result.data or []
 
         # Debug: log actual category values
-        categories_found = [r.get('use_case_category') for r in records]
+        categories_found = [r.get("use_case_category") for r in records]
         logger.info(f"[CLUSTERING] Categories in records: {categories_found}")
 
         # Group by category
         from collections import defaultdict
-        groups = defaultdict(lambda: {'threads': set(), 'examples': []})
+
+        groups = defaultdict(lambda: {"threads": set(), "examples": []})
 
         for r in records:
-            cat = r.get('use_case_category')
+            cat = r.get("use_case_category")
             if cat:
-                groups[cat]['threads'].add(r.get('thread_id'))
-                if len(groups[cat]['examples']) < 5:
-                    groups[cat]['examples'].append({
-                        'thread_id': r.get('thread_id'),
-                        'account_id': r.get('account_id')
-                    })
+                groups[cat]["threads"].add(r.get("thread_id"))
+                if len(groups[cat]["examples"]) < 5:
+                    groups[cat]["examples"].append(
+                        {"thread_id": r.get("thread_id"), "account_id": r.get("account_id")}
+                    )
 
         # Debug: log group counts before filtering
-        logger.info(f"[CLUSTERING] Groups before min_size filter: {[(k, len(v['threads'])) for k, v in groups.items()]}")
+        logger.info(
+            f"[CLUSTERING] Groups before min_size filter: {[(k, len(v['threads'])) for k, v in groups.items()]}"
+        )
 
         # Build result
         clusters = []
         for cat, data in groups.items():
-            count = len(data['threads'])
+            count = len(data["threads"])
             if count >= min_cluster_size:
-                clusters.append({
-                    'cluster_id': hash(cat) % 10000,
-                    'label': cat,
-                    'count': count,
-                    'examples': data['examples']
-                })
+                clusters.append(
+                    {
+                        "cluster_id": hash(cat) % 10000,
+                        "label": cat,
+                        "count": count,
+                        "examples": data["examples"],
+                    }
+                )
 
-        clusters.sort(key=lambda x: x['count'], reverse=True)
+        clusters.sort(key=lambda x: x["count"], reverse=True)
 
         logger.info(f"[CLUSTERING] Found {len(clusters)} categories from {len(records)} records")
         return clusters

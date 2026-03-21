@@ -31,7 +31,7 @@ class ExponentialBackoff(RetryPolicy):
     )
 
     def get_delay(self, attempt: int) -> float:
-        delay = min(self.base_delay * (2 ** attempt), self.max_delay)
+        delay = min(self.base_delay * (2**attempt), self.max_delay)
         jitter_amount = delay * self.jitter * random.random()
         return delay + jitter_amount
 

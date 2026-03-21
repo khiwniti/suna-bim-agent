@@ -7,6 +7,7 @@ This is critical for:
 - Distributed locking
 - Proper handling of agent runs across multiple instances
 """
+
 import uuid
 
 # Generate unique instance ID per process/worker
@@ -17,4 +18,3 @@ INSTANCE_ID = str(uuid.uuid4())[:8]
 def get_instance_id() -> str:
     """Get the current instance's unique identifier."""
     return INSTANCE_ID
-

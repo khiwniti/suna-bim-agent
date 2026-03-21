@@ -12,13 +12,13 @@ from .template_service import (
     AgentTemplate,
     TemplateNotFoundError,
     TemplateAccessDeniedError,
-    SunaDefaultAgentTemplateError
+    SunaDefaultAgentTemplateError,
 )
 from .installation_service import (
     get_installation_service,
     TemplateInstallationRequest,
     TemplateInstallationError,
-    InvalidCredentialError
+    InvalidCredentialError,
 )
 from .utils import format_template_for_response
 
@@ -26,10 +26,12 @@ router = APIRouter(tags=["templates"])
 
 db: Optional[DBConnection] = None
 
+
 class UsageExampleMessage(BaseModel):
     role: str
     content: str
     tool_calls: Optional[List[Dict[str, Any]]] = None
+
 
 class CreateTemplateRequest(BaseModel):
     agent_id: str
@@ -76,6 +78,7 @@ class TemplateResponse(BaseModel):
     usage_examples: Optional[List[UsageExampleMessage]] = None
     config: Optional[Dict[str, Any]] = None
 
+
 class InstallationResponse(BaseModel):
     status: str
     instance_id: Optional[str] = None
@@ -94,75 +97,84 @@ def initialize(database: DBConnection):
 async def validate_template_ownership_and_get(template_id: str, user_id: str) -> AgentTemplate:
     template_service = get_template_service(db)
     template = await template_service.get_template(template_id)
-    
+
     if not template:
         logger.warning(f"Template {template_id} not found")
         raise HTTPException(status_code=404, detail="Template not found")
-    
+
     if template.creator_id != user_id:
-        logger.warning(f"User {user_id} attempted to access template {template_id} owned by {template.creator_id}")
-        raise HTTPException(status_code=403, detail="You don't have permission to access this template")
-    
+        logger.warning(
+            f"User {user_id} attempted to access template {template_id} owned by {template.creator_id}"
+        )
+        raise HTTPException(
+            status_code=403, detail="You don't have permission to access this template"
+        )
+
     return template
 
 
 async def validate_template_access_and_get(template_id: str, user_id: str) -> AgentTemplate:
     template_service = get_template_service(db)
     template = await template_service.get_template(template_id)
-    
+
     if not template:
         logger.warning(f"Template {template_id} not found")
         raise HTTPException(status_code=404, detail="Template not found")
-    
+
     if template.creator_id != user_id and not template.is_public:
-        logger.warning(f"User {user_id} attempted to access private template {template_id} owned by {template.creator_id}")
+        logger.warning(
+            f"User {user_id} attempted to access private template {template_id} owned by {template.creator_id}"
+        )
         raise HTTPException(status_code=403, detail="Access denied to private template")
-    
+
     return template
 
 
 async def validate_agent_ownership(agent_id: str, user_id: str) -> Dict[str, Any]:
     template_service = get_template_service(db)
     agent = await template_service._get_agent_by_id(agent_id)
-    
+
     if not agent:
         logger.warning(f"Agent {agent_id} not found")
         raise HTTPException(status_code=404, detail="Worker not found")
-    
-    if agent['account_id'] != user_id:
-        logger.warning(f"User {user_id} attempted to access agent {agent_id} owned by {agent['account_id']}")
-        raise HTTPException(status_code=403, detail="You don't have permission to access this agent")
-    
+
+    if agent["account_id"] != user_id:
+        logger.warning(
+            f"User {user_id} attempted to access agent {agent_id} owned by {agent['account_id']}"
+        )
+        raise HTTPException(
+            status_code=403, detail="You don't have permission to access this agent"
+        )
+
     return agent
 
 
 @router.post("", response_model=Dict[str, str])
 async def create_template_from_agent(
-    request: CreateTemplateRequest,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: CreateTemplateRequest, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     try:
         await validate_agent_ownership(request.agent_id, user_id)
-        
+
         logger.debug(f"User {user_id} creating template from agent {request.agent_id}")
-        
+
         template_service = get_template_service(db)
-        
+
         usage_examples = None
         if request.usage_examples:
             usage_examples = [msg.dict() for msg in request.usage_examples]
-        
+
         template_id = await template_service.create_from_agent(
             agent_id=request.agent_id,
             creator_id=user_id,
             make_public=request.make_public,
             tags=request.tags,
-            usage_examples=usage_examples
+            usage_examples=usage_examples,
         )
-        
+
         logger.debug(f"Successfully created template {template_id} from agent {request.agent_id}")
         return {"template_id": template_id}
-        
+
     except HTTPException:
         raise
     except TemplateNotFoundError as e:
@@ -187,32 +199,30 @@ async def create_template_from_agent(
 async def publish_template(
     template_id: str,
     request: PublishTemplateRequest,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ):
     try:
         template = await validate_template_ownership_and_get(template_id, user_id)
-        
+
         logger.debug(f"User {user_id} publishing template {template_id}")
-        
+
         template_service = get_template_service(db)
-        
+
         usage_examples = None
         if request.usage_examples:
             usage_examples = [msg.dict() for msg in request.usage_examples]
-        
+
         success = await template_service.publish_template(
-            template_id, 
-            user_id,
-            usage_examples=usage_examples
+            template_id, user_id, usage_examples=usage_examples
         )
-        
+
         if not success:
             logger.warning(f"Failed to publish template {template_id} for user {user_id}")
             raise HTTPException(status_code=500, detail="Failed to publish template")
-        
+
         logger.debug(f"Successfully published template {template_id}")
         return {"message": "Template published successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -226,25 +236,24 @@ async def publish_template(
 
 @router.post("/{template_id}/unpublish")
 async def unpublish_template(
-    template_id: str,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    template_id: str, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     try:
         template = await validate_template_ownership_and_get(template_id, user_id)
-        
+
         logger.debug(f"User {user_id} unpublishing template {template_id}")
-        
+
         template_service = get_template_service(db)
-        
+
         success = await template_service.unpublish_template(template_id, user_id)
-        
+
         if not success:
             logger.warning(f"Failed to unpublish template {template_id} for user {user_id}")
             raise HTTPException(status_code=500, detail="Failed to unpublish template")
-        
+
         logger.debug(f"Successfully unpublished template {template_id}")
         return {"message": "Template unpublished successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -258,25 +267,24 @@ async def unpublish_template(
 
 @router.delete("/{template_id}")
 async def delete_template(
-    template_id: str,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    template_id: str, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     try:
         template = await validate_template_ownership_and_get(template_id, user_id)
-        
+
         logger.debug(f"User {user_id} deleting template {template_id}")
-        
+
         template_service = get_template_service(db)
-        
+
         success = await template_service.delete_template(template_id, user_id)
-        
+
         if not success:
             logger.warning(f"Failed to delete template {template_id} for user {user_id}")
             raise HTTPException(status_code=500, detail="Failed to delete template")
-        
+
         logger.debug(f"Successfully deleted template {template_id}")
         return {"message": "Template deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -290,32 +298,34 @@ async def delete_template(
 
 @router.post("/install", response_model=InstallationResponse)
 async def install_template(
-    request: InstallTemplateRequest,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    request: InstallTemplateRequest, user_id: str = Depends(verify_and_get_user_id_from_jwt)
 ):
     try:
         await validate_template_access_and_get(request.template_id, user_id)
         client = await db.client
         from core.utils.limits_checker import check_agent_count_limit
+
         limit_check = await check_agent_count_limit(user_id)
-        
-        if not limit_check['can_create']:
+
+        if not limit_check["can_create"]:
             error_detail = {
                 "message": f"Maximum of {limit_check['limit']} agents allowed for your current plan. You have {limit_check['current_count']} agents.",
-                "current_count": limit_check['current_count'],
-                "limit": limit_check['limit'],
-                "tier_name": limit_check['tier_name'],
-                "error_code": "AGENT_LIMIT_EXCEEDED"
+                "current_count": limit_check["current_count"],
+                "limit": limit_check["limit"],
+                "tier_name": limit_check["tier_name"],
+                "error_code": "AGENT_LIMIT_EXCEEDED",
             }
-            logger.warning(f"Agent limit exceeded for account {user_id}: {limit_check['current_count']}/{limit_check['limit']} agents")
+            logger.warning(
+                f"Agent limit exceeded for account {user_id}: {limit_check['current_count']}/{limit_check['limit']} agents"
+            )
             raise HTTPException(status_code=402, detail=error_detail)
-        
+
         logger.debug(f"User {user_id} installing template {request.template_id}")
-        
+
         installation_service = get_installation_service(db)
-        
+
         logger.info(f"Installing template with trigger_configs: {request.trigger_configs}")
-        
+
         install_request = TemplateInstallationRequest(
             template_id=request.template_id,
             account_id=user_id,
@@ -324,13 +334,15 @@ async def install_template(
             profile_mappings=request.profile_mappings,
             custom_mcp_configs=request.custom_mcp_configs,
             trigger_configs=request.trigger_configs,
-            trigger_variables=request.trigger_variables
+            trigger_variables=request.trigger_variables,
         )
-        
+
         result = await installation_service.install_template(install_request)
-        
-        logger.debug(f"Successfully installed template {request.template_id} as instance {result.instance_id}")
-        
+
+        logger.debug(
+            f"Successfully installed template {request.template_id} as instance {result.instance_id}"
+        )
+
         return InstallationResponse(
             status=result.status,
             instance_id=result.instance_id,
@@ -338,9 +350,9 @@ async def install_template(
             missing_regular_credentials=result.missing_regular_credentials,
             missing_custom_configs=result.missing_custom_configs,
             missing_trigger_variables=result.missing_trigger_variables,
-            template_info=result.template_info
+            template_info=result.template_info,
         )
-        
+
     except HTTPException:
         raise
     except TemplateInstallationError as e:
@@ -360,6 +372,7 @@ async def install_template(
 
 from core.utils.pagination import PaginationParams
 
+
 class MarketplacePaginationInfo(BaseModel):
     current_page: int
     page_size: int
@@ -368,40 +381,37 @@ class MarketplacePaginationInfo(BaseModel):
     has_next: bool
     has_previous: bool
 
+
 class MarketplaceTemplatesResponse(BaseModel):
     templates: List[TemplateResponse]
     pagination: MarketplacePaginationInfo
 
+
 @router.get("/carbon-bim-all", response_model=MarketplaceTemplatesResponse)
-async def get_all_carbon_bim_templates(
-    request: Request = None
-):
+async def get_all_carbon_bim_templates(request: Request = None):
     try:
-        from core.templates.services.marketplace_service import MarketplaceService, MarketplaceFilters
-        
-        pagination_params = PaginationParams(
-            page=1,
-            page_size=1000
+        from core.templates.services.marketplace_service import (
+            MarketplaceService,
+            MarketplaceFilters,
         )
-        
+
+        pagination_params = PaginationParams(page=1, page_size=1000)
+
         filters = MarketplaceFilters(
-            is_carbon_bim_team=True,
-            sort_by="download_count",
-            sort_order="desc"
+            is_carbon_bim_team=True, sort_by="download_count", sort_order="desc"
         )
-        
+
         client = await db.client
         marketplace_service = MarketplaceService(client)
         paginated_result = await marketplace_service.get_marketplace_templates_paginated(
-            pagination_params=pagination_params,
-            filters=filters
+            pagination_params=pagination_params, filters=filters
         )
-        
+
         template_responses = []
         for template_data in paginated_result.data:
             template_response = TemplateResponse(**template_data)
             template_responses.append(template_response)
-        
+
         return MarketplaceTemplatesResponse(
             templates=template_responses,
             pagination=MarketplacePaginationInfo(
@@ -410,10 +420,10 @@ async def get_all_carbon_bim_templates(
                 total_items=len(template_responses),
                 total_pages=1,
                 has_next=False,
-                has_previous=False
-            )
+                has_previous=False,
+            ),
         )
-        
+
     except Exception as e:
         try:
             error_str = str(e)
@@ -422,60 +432,68 @@ async def get_all_carbon_bim_templates(
         logger.error(f"Error getting all Carbon BIM templates: {error_str}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.get("/marketplace", response_model=MarketplaceTemplatesResponse)
 async def get_marketplace_templates(
     page: Optional[int] = Query(1, ge=1, description="Page number (1-based)"),
     limit: Optional[int] = Query(20, ge=1, le=100, description="Number of items per page"),
     search: Optional[str] = Query(None, description="Search term for name"),
     tags: Optional[str] = Query(None, description="Comma-separated list of tags to filter by"),
-    is_carbon_bim_team: Optional[bool] = Query(None, description="Filter for Carbon BIM team templates"),
+    is_carbon_bim_team: Optional[bool] = Query(
+        None, description="Filter for Carbon BIM team templates"
+    ),
     mine: Optional[bool] = Query(None, description="Filter to show only user's own templates"),
-    sort_by: Optional[str] = Query("download_count", description="Sort field: download_count, newest, name"),
+    sort_by: Optional[str] = Query(
+        "download_count", description="Sort field: download_count, newest, name"
+    ),
     sort_order: Optional[str] = Query("desc", description="Sort order: asc, desc"),
-    request: Request = None
+    request: Request = None,
 ):
     try:
-        from core.templates.services.marketplace_service import MarketplaceService, MarketplaceFilters
+        from core.templates.services.marketplace_service import (
+            MarketplaceService,
+            MarketplaceFilters,
+        )
+
         creator_id_filter = None
         if mine:
             try:
                 from core.utils.auth_utils import verify_and_get_user_id_from_jwt
+
                 user_id = await verify_and_get_user_id_from_jwt(request)
                 creator_id_filter = user_id
             except Exception as e:
-                raise HTTPException(status_code=401, detail="Authentication required for 'mine' filter")
-        
+                raise HTTPException(
+                    status_code=401, detail="Authentication required for 'mine' filter"
+                )
+
         tags_list = []
         if tags:
             if isinstance(tags, str):
-                tags_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+                tags_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
 
-        pagination_params = PaginationParams(
-            page=page,
-            page_size=limit
-        )
-        
+        pagination_params = PaginationParams(page=page, page_size=limit)
+
         filters = MarketplaceFilters(
             search=search,
             tags=tags_list,
             is_carbon_bim_team=is_carbon_bim_team,
             creator_id=creator_id_filter,
             sort_by=sort_by,
-            sort_order=sort_order
+            sort_order=sort_order,
         )
-        
+
         client = await db.client
         marketplace_service = MarketplaceService(client)
         paginated_result = await marketplace_service.get_marketplace_templates_paginated(
-            pagination_params=pagination_params,
-            filters=filters
+            pagination_params=pagination_params, filters=filters
         )
-        
+
         template_responses = []
         for template_data in paginated_result.data:
             template_response = TemplateResponse(**template_data)
             template_responses.append(template_response)
-        
+
         return MarketplaceTemplatesResponse(
             templates=template_responses,
             pagination=MarketplacePaginationInfo(
@@ -484,10 +502,10 @@ async def get_marketplace_templates(
                 total_items=paginated_result.pagination.total_items,
                 total_pages=paginated_result.pagination.total_pages,
                 has_next=paginated_result.pagination.has_next,
-                has_previous=paginated_result.pagination.has_previous
-            )
+                has_previous=paginated_result.pagination.has_previous,
+            ),
         )
-        
+
     except Exception as e:
         try:
             error_str = str(e)
@@ -502,38 +520,36 @@ async def get_my_templates(
     page: Optional[int] = Query(1, ge=1, description="Page number (1-based)"),
     limit: Optional[int] = Query(20, ge=1, le=100, description="Number of items per page"),
     search: Optional[str] = Query(None, description="Search term for name"),
-    sort_by: Optional[str] = Query("created_at", description="Sort field: created_at, name, download_count"),
+    sort_by: Optional[str] = Query(
+        "created_at", description="Sort field: created_at, name, download_count"
+    ),
     sort_order: Optional[str] = Query("desc", description="Sort order: asc, desc"),
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
+    user_id: str = Depends(verify_and_get_user_id_from_jwt),
 ):
     try:
-        from core.templates.services.marketplace_service import MarketplaceService, MarketplaceFilters
-        
-        pagination_params = PaginationParams(
-            page=page,
-            page_size=limit
+        from core.templates.services.marketplace_service import (
+            MarketplaceService,
+            MarketplaceFilters,
         )
-        
+
+        pagination_params = PaginationParams(page=page, page_size=limit)
+
         filters = MarketplaceFilters(
-            search=search,
-            creator_id=user_id,
-            sort_by=sort_by,
-            sort_order=sort_order
+            search=search, creator_id=user_id, sort_by=sort_by, sort_order=sort_order
         )
-        
+
         client = await db.client
         marketplace_service = MarketplaceService(client)
-        
+
         paginated_result = await marketplace_service.get_user_templates_paginated(
-            pagination_params=pagination_params,
-            filters=filters
+            pagination_params=pagination_params, filters=filters
         )
-        
+
         template_responses = []
         for template_data in paginated_result.data:
             template_response = TemplateResponse(**template_data)
             template_responses.append(template_response)
-        
+
         return MarketplaceTemplatesResponse(
             templates=template_responses,
             pagination=MarketplacePaginationInfo(
@@ -542,10 +558,10 @@ async def get_my_templates(
                 total_items=paginated_result.pagination.total_items,
                 total_pages=paginated_result.pagination.total_pages,
                 has_next=paginated_result.pagination.has_next,
-                has_previous=paginated_result.pagination.has_previous
-            )
+                has_previous=paginated_result.pagination.has_previous,
+            ),
         )
-        
+
     except Exception as e:
         try:
             error_str = str(e)
@@ -559,33 +575,33 @@ async def get_my_templates(
 async def get_public_template(template_id: str):
     try:
         logger.info(f"Attempting to fetch public template: {template_id}")
-        
+
         if not template_id or len(template_id) < 10:
             logger.warning(f"Invalid template_id format: {template_id}")
             raise HTTPException(status_code=404, detail="Template not found")
-        
+
         template_service = get_template_service(db)
-        
+
         try:
             template = await template_service.get_template(template_id)
         except Exception as db_error:
             logger.error(f"Database error getting template {template_id}: {db_error}")
             raise HTTPException(status_code=404, detail="Template not found")
-        
+
         if not template:
             logger.warning(f"Template {template_id} not found in database")
             raise HTTPException(status_code=404, detail="Template not found")
-        
+
         logger.info(f"Template {template_id} found, is_public: {template.is_public}")
-        
+
         if not template.is_public:
             logger.warning(f"Template {template_id} is not public (is_public={template.is_public})")
             raise HTTPException(status_code=404, detail="Template not found")
-        
+
         logger.info(f"Successfully returning public template {template_id}: {template.name}")
-        
+
         return TemplateResponse(**format_template_for_response(template))
-        
+
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
@@ -598,17 +614,14 @@ async def get_public_template(template_id: str):
 
 
 @router.get("/{template_id}", response_model=TemplateResponse)
-async def get_template(
-    template_id: str,
-    user_id: str = Depends(verify_and_get_user_id_from_jwt)
-):
+async def get_template(template_id: str, user_id: str = Depends(verify_and_get_user_id_from_jwt)):
     try:
         template = await validate_template_access_and_get(template_id, user_id)
-        
+
         logger.debug(f"User {user_id} accessing template {template_id}")
-        
+
         return TemplateResponse(**format_template_for_response(template))
-        
+
     except HTTPException:
         raise
     except TemplateAccessDeniedError as e:

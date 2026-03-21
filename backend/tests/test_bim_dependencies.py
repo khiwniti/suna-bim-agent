@@ -35,12 +35,8 @@ class TestBIMDependenciesConfiguration:
         assert any("ifcopenshell" in dep for dep in bim_deps), (
             "ifcopenshell not in BIM dependencies"
         )
-        assert any("numpy" in dep for dep in bim_deps), (
-            "numpy not in BIM dependencies"
-        )
-        assert any("networkx" in dep for dep in bim_deps), (
-            "networkx not in BIM dependencies"
-        )
+        assert any("numpy" in dep for dep in bim_deps), "numpy not in BIM dependencies"
+        assert any("networkx" in dep for dep in bim_deps), "networkx not in BIM dependencies"
 
     def test_bim_not_in_main_dependencies(self):
         """Verify BIM packages are NOT in main dependencies (only in extras)."""
@@ -66,9 +62,7 @@ class TestBIMDependenciesConfiguration:
 
         # Verify install-bim target exists and uses correct command
         assert "install-bim:" in content, "Missing install-bim target in Makefile"
-        assert "uv sync --extra bim" in content, (
-            "install-bim should use 'uv sync --extra bim'"
-        )
+        assert "uv sync --extra bim" in content, "install-bim should use 'uv sync --extra bim'"
         assert "uv pip install" not in content.split("install-bim:")[1].split("\n")[0:2], (
             "install-bim should NOT use 'uv pip install' (use uv sync instead)"
         )
@@ -111,12 +105,8 @@ class TestBIMRuntimeChecks:
         assert "HAS_BIM_DEPENDENCIES" in content, (
             "Missing HAS_BIM_DEPENDENCIES check in bim/__init__.py"
         )
-        assert "import ifcopenshell" in content, (
-            "Missing ifcopenshell import check"
-        )
-        assert "except ImportError" in content, (
-            "Missing ImportError handling for BIM dependencies"
-        )
+        assert "import ifcopenshell" in content, "Missing ifcopenshell import check"
+        assert "except ImportError" in content, "Missing ImportError handling for BIM dependencies"
 
     def test_bim_init_shows_clear_error_message(self):
         """Verify runtime check provides clear installation instructions."""
@@ -137,6 +127,7 @@ class TestBIMRuntimeChecks:
         # Import should succeed even if ifcopenshell is not installed
         try:
             from core.tools.bim import IFCParserTool, CarbonCalculationTool
+
             # Import should succeed
             assert True
         except ImportError as e:
@@ -150,6 +141,7 @@ class TestBIMDependenciesInstalled:
         """Verify ifcopenshell can be imported if BIM extras are installed."""
         try:
             import ifcopenshell
+
             # If this succeeds, BIM extras are installed
             assert hasattr(ifcopenshell, "open"), "ifcopenshell.open not available"
         except ImportError:
@@ -159,6 +151,7 @@ class TestBIMDependenciesInstalled:
         """Verify numpy can be imported if BIM extras are installed."""
         try:
             import numpy
+
             assert hasattr(numpy, "array"), "numpy.array not available"
         except ImportError:
             pytest.skip("BIM extras not installed (run: uv sync --extra bim)")
@@ -167,6 +160,7 @@ class TestBIMDependenciesInstalled:
         """Verify networkx can be imported if BIM extras are installed."""
         try:
             import networkx
+
             assert hasattr(networkx, "Graph"), "networkx.Graph not available"
         except ImportError:
             pytest.skip("BIM extras not installed (run: uv sync --extra bim)")
@@ -182,17 +176,15 @@ class TestBIMDependenciesInstalled:
         from core.tools.bim.base import HAS_IFC
 
         # Verify HAS_IFC flag is True when ifcopenshell is available
-        assert HAS_IFC is True, (
-            "HAS_IFC should be True when ifcopenshell is installed"
-        )
+        assert HAS_IFC is True, "HAS_IFC should be True when ifcopenshell is installed"
 
         # Verify tool classes are importable (instantiation requires project_id)
         assert IFCParserTool is not None, "IFCParserTool should be importable"
         assert CarbonCalculationTool is not None, "CarbonCalculationTool should be importable"
 
         # Verify tool classes have expected methods
-        assert hasattr(IFCParserTool, 'parse_ifc'), "IFCParserTool missing parse_ifc method"
-        assert hasattr(CarbonCalculationTool, 'calculate_carbon'), (
+        assert hasattr(IFCParserTool, "parse_ifc"), "IFCParserTool missing parse_ifc method"
+        assert hasattr(CarbonCalculationTool, "calculate_carbon"), (
             "CarbonCalculationTool missing calculate_carbon method"
         )
 
@@ -206,21 +198,15 @@ class TestInstallationWorkflow:
         # Actual execution would be in CI/CD or manual testing
 
         import shutil
+
         uv_path = shutil.which("uv")
         if not uv_path:
             pytest.skip("uv not found in PATH")
 
         # Verify uv supports --extra flag (uv >= 0.1.0)
-        result = subprocess.run(
-            ["uv", "sync", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["uv", "sync", "--help"], capture_output=True, text=True, timeout=5)
 
-        assert "--extra" in result.stdout, (
-            "uv sync doesn't support --extra flag (upgrade uv)"
-        )
+        assert "--extra" in result.stdout, "uv sync doesn't support --extra flag (upgrade uv)"
 
     @pytest.mark.slow
     def test_documentation_examples_are_valid(self):
@@ -230,14 +216,11 @@ class TestInstallationWorkflow:
 
         # Extract bash code blocks
         import re
+
         bash_blocks = re.findall(r"```bash\n(.*?)\n```", content, re.DOTALL)
 
         for block in bash_blocks:
             if "uv sync" in block or "make install-bim" in block:
                 # Verify no obvious syntax errors
-                assert not block.strip().endswith("\\"), (
-                    f"Incomplete command in README: {block}"
-                )
-                assert block.count('"') % 2 == 0, (
-                    f"Unmatched quotes in README: {block}"
-                )
+                assert not block.strip().endswith("\\"), f"Incomplete command in README: {block}"
+                assert block.count('"') % 2 == 0, f"Unmatched quotes in README: {block}"

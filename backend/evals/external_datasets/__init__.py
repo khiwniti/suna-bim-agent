@@ -19,4 +19,3 @@ __all__ = [
     "load_gaia_dataset",
     "gaia_to_eval_cases",
 ]
-

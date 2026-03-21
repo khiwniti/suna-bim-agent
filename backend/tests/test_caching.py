@@ -64,7 +64,9 @@ class TestCacheManager:
     @pytest.mark.asyncio
     async def test_cache_get_hit(self, cache_manager):
         """Test cache hit returns cached value."""
-        with patch("core.utils.caching.redis_module.get", new=AsyncMock(return_value=b'"cached_value"')):
+        with patch(
+            "core.utils.caching.redis_module.get", new=AsyncMock(return_value=b'"cached_value"')
+        ):
             result = await cache_manager.get("test_key")
 
             assert result == '"cached_value"'
@@ -108,7 +110,10 @@ class TestCacheManager:
     @pytest.mark.asyncio
     async def test_cache_graceful_degradation_on_error(self, cache_manager):
         """Test graceful handling of Redis errors."""
-        with patch("core.utils.caching.redis_module.get", new=AsyncMock(side_effect=Exception("Redis down"))):
+        with patch(
+            "core.utils.caching.redis_module.get",
+            new=AsyncMock(side_effect=Exception("Redis down")),
+        ):
             result = await cache_manager.get("test_key")
 
             assert result is None

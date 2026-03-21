@@ -5,8 +5,13 @@ from uuid import uuid4
 from core.agentpress.tool import ToolResult, openapi_schema, tool_metadata
 from core.sandbox.tool_base import SandboxToolsBase
 from core.agentpress.thread_manager import ThreadManager
-from core.utils.tool_output_streaming import stream_tool_output, get_tool_output_streaming_context, get_current_tool_call_id
+from core.utils.tool_output_streaming import (
+    stream_tool_output,
+    get_tool_output_streaming_context,
+    get_current_tool_call_id,
+)
 from core.utils.logger import logger
+
 
 @tool_metadata(
     display_name="Bash",
@@ -82,7 +87,7 @@ tmux kill-session -t myserver
 
 ### Port 8080
 Port 8080 is AUTO-EXPOSED and publicly accessible. Files served from /workspace are automatically available via preview URLs.
-"""
+""",
 )
 class SandboxShellTool(SandboxToolsBase):
     """Tool for executing shell commands in a Daytona sandbox.
@@ -92,11 +97,12 @@ class SandboxShellTool(SandboxToolsBase):
     def __init__(self, project_id: str, thread_manager: ThreadManager):
         super().__init__(project_id, thread_manager)
 
-    @openapi_schema({
-        "type": "function",
-        "function": {
-            "name": "execute_command",
-            "description": """Execute a bash command in the workspace directory with optional timeout.
+    @openapi_schema(
+        {
+            "type": "function",
+            "function": {
+                "name": "execute_command",
+                "description": """Execute a bash command in the workspace directory with optional timeout.
 
 IMPORTANT: This tool is for terminal operations like git, npm, docker, etc. DO NOT use it for file operations (reading, writing, editing, searching, finding files) - use the specialized tools for this instead.
 
@@ -110,74 +116,75 @@ Usage notes:
 - For long-running processes, use tmux: `tmux new-session -d -s name 'command'`
 - Chain dependent commands with && (e.g., `git add . && git commit -m "message"`)
 - Avoid using cat, head, tail, sed, awk, echo, find, grep - use dedicated tools instead""",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "command": {
-                        "type": "string",
-                        "description": "**REQUIRED** - The bash command to execute. Commands run synchronously and wait for completion."
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "command": {
+                            "type": "string",
+                            "description": "**REQUIRED** - The bash command to execute. Commands run synchronously and wait for completion.",
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "**OPTIONAL** - Clear, concise description of what this command does. For simple commands (git, npm), keep it brief (5-10 words). For complex commands (piped commands, obscure flags), add enough context to clarify what it does.",
+                        },
+                        "folder": {
+                            "type": "string",
+                            "description": "**OPTIONAL** - Relative path to a subdirectory of /workspace where the command should be executed. Example: 'src/data'",
+                        },
+                        "timeout": {
+                            "type": "integer",
+                            "description": "**OPTIONAL** - Timeout in seconds (max 600). Default: 300 (5 minutes). Increase for longer operations.",
+                            "default": 300,
+                        },
                     },
-                    "description": {
-                        "type": "string",
-                        "description": "**OPTIONAL** - Clear, concise description of what this command does. For simple commands (git, npm), keep it brief (5-10 words). For complex commands (piped commands, obscure flags), add enough context to clarify what it does."
-                    },
-                    "folder": {
-                        "type": "string",
-                        "description": "**OPTIONAL** - Relative path to a subdirectory of /workspace where the command should be executed. Example: 'src/data'"
-                    },
-                    "timeout": {
-                        "type": "integer",
-                        "description": "**OPTIONAL** - Timeout in seconds (max 600). Default: 300 (5 minutes). Increase for longer operations.",
-                        "default": 300
-                    }
+                    "required": ["command"],
+                    "additionalProperties": False,
                 },
-                "required": ["command"],
-                "additionalProperties": False
-            }
+            },
         }
-    })
+    )
     async def execute_command(
         self,
         command: str,
         description: Optional[str] = None,
         folder: Optional[str] = None,
-        timeout: int = 300
+        timeout: int = 300,
     ) -> ToolResult:
         try:
             # Ensure sandbox is initialized
             await self._ensure_sandbox()
-            
+
             # Set up working directory
             cwd = self.workspace_path
             if folder:
-                folder = folder.strip('/')
+                folder = folder.strip("/")
                 cwd = f"{self.workspace_path}/{folder}"
-            
+
             # Use PTY for real-time streaming
             tool_output_ctx = get_tool_output_streaming_context()
             tool_call_id = get_current_tool_call_id() or f"cmd_{str(uuid4())[:8]}"
             logger.debug(f"[SHELL STREAMING] Using tool_call_id: {tool_call_id}")
-            
+
             # Track output for streaming
             output_buffer = []
             exit_code = 0
-            
+
             async def on_pty_data(data: bytes):
                 try:
                     text = data.decode("utf-8", errors="replace")
                     output_buffer.append(text)
-                    
+
                     # Stream output to frontend if we have a tool output streaming context
                     if tool_output_ctx:
                         await stream_tool_output(
                             tool_call_id=tool_call_id,
                             output_chunk=text,
                             is_final=False,
-                            tool_name="execute_command"
+                            tool_name="execute_command",
                         )
                 except Exception as e:
                     logger.warning(f"Error processing PTY output: {e}")
-            
+
             try:
                 from e2b import PtySize
                 from uuid import uuid4 as _uuid4
@@ -198,6 +205,7 @@ Usage notes:
                 # Heredocs require the delimiter (EOF, etc.) to be on its own line
                 # Common heredoc patterns: << EOF, << 'EOF', << "EOF", <<- EOF, <<-'EOF', etc.
                 import re
+
                 heredoc_pattern = r'<<-?\s*[\'"]?\w+[\'"]?\s*$'
                 if re.search(heredoc_pattern, command, re.MULTILINE):
                     # Command has heredoc - put marker on a separate line
@@ -224,7 +232,9 @@ Usage notes:
                         # Extract exit code from the LAST marker line (the actual output)
                         try:
                             marker_idx = current_output.rfind(marker)
-                            after_marker = current_output[marker_idx + len(marker):].strip().split()[0]
+                            after_marker = (
+                                current_output[marker_idx + len(marker) :].strip().split()[0]
+                            )
                             exit_code = int(after_marker) if after_marker.isdigit() else 0
                         except:
                             exit_code = 0
@@ -246,14 +256,15 @@ Usage notes:
                 if marker in final_output:
                     marker_idx = final_output.rfind(marker)
                     # Find the start of the line containing the marker
-                    line_start = final_output.rfind('\n', 0, marker_idx)
+                    line_start = final_output.rfind("\n", 0, marker_idx)
                     if line_start != -1:
                         final_output = final_output[:line_start]
 
                 # Strip ANSI escape sequences for cleaner output
                 import re
-                ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-                final_output = ansi_escape.sub('', final_output)
+
+                ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+                final_output = ansi_escape.sub("", final_output)
 
                 # Stream final message
                 if tool_output_ctx:
@@ -261,29 +272,31 @@ Usage notes:
                         tool_call_id=tool_call_id,
                         output_chunk="",
                         is_final=True,
-                        tool_name="execute_command"
+                        tool_name="execute_command",
                     )
 
                 if exit_code == -1:
-                    return self.success_response({
-                        "output": final_output.strip(),
-                        "cwd": cwd,
-                        "exit_code": exit_code,
-                        "timeout": True,
-                        "message": f"Command timed out after {timeout} seconds. For long-running processes, use tmux: `tmux new-session -d -s name 'command'`"
-                    })
+                    return self.success_response(
+                        {
+                            "output": final_output.strip(),
+                            "cwd": cwd,
+                            "exit_code": exit_code,
+                            "timeout": True,
+                            "message": f"Command timed out after {timeout} seconds. For long-running processes, use tmux: `tmux new-session -d -s name 'command'`",
+                        }
+                    )
 
-                return self.success_response({
-                    "output": final_output.strip(),
-                    "cwd": cwd,
-                    "exit_code": exit_code
-                })
+                return self.success_response(
+                    {"output": final_output.strip(), "cwd": cwd, "exit_code": exit_code}
+                )
 
             except Exception as pty_error:
-                logger.warning(f"PTY execution failed, falling back to direct execution: {pty_error}")
+                logger.warning(
+                    f"PTY execution failed, falling back to direct execution: {pty_error}"
+                )
                 # Fall back to direct execution
                 return await self._fallback_execute(command, cwd, timeout)
-                
+
         except Exception as e:
             return self.fail_response(f"Error executing command: {str(e)}")
 
@@ -295,11 +308,13 @@ Usage notes:
                 f"bash -lc {__import__('shlex').quote(wrapped)}",
                 timeout=timeout,
             )
-            return self.success_response({
-                "output": result.stdout or "",
-                "cwd": cwd,
-                "exit_code": result.exit_code,
-            })
+            return self.success_response(
+                {
+                    "output": result.stdout or "",
+                    "cwd": cwd,
+                    "exit_code": result.exit_code,
+                }
+            )
         except Exception as e:
             return self.fail_response(f"Error executing command: {str(e)}")
 

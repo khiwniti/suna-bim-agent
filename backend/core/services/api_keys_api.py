@@ -26,6 +26,7 @@ router = APIRouter(tags=["api-keys"])
 async def get_api_key_service() -> APIKeyService:
     """Dependency to get API key service instance"""
     from core.utils.db_helpers import get_db
+
     db = await get_db()
     return APIKeyService(db)
 
@@ -34,6 +35,7 @@ async def get_account_id_from_user_id(user_id: str) -> UUID:
     """Get account ID from user ID using basejump accounts table"""
     try:
         from core.utils.db_helpers import get_db
+
         db = await get_db()
         client = await db.client
 
@@ -124,9 +126,7 @@ async def list_api_keys(
 
         api_keys = await api_key_service.list_api_keys(account_id)
 
-        logger.debug(
-            "API keys listed successfully", user_id=user_id, count=len(api_keys)
-        )
+        logger.debug("API keys listed successfully", user_id=user_id, count=len(api_keys))
 
         return api_keys
 
@@ -167,9 +167,7 @@ async def revoke_api_key(
         success = await api_key_service.revoke_api_key(account_id, key_id)
 
         if success:
-            logger.debug(
-                "API key revoked successfully", user_id=user_id, key_id=str(key_id)
-            )
+            logger.debug("API key revoked successfully", user_id=user_id, key_id=str(key_id))
             return {"message": "API key revoked successfully"}
         else:
             raise HTTPException(status_code=500, detail="Failed to revoke API key")
@@ -211,9 +209,7 @@ async def delete_api_key(
         success = await api_key_service.delete_api_key(account_id, key_id)
 
         if success:
-            logger.debug(
-                "API key deleted successfully", user_id=user_id, key_id=str(key_id)
-            )
+            logger.debug("API key deleted successfully", user_id=user_id, key_id=str(key_id))
             return {"message": "API key deleted successfully"}
         else:
             raise HTTPException(status_code=500, detail="Failed to delete API key")

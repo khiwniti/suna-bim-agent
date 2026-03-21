@@ -48,12 +48,8 @@ class EnvMode(Enum):
 class Configuration:
     ENV_MODE: Optional[EnvMode] = EnvMode.LOCAL
 
-    AGENT_XML_TOOL_CALLING: bool = (
-        False  # Enable XML-based tool calls (<function_calls>)
-    )
-    AGENT_NATIVE_TOOL_CALLING: bool = (
-        True  # Enable OpenAI-style native function calling
-    )
+    AGENT_XML_TOOL_CALLING: bool = False  # Enable XML-based tool calls (<function_calls>)
+    AGENT_NATIVE_TOOL_CALLING: bool = True  # Enable OpenAI-style native function calling
     AGENT_EXECUTE_ON_STREAM: bool = True  # Execute tools as they stream (vs. at end)
     AGENT_TOOL_EXECUTION_STRATEGY: str = "parallel"  # "parallel" or "sequential"
 
@@ -74,9 +70,7 @@ class Configuration:
     DISABLE_PRESENCE: bool = True  # Disable presence tracking entirely
     # ==================================
 
-    SYSTEM_ADMIN_USER_ID: Optional[str] = (
-        None  # User ID that owns shared/fallback agents
-    )
+    SYSTEM_ADMIN_USER_ID: Optional[str] = None  # User ID that owns shared/fallback agents
 
     # Subscription tier IDs - Production
     STRIPE_FREE_TIER_ID_PROD: Optional[str] = "price_1RILb4G6l1KZGqIrK4QLrx9i"
@@ -95,9 +89,7 @@ class Configuration:
     STRIPE_TIER_25_200_YEARLY_ID_PROD: Optional[str] = "price_1ReH9uG6l1KZGqIrsvMLHViC"
     STRIPE_TIER_50_400_YEARLY_ID_PROD: Optional[str] = "price_1ReH9fG6l1KZGqIrsPtu5KIA"
     STRIPE_TIER_125_800_YEARLY_ID_PROD: Optional[str] = "price_1ReH9GG6l1KZGqIrfgqaJyat"
-    STRIPE_TIER_200_1000_YEARLY_ID_PROD: Optional[str] = (
-        "price_1ReH8qG6l1KZGqIrK1akY90q"
-    )
+    STRIPE_TIER_200_1000_YEARLY_ID_PROD: Optional[str] = "price_1ReH8qG6l1KZGqIrK1akY90q"
 
     # Yearly commitment prices - Production (15% discount, monthly payments with 12-month commitment via schedules)
     STRIPE_TIER_2_17_YEARLY_COMMITMENT_ID_PROD: Optional[str] = (
@@ -123,21 +115,11 @@ class Configuration:
     # Yearly subscription tier IDs - Staging (15% discount)
     STRIPE_TIER_2_20_YEARLY_ID_STAGING: Optional[str] = "price_1ReGogG6l1KZGqIrEyBTmtPk"
     STRIPE_TIER_6_50_YEARLY_ID_STAGING: Optional[str] = "price_1ReGoJG6l1KZGqIr0DJWtoOc"
-    STRIPE_TIER_12_100_YEARLY_ID_STAGING: Optional[str] = (
-        "price_1ReGnZG6l1KZGqIr0ThLEl5S"
-    )
-    STRIPE_TIER_25_200_YEARLY_ID_STAGING: Optional[str] = (
-        "price_1ReGmzG6l1KZGqIre31mqoEJ"
-    )
-    STRIPE_TIER_50_400_YEARLY_ID_STAGING: Optional[str] = (
-        "price_1ReGmgG6l1KZGqIrn5nBc7e5"
-    )
-    STRIPE_TIER_125_800_YEARLY_ID_STAGING: Optional[str] = (
-        "price_1ReGmMG6l1KZGqIrvE2ycrAX"
-    )
-    STRIPE_TIER_200_1000_YEARLY_ID_STAGING: Optional[str] = (
-        "price_1ReGlXG6l1KZGqIrlgurP5GU"
-    )
+    STRIPE_TIER_12_100_YEARLY_ID_STAGING: Optional[str] = "price_1ReGnZG6l1KZGqIr0ThLEl5S"
+    STRIPE_TIER_25_200_YEARLY_ID_STAGING: Optional[str] = "price_1ReGmzG6l1KZGqIre31mqoEJ"
+    STRIPE_TIER_50_400_YEARLY_ID_STAGING: Optional[str] = "price_1ReGmgG6l1KZGqIrn5nBc7e5"
+    STRIPE_TIER_125_800_YEARLY_ID_STAGING: Optional[str] = "price_1ReGmMG6l1KZGqIrvE2ycrAX"
+    STRIPE_TIER_200_1000_YEARLY_ID_STAGING: Optional[str] = "price_1ReGlXG6l1KZGqIrlgurP5GU"
 
     # Yearly commitment prices - Staging (15% discount, monthly payments with 12-month commitment via schedules)
     STRIPE_TIER_2_17_YEARLY_COMMITMENT_ID_STAGING: Optional[str] = (
@@ -162,15 +144,9 @@ class Configuration:
     STRIPE_CREDITS_10_PRICE_ID_STAGING: Optional[str] = "price_1RxXOvG6l1KZGqIrMqsiYQvk"
     STRIPE_CREDITS_25_PRICE_ID_STAGING: Optional[str] = "price_1RxXPNG6l1KZGqIrQprPgDme"
     STRIPE_CREDITS_50_PRICE_ID_STAGING: Optional[str] = "price_1RxmNhG6l1KZGqIrTq2zPtgi"
-    STRIPE_CREDITS_100_PRICE_ID_STAGING: Optional[str] = (
-        "price_1RxmNwG6l1KZGqIrnliwPDM6"
-    )
-    STRIPE_CREDITS_250_PRICE_ID_STAGING: Optional[str] = (
-        "price_1RxmO6G6l1KZGqIrBF8Kx87G"
-    )
-    STRIPE_CREDITS_500_PRICE_ID_STAGING: Optional[str] = (
-        "price_1RxmOFG6l1KZGqIrn4wgORnH"
-    )
+    STRIPE_CREDITS_100_PRICE_ID_STAGING: Optional[str] = "price_1RxmNwG6l1KZGqIrnliwPDM6"
+    STRIPE_CREDITS_250_PRICE_ID_STAGING: Optional[str] = "price_1RxmO6G6l1KZGqIrBF8Kx87G"
+    STRIPE_CREDITS_500_PRICE_ID_STAGING: Optional[str] = "price_1RxmOFG6l1KZGqIrn4wgORnH"
 
     # Computed subscription tier IDs based on environment
     @property
@@ -327,9 +303,7 @@ class Configuration:
     )
 
     # Vercel Analytics (via drains) - primary source of truth for visitor tracking
-    VERCEL_DRAIN_SECRET: Optional[str] = (
-        None  # Secret for authenticating Vercel drain webhooks
-    )
+    VERCEL_DRAIN_SECRET: Optional[str] = None  # Secret for authenticating Vercel drain webhooks
 
     # LLM API keys
     ANTHROPIC_API_KEY: Optional[str] = None
@@ -426,9 +400,7 @@ class Configuration:
     # Sandbox configuration
     SANDBOX_IMAGE_NAME = "carbon-bim/suna:0.1.3.30"
     SANDBOX_SNAPSHOT_NAME = "carbon-bim/suna:0.1.3.30"
-    SANDBOX_ENTRYPOINT = (
-        "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
-    )
+    SANDBOX_ENTRYPOINT = "/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
 
     # Debug configuration
     # Set to True to save LLM API call inputs and stream outputs to debug_streams/ directory
@@ -607,9 +579,7 @@ class Configuration:
         # Auto-generate admin API key if not present
         if not self.CARBON_BIM_ADMIN_API_KEY:
             self.CARBON_BIM_ADMIN_API_KEY = self._generate_admin_api_key()
-            logger.info(
-                "Auto-generated CARBON_BIM_ADMIN_API_KEY for administrative functions"
-            )
+            logger.info("Auto-generated CARBON_BIM_ADMIN_API_KEY for administrative functions")
 
         # Perform validation
         self._validate()
@@ -627,17 +597,13 @@ class Configuration:
                 # Convert environment variable to the expected type
                 if expected_type == bool:
                     # Handle boolean conversion
-                    setattr(
-                        self, key, env_val.lower() in ("true", "t", "yes", "y", "1")
-                    )
+                    setattr(self, key, env_val.lower() in ("true", "t", "yes", "y", "1"))
                 elif expected_type == int:
                     # Handle integer conversion
                     try:
                         setattr(self, key, int(env_val))
                     except ValueError:
-                        logger.warning(
-                            f"Invalid value for {key}: {env_val}, using default"
-                        )
+                        logger.warning(f"Invalid value for {key}: {env_val}, using default")
                 else:
                     # String or other type
                     setattr(self, key, env_val)
@@ -696,9 +662,7 @@ class Configuration:
                 missing_fields.append(field)
 
         if missing_fields:
-            error_msg = (
-                f"Missing required configuration fields: {', '.join(missing_fields)}"
-            )
+            error_msg = f"Missing required configuration fields: {', '.join(missing_fields)}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 

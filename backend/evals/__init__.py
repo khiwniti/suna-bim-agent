@@ -10,7 +10,7 @@ It integrates with the existing agent system to:
 Usage:
     # Run evals from command line:
     braintrust eval evals/agent_eval.py
-    
+
     # Or programmatically:
     from evals import run_agent_eval
     await run_agent_eval()
@@ -26,8 +26,6 @@ from evals.scorers import (
 __all__ = [
     "AgentEvalRunner",
     "TaskCompletionScorer",
-    "ToolUsageScorer", 
+    "ToolUsageScorer",
     "ResponseQualityScorer",
 ]
-
-
