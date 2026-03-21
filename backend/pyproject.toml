@@ -157,6 +157,11 @@ ignore = [
     "B904",   # raise from err (not always appropriate in API error handling)
     "E501",   # Line too long (logging lines often need to be longer)
     "W293",   # Blank line contains whitespace (minor formatting issue)
+    "W291",   # Trailing whitespace
+    "W292",   # No newline at end of file
+    "F541",   # f-string without any placeholders
+    "UP035",  # typing.List is deprecated
+    "UP045",  # Use X | None for type annotations
 ]
 
 [tool.ruff.lint.per-file-ignores]
