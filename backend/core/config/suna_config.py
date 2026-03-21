@@ -1,5 +1,9 @@
 from core.prompts.core_prompt import CORE_SYSTEM_PROMPT
-from core.agents.embodied_carbon_prompt import EMBODIED_CARBON_ANALYST_PROMPT
+# from core.agents.embodied_carbon_prompt import EMBODIED_CARBON_ANALYST_PROMPT  # Temporarily disabled - WIP
+
+# Placeholder for WIP embodied carbon analyst prompt
+EMBODIED_CARBON_ANALYST_PROMPT = """You are an Embodied Carbon Analyst specializing in BIM/IFC model analysis.
+You use Thai TGO emission factors, EN 15978 lifecycle accounting (A1–D), and TREES green building certification benchmarks."""
 
 SUNA_CONFIG = {
     "name": "Carbon BIM",

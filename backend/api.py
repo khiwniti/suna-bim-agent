@@ -507,10 +507,10 @@ api_router.include_router(stateless_admin_router)
 api_router.include_router(auth_api.router)
 
 from core.bim.api import router as bim_router
-from core.bim.carbon_agent_api import router as carbon_agent_router
+# from core.bim.carbon_agent_api import router as carbon_agent_router  # Temporarily disabled - WIP
 
 api_router.include_router(bim_router)
-api_router.include_router(carbon_agent_router)
+# api_router.include_router(carbon_agent_router)  # Temporarily disabled - WIP
 
 
 @api_router.get(
