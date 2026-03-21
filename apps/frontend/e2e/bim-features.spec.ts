@@ -122,10 +122,8 @@ async function mockChatAPI(page: Page, sseBody: string) {
 // 1. BIM Upload API
 // ---------------------------------------------------------------------------
 
-	test.describe('BIM Upload API', () => {
-	// TODO: Implement /api/bim/upload and /api/bim/health routes
-	// These tests document the expected API contract for BIM file uploads
-	test.skip('POST /api/bim/upload rejects non-IFC files with 400', async ({ request }) => {
+test.describe('BIM Upload API', () => {
+	test('POST /api/bim/upload rejects non-IFC files with 400', async ({ request }) => {
 		const res = await request.post('/api/bim/upload', {
 			multipart: { file: { name: 'model.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF fake') } },
 		});
@@ -134,7 +132,7 @@ async function mockChatAPI(page: Page, sseBody: string) {
 		expect(body.detail).toMatch(/IFC/i);
 	});
 
-	test.skip('POST /api/bim/upload accepts minimal IFC header', async ({ request }) => {
+	test('POST /api/bim/upload accepts minimal IFC header', async ({ request }) => {
 		const ifc = Buffer.from('ISO-10303-21;\nHEADER;\nDATA;\nENDSEC;\nEND-ISO-10303-21;\n');
 		const res = await request.post('/api/bim/upload', {
 			multipart: { file: { name: 'building.ifc', mimeType: 'application/octet-stream', buffer: ifc } },
@@ -149,13 +147,13 @@ async function mockChatAPI(page: Page, sseBody: string) {
 		}
 	});
 
-	test.skip('GET /api/bim/health returns status ok or degraded', async ({ request }) => {
+	test('GET /api/bim/health returns status ok or degraded', async ({ request }) => {
 		const res = await request.get('/api/bim/health');
 		expect(res.status()).toBe(200);
-	const body = await res.json();
+		const body = await res.json();
 		expect(body.status).toMatch(/ok|degraded/);
 	});
-	});
+});
 
 	// ---------------------------------------------------------------------------
 	// 2. CarbonResultView
